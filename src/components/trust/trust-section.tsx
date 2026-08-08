@@ -123,17 +123,14 @@ export function TrustSection() {
   const close = useCallback(() => setDoc(null), []);
 
   const trademarkDoc: Doc = {
-    src: certTrademark,
     alt: "Свидетельство Роспатента на товарный знак ALMAFORT",
   };
   const expertDocs: Doc[] = [
     {
-      src: cert3d,
       alt: "Сертификат по промышленной 3D-печати",
       caption: "АО «Центр аддитивных технологий»",
     },
     {
-      src: certReverse,
       alt: "Сертификат по реверс-инжинирингу",
       caption: "АО «Центр аддитивных технологий»",
     },
