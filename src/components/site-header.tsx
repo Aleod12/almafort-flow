@@ -25,7 +25,7 @@ export function SiteHeader() {
       className="sticky top-0 z-50 bg-background"
       style={elevated ? { boxShadow: "var(--shadow-header)" } : undefined}
     >
-      <div className="mx-auto grid max-w-[1440px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 lg:flex lg:items-center lg:justify-between lg:gap-12 lg:px-10">
+      <div className="mx-auto grid max-w-[1440px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 lg:flex lg:items-center lg:justify-between lg:gap-6 lg:px-10 xl:gap-10">
         <a href="/" className="flex min-w-0 shrink-0 items-center">
           <span className="text-xl font-extrabold tracking-tight text-primary">ALMAFORT</span>
         </a>
