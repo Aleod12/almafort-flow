@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { Check, MapPin, Search, Truck, X, Zap } from "lucide-react";
-import certTrademark from "@/assets/cert-trademark.jpg";
-import cert3d from "@/assets/cert-3dprint.jpg";
-import certReverse from "@/assets/cert-reverse.jpg";
+import { Check, FileText, MapPin, Search, Truck, X, Zap } from "lucide-react";
 
-type Doc = { src: string; alt: string; caption?: string };
+type Doc = { alt: string; caption?: string };
 
 function Lightbox({ doc, onClose }: { doc: Doc | null; onClose: () => void }) {
   useEffect(() => {
@@ -31,12 +28,16 @@ function Lightbox({ doc, onClose }: { doc: Doc | null; onClose: () => void }) {
       >
         <X className="size-6" />
       </button>
-      <img
-        src={doc.src}
-        alt={doc.alt}
+      <div
         onClick={(e) => e.stopPropagation()}
-        className="max-h-[90vh] w-auto max-w-full rounded-md bg-background object-contain shadow-2xl"
-      />
+        className="flex aspect-[1/1.414] h-[85vh] max-w-full flex-col items-center justify-center gap-3 rounded-md bg-placeholder p-8 text-center shadow-2xl"
+      >
+        <FileText className="size-10 text-placeholder-foreground" strokeWidth={1.25} />
+        <p className="text-sm font-medium text-muted-foreground">{doc.alt}</p>
+        <p className="text-xs text-placeholder-foreground">
+          Скан документа будет добавлен
+        </p>
+      </div>
     </div>
   );
 }
@@ -47,17 +48,15 @@ function DocThumb({ doc, onOpen }: { doc: Doc; onOpen: (d: Doc) => void }) {
       <button
         type="button"
         onClick={() => onOpen(doc)}
-        className="group relative block w-full overflow-hidden rounded-lg bg-background shadow-[0_10px_30px_oklch(0_0_0/0.08)] transition-shadow hover:shadow-[0_20px_40px_oklch(0_0_0/0.12)]"
+        className="group relative block w-full cursor-zoom-in overflow-hidden rounded-lg bg-placeholder shadow-[0_10px_30px_oklch(0_0_0/0.08)] transition-shadow hover:shadow-[0_20px_40px_oklch(0_0_0/0.12)]"
       >
-        <img
-          src={doc.src}
-          alt={doc.alt}
-          loading="lazy"
-          width={1024}
-          height={1408}
-          className="block w-full object-contain"
-        />
-        <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-foreground/0 opacity-0 transition-all duration-300 group-hover:bg-foreground/20 group-hover:opacity-100">
+        <span className="flex aspect-[1/1.414] w-full flex-col items-center justify-center gap-3 p-6 text-center">
+          <FileText className="size-9 text-placeholder-foreground" strokeWidth={1.25} />
+          <span className="text-xs leading-[1.5] text-placeholder-foreground">
+            {doc.alt}
+          </span>
+        </span>
+        <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-foreground/0 opacity-0 transition-all duration-300 group-hover:bg-foreground/10 group-hover:opacity-100">
           <span className="rounded-full bg-background p-3 shadow-lg">
             <Search className="size-5 text-foreground" strokeWidth={1.75} />
           </span>
@@ -71,6 +70,7 @@ function DocThumb({ doc, onOpen }: { doc: Doc; onOpen: (d: Doc) => void }) {
     </figure>
   );
 }
+
 
 const DELIVERY = [
   {
