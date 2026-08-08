@@ -181,7 +181,7 @@ export function EngineeringQuiz() {
                 }}
                 onClick={() => inputRef.current?.click()}
                 className={`mt-4 flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed px-6 py-10 text-center transition-colors ${
-                  dragging ? "border-primary bg-[color-mix(in_oklab,var(--primary)_4%,transparent)]" : "border-border bg-muted/40"
+                  dragging ? "border-primary bg-[color-mix(in_oklab,var(--primary)_4%,transparent)]" : "border-dashed-foreground bg-surface"
                 }`}
               >
                 <FileUp className="size-6 text-muted-foreground" strokeWidth={1.5} />
