@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import type { Product } from "@/data/catalog";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { formatMoney } from "@/lib/pricing";
@@ -17,7 +18,7 @@ import {
   slugify,
 } from "@/lib/seo";
 
-type Search = { page?: number; sort?: string; utm_source?: string };
+type Search = { page?: number | undefined; sort?: string | undefined; utm_source?: string | undefined };
 
 export const Route = createFileRoute("/catalog/$")({
   validateSearch: (search: Record<string, unknown>): Search => ({
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/catalog/$")({
     sort: typeof search['sort'] === "string" ? search['sort'] : undefined,
     utm_source: typeof search['utm_source'] === "string" ? search['utm_source'] : undefined,
   }),
-  loader: ({ params }) => {
+  loader: ({ params }): { facets: ReturnType<typeof parseFacetPath>; items: Product[] } => {
     const segments = (params._splat ?? "").split("/").filter(Boolean);
     const facets = parseFacetPath(segments);
     if (!facets.valid) throw notFound();
