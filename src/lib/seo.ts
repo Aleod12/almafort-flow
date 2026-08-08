@@ -128,8 +128,9 @@ export function facetTitle(f: FacetPath): string {
   const head = [f.category?.label, f.shape?.label, f.size?.label, f.color && `(${f.color.label})`]
     .filter(Boolean)
     .join(" ");
-  const full = `${head} пластиковая оптом от производителя — ALMAFORT`;
+  const full = `${head} — купить оптом от производителя | ALMAFORT`;
   return full.length <= 70 ? full : `${head} оптом от производителя — ALMAFORT`.slice(0, 70);
+
 }
 
 export function facetH1(f: FacetPath): string {
