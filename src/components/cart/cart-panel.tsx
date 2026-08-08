@@ -9,6 +9,7 @@ import { CityInput } from "@/components/cart/city-input";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { saveLastOrder } from "@/lib/last-order";
 import { ConsentCheckbox } from "@/components/consent-checkbox";
+import { ProductThumb } from "@/components/catalog/product-thumb";
 import {
   cartTotals,
   deliveryCost,
@@ -278,7 +279,14 @@ export function CartPanel() {
               key={l.sku}
               className="grid grid-cols-[minmax(0,1fr)_110px_120px_120px_44px] items-center gap-3 border-b border-border px-5 py-3 last:border-b-0"
             >
-              <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="block w-10 shrink-0">
+                  <ProductThumb
+                    src={PRODUCTS.find((p) => p.sku === l.sku)?.image_url ?? null}
+                    alt={l.name}
+                  />
+                </span>
+                <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-foreground">
                   {l.sku} — {l.name}
                 </p>
@@ -287,6 +295,7 @@ export function CartPanel() {
                     из вашей сметы: {l.originalName}
                   </p>
                 )}
+                </div>
               </div>
               <input
                 inputMode="numeric"
