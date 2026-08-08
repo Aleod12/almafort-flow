@@ -6,7 +6,7 @@ export type CartLine = {
   name: string;
   quantity: number;
   /** Как строка называлась в исходной спецификации клиента */
-  originalName?: string;
+  originalName?: string | undefined;
 };
 
 export type AnalogSuggestion = {
