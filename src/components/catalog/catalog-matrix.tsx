@@ -13,7 +13,11 @@ type Props = {
   onAdd: (p: Product, qty: number) => void;
 };
 
-const GRID = "grid-cols-[40px_60px_3fr_1.2fr_1.2fr_1fr_1fr_1fr_120px_150px]";
+// Общая база ячейки: границы и hover-подсветка живут на ячейках,
+// т.к. сама строка — display: contents и не рисует бокс.
+const CELL =
+  "catalog-cell border-b border-border transition-colors duration-200 group-hover/row:bg-surface";
+
 
 function StockCell({ p }: { p: Product }) {
   const color =
