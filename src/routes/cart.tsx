@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/site-header";
 import { CartPanel } from "@/components/cart/cart-panel";
 import { ParsingSkeleton, SpecUpload } from "@/components/cart/spec-upload";
 import { useCart } from "@/store/cart-store";
+import { BackLink } from "@/components/back-link";
 
 export const Route = createFileRoute("/cart")({
   head: () => ({
@@ -35,6 +36,7 @@ function CartPage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main className="mx-auto max-w-[1100px] px-5 pb-24 pt-10 lg:px-10">
+        <BackLink fallback="/catalog" label="Назад в каталог" className="mb-6" />
         <header className="mb-8">
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground lg:text-[40px]">
             Спецификация → счёт

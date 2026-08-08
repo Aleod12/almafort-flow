@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { Clock, MapPin, Phone, UserRound, Menu } from "lucide-react";
 
 const NAV = [
-  { label: "Каталог", href: "#catalog" },
-  { label: "Производство", href: "#production" },
-  { label: "Реверс-инжиниринг", href: "#reverse" },
-  { label: "Доставка", href: "#delivery" },
-  { label: "Контакты", href: "#contacts" },
+  { label: "Каталог", href: "/catalog" },
+  { label: "Производство", href: "/#services" },
+  { label: "Реверс-инжиниринг", href: "/#reverse" },
+  { label: "Доставка", href: "/#delivery" },
+  { label: "Контакты", href: "/#contacts" },
 ];
+
 
 export function SiteHeader() {
   const [elevated, setElevated] = useState(false);
@@ -49,7 +50,7 @@ export function SiteHeader() {
           </span>
           <span className="hidden items-center gap-2 whitespace-nowrap text-[13px] leading-none text-muted-foreground 2xl:flex">
             <MapPin className="size-4 shrink-0" strokeWidth={1.5} />
-            Нижний проезд, 15/1
+            ул. Чкалова, 59
           </span>
           <a
             href="tel:+79029229734"
@@ -94,13 +95,18 @@ export function SiteHeader() {
         <div className="border-t border-border px-5 py-4 lg:hidden">
           <nav className="flex flex-col gap-3">
             {NAV.map((item) => (
-              <a key={item.label} href={item.href} className="text-sm font-medium text-foreground">
+              <a
+                key={item.label}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="text-sm font-medium text-foreground"
+              >
                 {item.label}
               </a>
             ))}
           </nav>
           <p className="mt-4 text-xs text-muted-foreground">
-            Пн-Пт 08:00–19:00 (МСК+4) · Нижний проезд, 15/1
+            Пн-Пт 08:00–19:00 (МСК+4) · г. Дивногорск, ул. Чкалова, 59
           </p>
         </div>
       )}

@@ -8,6 +8,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { CityInput } from "@/components/cart/city-input";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { saveLastOrder } from "@/lib/last-order";
+import { ConsentCheckbox } from "@/components/consent-checkbox";
 import {
   cartTotals,
   deliveryCost,
@@ -109,7 +110,10 @@ export function CartPanel() {
       city.trim().length >= 2 &&
       weight > 0 &&
       (payloadKey !== debouncedKey || !quoteFor(carrier)));
-  const ctaDisabled = !lines.length || pendingQuote;
+  const [consent, setConsent] = useState(false);
+  const [triedSubmit, setTriedSubmit] = useState(false);
+  const cartReady = Boolean(lines.length) && !pendingQuote;
+  const ctaDisabled = !cartReady || !consent;
 
   const [form, setForm] = useState({ name: "", phone: "", email: "", company: "", comment: "" });
   const [submitting, setSubmitting] = useState(false);
@@ -464,9 +468,21 @@ export function CartPanel() {
               {money(total)} ₽
             </span>
           </div>
+          <div className="mt-5">
+            <ConsentCheckbox
+              id="consent-cart"
+              checked={consent}
+              onChange={setConsent}
+              invalid={triedSubmit && !consent}
+            />
+          </div>
+
           <button
             type="button"
-            onClick={submitOrder}
+            onClick={() => {
+              setTriedSubmit(true);
+              void submitOrder();
+            }}
             disabled={ctaDisabled || submitting}
             className="mt-5 flex w-full items-center justify-center gap-2 rounded-sm bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
           >
@@ -476,7 +492,7 @@ export function CartPanel() {
           <button
             type="button"
             onClick={download}
-            disabled={ctaDisabled}
+            disabled={!cartReady}
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-sm border border-[#D1D5DB] px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
           >
             <FileDown className="size-4" strokeWidth={2} />

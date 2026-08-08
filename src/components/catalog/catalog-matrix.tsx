@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Box, Check, Loader2, ShoppingCart } from "lucide-react";
+import { Box, Check, Loader2, MessageSquareQuote, ShoppingCart } from "lucide-react";
 import { PRODUCTS, tierOf, type Product } from "@/data/catalog";
 import { formatMoney as money, lineTotal } from "@/lib/pricing";
 import { searchCatalog } from "@/lib/search-index";
 import { toast } from "sonner";
+import { QuoteRequestModal } from "@/components/catalog/quote-request-modal";
 
 type Props = {
   query: string;
@@ -47,9 +48,20 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
   const [qty, setQty] = useState(0);
   const [state, setState] = useState<"idle" | "loading" | "done">("idle");
   const [inCart, setInCart] = useState(0);
+  const [quote, setQuote] = useState(false);
   const tier = tierOf(qty);
+  // Пустая/нулевая цена из фида: цифры не рендерим, показываем бейдж и уводим в запрос.
+  const onRequest = !Number.isFinite(p.price) || p.price <= 0;
 
   const priceCell = (value: number, level: 0 | 1 | 2) => {
+    if (onRequest)
+      return (
+        <div className="px-3 py-3 text-right">
+          <span className="inline-block whitespace-nowrap rounded-sm bg-[#F3F4F6] px-2 py-1 text-[11px] font-semibold text-muted-foreground">
+            Цена по запросу
+          </span>
+        </div>
+      );
     const active = tier === level && qty > 0;
     const struck = qty > 0 && level < tier;
     return (
@@ -68,6 +80,10 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
   };
 
   const add = async () => {
+    if (onRequest) {
+      setQuote(true);
+      return;
+    }
     if (qty <= 0) {
       toast.error("Укажите количество");
       return;
@@ -91,9 +107,10 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
     }
   };
 
-  const hasSum = qty > 0 && state !== "done";
-  const label =
-    state === "done"
+  const hasSum = !onRequest && qty > 0 && state !== "done";
+  const label = onRequest
+    ? "Запросить расчет"
+    : state === "done"
       ? "Добавлено"
       : hasSum
         ? `${money(lineTotal(p, qty))} ₽`
@@ -139,9 +156,10 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
             const digits = e.target.value.replace(/[^0-9]/g, "").slice(0, 7);
             setQty(digits ? Number.parseInt(digits, 10) : 0);
           }}
-          placeholder="0"
+          placeholder={onRequest ? "—" : "0"}
+          disabled={onRequest}
           aria-label={`Количество ${p.sku}`}
-          className="w-full rounded-sm border border-[#D1D5DB] bg-card px-2 py-1.5 text-right text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus:border-foreground"
+          className="w-full rounded-sm border border-[#D1D5DB] disabled:cursor-not-allowed disabled:bg-[#F3F4F6] bg-card px-2 py-1.5 text-right text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus:border-foreground"
         />
       </div>
       <div className="px-3 py-3">
@@ -149,7 +167,7 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
           type="button"
           onClick={() => void add()}
           disabled={state === "loading"}
-          aria-label="Добавить в корзину"
+          aria-label={onRequest ? "Запросить индивидуальный расчет" : "Добавить в корзину"}
           className={`group flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-sm px-3 py-2 text-xs font-semibold tabular-nums transition-all duration-200 disabled:cursor-not-allowed ${
             state === "done"
               ? "bg-[#10B981] text-white"
@@ -163,12 +181,17 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
             <Loader2 className="size-4 animate-spin" strokeWidth={1.75} />
           ) : state === "done" ? (
             <Check className="size-4" strokeWidth={2} />
+          ) : onRequest ? (
+            <MessageSquareQuote className="size-4" strokeWidth={1.75} />
           ) : (
             <ShoppingCart className="size-4" strokeWidth={1.75} />
           )}
           {state === "loading" ? null : label}
         </button>
       </div>
+      {quote && (
+        <QuoteRequestModal sku={p.sku} name={p.name} onClose={() => setQuote(false)} />
+      )}
     </div>
   );
 }
