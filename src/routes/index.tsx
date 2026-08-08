@@ -64,7 +64,7 @@ function Index() {
             <div className="mt-10 lg:max-w-[650px]">
               <SpecDropzone />
               <a
-                href="#catalog"
+                href="/catalog"
                 className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary hover:underline hover:underline-offset-4"
               >
                 Или перейти в каталог серийной продукции
