@@ -153,7 +153,7 @@ export function CartPanel() {
             const { unit, sum } = linePrice(l.sku, l.quantity);
             return { sku: l.sku, name: l.name, quantity: l.quantity, unit, sum };
           }),
-          invoicePdfBase64,
+          ...(invoicePdfBase64 ? { invoicePdfBase64 } : {}),
         }),
       });
       const json = await res.json();
