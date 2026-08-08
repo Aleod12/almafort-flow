@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Check, Loader2, MessageSquareQuote, ShoppingCart } from "lucide-react";
 import { PRODUCTS, isOnRequest, tierOf, type Product } from "@/data/catalog";
-import { formatMoney as money, lineTotal } from "@/lib/pricing";
+import { formatMoney as money, formatPrice, lineTotal } from "@/lib/pricing";
 import { searchCatalog } from "@/lib/search-index";
 import { toast } from "sonner";
 import { QuoteRequestModal } from "@/components/catalog/quote-request-modal";
@@ -83,7 +83,7 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
               : "text-foreground"
         }`}
       >
-        {money(value)} ₽
+        {formatPrice(value)}
       </div>
     );
   };
@@ -123,7 +123,7 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
     : state === "done"
       ? "Добавлено"
       : hasSum
-        ? `${money(lineTotal(p, qty))} ₽`
+        ? formatPrice(lineTotal(p, qty))
         : inCart > 0
           ? `В корзине · ${inCart.toLocaleString("ru-RU")} шт`
           : null;

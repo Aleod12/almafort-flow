@@ -3,7 +3,7 @@ import { Loader2, Sparkles, Calculator, FileText, ShieldCheck, Wrench } from "lu
 import { toast } from "sonner";
 import { useCart } from "@/store/cart-store";
 import { PRODUCTS, isOnRequest, tierOf } from "@/data/catalog";
-import { unitPriceOf, lineTotal, formatMoney } from "@/lib/pricing";
+import { unitPriceOf, lineTotal, formatMoney, formatPrice } from "@/lib/pricing";
 import { ProductThumb } from "@/components/catalog/product-thumb";
 
 type SolutionItem = {
@@ -96,7 +96,7 @@ export function AiConfigurator() {
     const payable = rows.filter((r) => !r.on_request);
     if (payable.length === 0) return;
     for (const r of payable) addLine(r.sku, r.quantity);
-    toast.success(`Спецификация в корзине: ${payable.length} поз. на ${formatMoney(total)} ₽`);
+    toast.success(`Спецификация в корзине: ${payable.length} поз. на ${formatPrice(total)}`);
   };
 
   const scrollToQuiz = () => {
@@ -227,7 +227,7 @@ export function AiConfigurator() {
                     ) : (
                       <>
                         <span className="text-sm tabular-nums text-foreground">
-                          {formatMoney(r.unit_price)} ₽/шт
+                          {formatPrice(r.unit_price)}/шт
                         </span>
                         {r.tier > 0 && (
                           <span className="ml-2 inline-block rounded-sm bg-[#E8F5E9] px-2 py-0.5 text-[11px] font-bold text-[#1B5E20]">
@@ -238,7 +238,7 @@ export function AiConfigurator() {
                     )}
                   </div>
                   <div className="col-start-2 text-sm font-bold tabular-nums text-foreground lg:col-start-5 lg:text-right">
-                    {r.on_request ? "—" : `${formatMoney(r.total_price)} ₽`}
+                    {r.on_request ? "—" : formatPrice(r.total_price)}
                   </div>
                 </li>
               ))}
@@ -246,7 +246,7 @@ export function AiConfigurator() {
 
             {!isService && (
               <p className="mt-4 text-right text-sm font-bold tabular-nums text-foreground">
-                Итого: {formatMoney(total)} ₽
+                Итого: {formatPrice(total)}
               </p>
             )}
           </div>
