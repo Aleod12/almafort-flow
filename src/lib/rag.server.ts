@@ -92,6 +92,10 @@ const SYSTEM_PROMPT = `Ты — старший инженер-проектиро
 6. safety_margin_factor — числовой коэффициент запаса прочности (предел / фактическая нагрузка на точку), либо null, если расчёт нагрузки не применим.
 7. engineering_logic — сжатый текст расчёта и обоснования на русском: количество точек, нагрузка на точку, предел, запас прочности.
 
+ПРИМЕР МАРШРУТИЗАЦИИ НА УСЛУГИ:
+Запрос: «Опереть трубопровод Ø108 мм на кровлю без пробивки гидроизоляции».
+Верный ответ: recommended_items = [{"sku":"SRV-RE3D","quantity":1},{"sku":"SRV-INJ","quantity":1}], is_service = true, safety_margin_factor = null, engineering_logic = «В стандартной номенклатуре нет опор под Ø108 мм. Инженерный отдел ALMAFORT предлагает спроектировать и отлить специализированные кровельные опоры из атмосферостойкого полимера под вашу задачу».
+
 Отвечай строго в заданной JSON-структуре, без markdown-разметки.`;
 
 const SCHEMA = {
@@ -264,8 +268,15 @@ export async function solveConfiguration(query: string): Promise<{
     is_service?: boolean;
   };
 
+  const wantsSandwich = /сэндвич|сендвич|sandwich|панел/i.test(query);
+  const proposed = (parsed.recommended_items ?? []).filter((i) =>
+    // Жёсткий предохранитель от галлюцинаций: КРЕПСС — только для сэндвич-панелей.
+    String(i.sku ?? "") === "KREPSS-PRO" ? wantsSandwich : true,
+  );
+  const routedToService = proposed.length === 0;
+
   const items = priceItems(
-    (parsed.recommended_items ?? []).map((i) => ({
+    (routedToService ? [{ sku: "SRV-RE3D", quantity: 1 }, { sku: "SRV-INJ", quantity: 1 }] : proposed).map((i) => ({
       sku: String(i.sku ?? ""),
       quantity: Number(i.quantity ?? 1),
     })),
@@ -280,9 +291,11 @@ export async function solveConfiguration(query: string): Promise<{
   return {
     solution: {
       recommended_items: items,
-      engineering_logic: String(parsed.engineering_logic ?? ""),
+      engineering_logic: routedToService
+        ? "В стандартной номенклатуре ALMAFORT нет готового решения под эту задачу. Инженерный отдел предлагает спроектировать и изготовить деталь под ваши условия: реверс-инжиниринг узла (SRV-RE3D) и последующее литьё из атмосферостойкого полимера (SRV-INJ). Стоимость — по договорённости после согласования ТЗ."
+        : String(parsed.engineering_logic ?? ""),
       safety_margin_factor: Number.isFinite(margin) && margin > 0 ? Math.round(margin * 100) / 100 : null,
-      is_service: Boolean(parsed.is_service) || items.every((i) => i.on_request),
+      is_service: routedToService || Boolean(parsed.is_service) || items.every((i) => i.on_request),
       total: Math.round(items.reduce((s, i) => s + i.total_price, 0) * 100) / 100,
     },
     sources: chunks.map((c) => ({ id: c.id, title: c.title })),
