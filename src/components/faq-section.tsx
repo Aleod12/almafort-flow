@@ -40,7 +40,7 @@ export function FaqSection() {
           Частые вопросы и гарантии
         </h2>
 
-        <div className="mt-12 border-t border-border">
+        <div className="mx-auto mt-12 max-w-[800px] border-t border-border text-left">
           {ITEMS.map((item, i) => {
             const isOpen = open === i;
             return (
@@ -49,7 +49,7 @@ export function FaqSection() {
                   type="button"
                   aria-expanded={isOpen}
                   onClick={() => setOpen(isOpen ? null : i)}
-                  className="group flex w-full items-start justify-between gap-6 py-5 text-left"
+                  className="group flex w-full cursor-pointer items-start justify-between gap-6 py-5 text-left"
                 >
                   <span
                     className={`text-[18px] font-semibold leading-snug transition-colors ${
@@ -58,6 +58,7 @@ export function FaqSection() {
                   >
                     {item.q}
                   </span>
+
                   <Plus
                     className={`mt-0.5 size-5 shrink-0 transition-all duration-300 ${
                       isOpen

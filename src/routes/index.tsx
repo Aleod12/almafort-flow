@@ -18,7 +18,7 @@ const ORG_JSONLD = {
   url: "https://almafort.ru/",
   telephone: "+7 (902) 922-97-34",
   email: "sales@almafort.ru",
-  geo: { "@type": "GeoCoordinates", latitude: 55.9578, longitude: 92.3711 },
+  geo: { "@type": "GeoCoordinates", latitude: 55.96165, longitude: 92.333 },
   founder: { "@type": "Person", name: "Сазонов Евгений Олегович" },
   employee: {
     "@type": "Person",
@@ -118,11 +118,15 @@ function Index() {
               <SpecDropzone />
               <a
                 href="/catalog"
-                className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary hover:underline hover:underline-offset-4"
+                className="group mt-6 inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-primary hover:underline hover:decoration-primary hover:underline-offset-4"
               >
                 Или перейти в каталог серийной продукции
-                <ArrowRight className="size-4" strokeWidth={1.75} />
+                <ArrowRight
+                  className="size-4 transition-transform duration-200 group-hover:translate-x-1"
+                  strokeWidth={1.75}
+                />
               </a>
+
             </div>
 
             <ul className="no-scrollbar -mx-5 mt-12 flex snap-x gap-8 overflow-x-auto px-5 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-8 sm:overflow-visible sm:px-0 lg:flex lg:gap-10">

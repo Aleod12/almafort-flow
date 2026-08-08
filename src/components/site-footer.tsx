@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { MapPin, Send, MessageCircle, X } from "lucide-react";
 
-const LAT = 55.9578;
-const LON = 92.3711;
+const LAT = 55.96165;
+const LON = 92.333;
+
 
 /** Обфускация e-mail: адрес не встречается в исходном HTML целиком. */
 const EMAIL_USER = ["sa", "les"].join("");
@@ -35,7 +36,7 @@ function LazyMap() {
         <iframe
           title="ALMAFORT на карте — Дивногорск, Нижний проезд, 15/1"
           loading="lazy"
-          src={`https://yandex.ru/map-widget/v1/?ll=${LON}%2C${LAT}&z=16&l=map&pt=${LON},${LAT},pm2rdm`}
+          src={`https://yandex.ru/map-widget/v1/?ll=${LON}%2C${LAT}&z=16&l=map`}
           className="h-full w-full border-0 opacity-90 [filter:invert(1)_hue-rotate(180deg)_saturate(0.6)_brightness(0.95)]"
         />
 
@@ -44,25 +45,19 @@ function LazyMap() {
           Карта загрузится при прокрутке
         </div>
       )}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full">
+      <div className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-full flex-col items-center">
+        <span className="mb-1 rounded-[3px] bg-[#121214] px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-lg">
+          ALMAFORT
+        </span>
         <svg width="34" height="46" viewBox="0 0 34 46" fill="none" aria-hidden="true">
           <path
             d="M17 0C7.6 0 0 7.6 0 17c0 12 17 29 17 29s17-17 17-29C34 7.6 26.4 0 17 0z"
             fill="#E52421"
           />
-          <text
-            x="17"
-            y="22"
-            textAnchor="middle"
-            fontSize="10"
-            fontWeight="800"
-            fill="#FFFFFF"
-            fontFamily="Inter, sans-serif"
-          >
-            AF
-          </text>
+          <circle cx="17" cy="17" r="5.5" fill="#FFFFFF" />
         </svg>
       </div>
+
     </div>
   );
 }

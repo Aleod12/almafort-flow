@@ -27,17 +27,18 @@ export function PlatformTerminal() {
         Как работает платформа
       </p>
 
-      <ol className="relative mt-7 space-y-7 pl-6">
+      <ol className="relative mt-7 space-y-7 pl-8">
         <span
           aria-hidden
-          className="absolute left-[4px] top-2 bottom-2 w-px bg-border"
+          className="absolute bottom-3 left-[5px] top-3 w-[2px] rounded-full bg-[#E5E7EB]"
         />
         {STEPS.map((step) => (
           <li key={step.title} className="relative">
             <span
               aria-hidden
-              className="absolute -left-[26px] top-1.5 size-2.5 rounded-full bg-primary ring-4 ring-card"
+              className="absolute -left-[32px] top-1.5 size-3 rounded-full bg-primary ring-4 ring-card"
             />
+
             <h3 className="text-[18px] font-semibold leading-tight text-foreground">
               {step.title}
             </h3>
