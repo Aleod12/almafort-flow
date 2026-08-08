@@ -247,10 +247,12 @@ export function TrustSection() {
         <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 items-start gap-12 px-5 lg:grid-cols-12 lg:gap-16 lg:px-10">
           <div className="lg:col-span-5">
             <div className="grid grid-cols-2 gap-6">
-              {expertDocs.map((d) => (
-                <DocThumb key={d.alt} doc={d} onOpen={open} />
+              {expertDocs.map((d, i) => (
+                <div key={d.alt} className={i === 0 ? "col-span-2" : undefined}>
+                  <DocThumb doc={d} onOpen={open} />
+                </div>
               ))}
-            </div>
+
           </div>
 
           <div className="text-left lg:col-span-7">
