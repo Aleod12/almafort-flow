@@ -85,7 +85,7 @@ function SuccessPage() {
               <dt className="text-muted-foreground">Доставка</dt>
               <dd className="text-foreground">
                 {order.carrier === "pickup"
-                  ? "Самовывоз, Дивногорск"
+                  ? "Самовывоз, Дивногорск, Нижний проезд 15/1"
                   : `${order.carrier === "cdek" ? "СДЭК" : "Деловые Линии"}${order.city ? `, ${order.city}` : ""}`}
               </dd>
             </div>

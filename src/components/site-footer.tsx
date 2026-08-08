@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { MapPin, Send, MessageCircle, X } from "lucide-react";
 import { COMPANY, companyEmail } from "@/lib/company";
 
-const LAT = 55.96165;
-const LON = 92.333;
+const LAT = COMPANY.lat;
+const LON = COMPANY.lon;
 
 
 /** Обфускация e-mail: адрес не встречается в исходном HTML целиком. */
@@ -33,9 +33,11 @@ function LazyMap() {
     <div ref={ref} className="relative h-[240px] max-h-[240px] w-full overflow-hidden bg-[#1B1B1F]">
       {visible ? (
         <iframe
-          title="ALMAFORT на карте — Дивногорск, ул. Чкалова, 59"
+          title="ALMAFORT — производство и склад: Дивногорск, Нижний проезд, 15/1"
           loading="lazy"
-          src={`https://yandex.ru/map-widget/v1/?ll=${LON}%2C${LAT}&z=16&l=map`}
+          src={`https://yandex.ru/map-widget/v1/?ll=${LON}%2C${LAT}&z=17&l=map&text=${encodeURIComponent(
+            "Дивногорск, Нижний проезд, 15/1",
+          )}`}
           className="h-full w-full border-0 opacity-90 [filter:invert(1)_hue-rotate(180deg)_saturate(0.6)_brightness(0.95)]"
         />
 
@@ -118,15 +120,22 @@ export function SiteFooter() {
           </a>
 
           <div className="mt-6 space-y-1 text-sm leading-[1.6] text-[#9CA3AF]">
-            <p className="font-semibold text-white">{COMPANY.legalName}</p>
-            <p className="flex items-start gap-2">
+            <p className="font-semibold text-white">Производство и склад</p>
+            <p className="flex items-start gap-2 text-white">
               <MapPin className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} />
               {COMPANY.addressFull}
             </p>
-            <p className="tabular-nums">
-              ИНН: {COMPANY.inn} <span className="text-[#4B5563]">|</span> ОГРН: {COMPANY.ogrn}
+            <p className="pt-3 text-[12px] leading-[1.5] text-[#9CA3AF]">
+              {COMPANY.legalName}
+              <br />
+              Юридический адрес: {COMPANY.legalStreet}
+              <br />
+              <span className="tabular-nums">
+                ИНН: {COMPANY.inn} <span className="text-[#4B5563]">|</span> ОГРН: {COMPANY.ogrn}
+              </span>
             </p>
           </div>
+
 
           <button
             type="button"

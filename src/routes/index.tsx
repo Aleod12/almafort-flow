@@ -26,7 +26,7 @@ const ORG_JSONLD = {
     { "@type": "PropertyValue", name: "ИНН", value: "244600218744" },
     { "@type": "PropertyValue", name: "ОГРН", value: "307246405700033" },
   ],
-  geo: { "@type": "GeoCoordinates", latitude: 55.96165, longitude: 92.333 },
+  geo: { "@type": "GeoCoordinates", latitude: 55.9496, longitude: 92.3813 },
   founder: { "@type": "Person", name: "Сазонов Евгений Олегович" },
   employee: {
     "@type": "Person",
@@ -35,7 +35,7 @@ const ORG_JSONLD = {
   },
   address: {
     "@type": "PostalAddress",
-    streetAddress: "ул. Чкалова, д. 59, кв. 202",
+    streetAddress: "Нижний проезд, 15/1",
     postalCode: "660910",
     addressLocality: "Дивногорск",
     addressRegion: "Красноярский край",

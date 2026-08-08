@@ -5,7 +5,7 @@ import { linePrice, productBySku, deliveryCost, cartTotals } from "@/store/cart-
 const CARRIER_LABEL: Record<Carrier, string> = {
   cdek: "СДЭК, до терминала",
   dl: "Деловые Линии, до терминала",
-  pickup: "Самовывоз, г. Дивногорск",
+  pickup: "Самовывоз, г. Дивногорск, Нижний проезд 15/1",
 };
 
 const money = (n: number) =>
@@ -135,7 +135,12 @@ export async function generateInvoicePdf({
             stack: [
               { text: "ИП Сазонов Е. О.", bold: true, alignment: "right" },
               {
-                text: "663091, Красноярский край, г. Дивногорск, Нижний проезд, 15/1",
+                text: "Юридический адрес: 660910, Красноярский край, г. Дивногорск, ул. Чкалова, д. 59, кв. 202",
+                alignment: "right",
+                color: "#595959",
+              },
+              {
+                text: "Адрес склада для самовывоза: г. Дивногорск, Нижний проезд 15/1",
                 alignment: "right",
                 color: "#595959",
               },

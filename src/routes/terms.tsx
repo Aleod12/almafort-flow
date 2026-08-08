@@ -65,7 +65,7 @@ function TermsPage() {
           <div>
             <h2 className="text-lg font-bold text-foreground">4. Контакты</h2>
             <p className="mt-2">
-              {COMPANY.addressFull}. Телефон:{" "}
+              {COMPANY.legalAddressFull}. Телефон:{" "}
               <a href={COMPANY.phoneHref} className="text-foreground underline underline-offset-2">
                 {COMPANY.phone}
               </a>

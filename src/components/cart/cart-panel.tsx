@@ -403,7 +403,7 @@ export function CartPanel() {
                       <span className="block text-sm font-semibold">{c.label}</span>
                       <span className="mt-1 block text-xs tabular-nums text-muted-foreground">
                         {c.id === "pickup"
-                          ? "0 ₽ · Красноярск / Дивногорск"
+                          ? "0 ₽ · склад производства"
                           : q
                             ? `${money(q.price)} ₽ · ${q.days} дн. · ${q.toDoor ? "до двери" : "до терминала"}`
                             : "укажите город"}
@@ -415,10 +415,18 @@ export function CartPanel() {
             </div>
           )}
 
+          {carrier === "pickup" && (
+            <p className="mt-3 rounded-sm border-l-2 border-primary bg-[#F8F9FA] px-4 py-3 text-xs leading-[1.6] text-foreground">
+              Забор груза осуществляется со склада производства по адресу: г. Дивногорск, Нижний
+              проезд 15/1. Пн-Пт 08:00–19:00.
+            </p>
+          )}
+
           <p className="mt-3 text-xs text-muted-foreground">
             Партия: {weight.toFixed(1)} кг · {volume.toFixed(3)} м³ · отгрузка с терминалов
             Красноярска{quoteError ? ` · ${quoteError}` : ""}
           </p>
+
         </div>
 
         <div className="rounded-md border border-border p-5">
