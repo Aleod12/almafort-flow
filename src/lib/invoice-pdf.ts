@@ -49,12 +49,27 @@ export async function generateInvoicePdf({
   const pdfMakeModule = await import("pdfmake/build/pdfmake");
   const fontsModule = await import("pdfmake/build/vfs_fonts");
   const pdfMake = ((pdfMakeModule as unknown as { default?: unknown }).default ??
-    pdfMakeModule) as typeof import("pdfmake/build/pdfmake");
-  const vfsSource = (fontsModule as unknown as { default?: unknown }).default ?? fontsModule;
-  const vfs =
-    (vfsSource as { pdfMake?: { vfs?: Record<string, string> }; vfs?: Record<string, string> })
-      .pdfMake?.vfs ?? (vfsSource as { vfs?: Record<string, string> }).vfs;
-  if (vfs) (pdfMake as unknown as { vfs: Record<string, string> }).vfs = vfs;
+    pdfMakeModule) as unknown as {
+    addVirtualFileSystem: (vfs: Record<string, unknown>) => void;
+    addFonts: (fonts: Record<string, unknown>) => void;
+    createPdf: (d: unknown) => { download: (n: string) => void; getBase64: () => Promise<string> };
+  };
+  const vfsSource = ((fontsModule as unknown as { default?: unknown }).default ??
+    fontsModule) as Record<string, unknown> & {
+    pdfMake?: { vfs?: Record<string, unknown> };
+    vfs?: Record<string, unknown>;
+  };
+  // pdfmake 0.3: шрифты регистрируются явно, иначе рендер молча зависает на Roboto.
+  const vfs = vfsSource.pdfMake?.vfs ?? vfsSource.vfs ?? vfsSource;
+  pdfMake.addVirtualFileSystem(vfs as Record<string, unknown>);
+  pdfMake.addFonts({
+    Roboto: {
+      normal: "Roboto-Regular.ttf",
+      bold: "Roboto-Medium.ttf",
+      italics: "Roboto-Italic.ttf",
+      bolditalics: "Roboto-MediumItalic.ttf",
+    },
+  });
 
   const { goods, weight } = cartTotals(lines);
   const delivery =
@@ -200,17 +215,10 @@ export async function generateInvoicePdf({
     },
   };
 
-  const doc = (
-    pdfMake as unknown as {
-      createPdf: (d: unknown) => {
-        download: (name: string) => void;
-        getBase64: (cb: (data: string) => void) => void;
-      };
-    }
-  ).createPdf(docDefinition);
+  const doc = pdfMake.createPdf(docDefinition);
 
   if (output === "base64") {
-    return await new Promise<string>((resolve) => doc.getBase64((data) => resolve(data)));
+    return await doc.getBase64();
   }
   doc.download(`Schet_Almafort_${stamp}.pdf`);
 }
