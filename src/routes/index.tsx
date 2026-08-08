@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowRight, Boxes, FileCheck2, Timer, Truck } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
-import { SpecDropzone } from "@/components/spec-dropzone";
+import { ParsingSkeleton, SpecUpload } from "@/components/cart/spec-upload";
+import { useCart } from "@/store/cart-store";
 import { PlatformTerminal } from "@/components/platform-terminal";
 import { ProductionSection } from "@/components/services/production-section";
 import { TrustSection } from "@/components/trust/trust-section";
@@ -56,6 +57,11 @@ const ORG_JSONLD = {
 };
 
 
+
+function HeroUpload() {
+  const parsing = useCart((s) => s.parsing);
+  return parsing ? <ParsingSkeleton /> : <SpecUpload />;
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -115,7 +121,7 @@ function Index() {
             </p>
 
             <div className="mt-10 lg:max-w-[650px]">
-              <SpecDropzone />
+              <HeroUpload />
               <a
                 href="/catalog"
                 className="group mt-6 inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-primary hover:underline hover:decoration-primary hover:underline-offset-4"
