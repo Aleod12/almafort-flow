@@ -267,12 +267,12 @@ export function EngineeringQuiz() {
             <button
               type="submit"
               disabled={!canSubmit && status !== "success"}
-              className={`mt-8 flex h-14 w-full items-center justify-center rounded-md text-base font-semibold text-primary-foreground transition-colors ${
+              className={`mt-8 flex h-14 w-full items-center justify-center rounded-md text-base font-semibold transition-colors ${
                 status === "success"
-                  ? "bg-[oklch(0.696_0.17_162.5)]"
+                  ? "bg-[oklch(0.696_0.17_162.5)] text-primary-foreground"
                   : canSubmit
-                    ? "bg-primary hover:brightness-95"
-                    : "cursor-not-allowed bg-muted text-muted-foreground"
+                    ? "bg-primary text-primary-foreground hover:brightness-95"
+                    : "cursor-not-allowed bg-disabled text-disabled-foreground"
               }`}
             >
               {status === "loading" ? (
@@ -288,22 +288,15 @@ export function EngineeringQuiz() {
           </div>
         </form>
 
-        <div className="relative min-h-[320px] lg:col-span-5">
-          <img
-            src={productionFloor}
-            alt="Термопластавтомат в цеху ALMAFORT"
-            loading="lazy"
-            width={1024}
-            height={1280}
-            className="absolute inset-0 size-full object-cover"
-          />
-          <div className="absolute inset-x-6 bottom-6 rounded-md bg-background/80 p-6 backdrop-blur-md lg:inset-x-8 lg:bottom-8">
+        <div className="relative min-h-[320px] bg-placeholder lg:col-span-5 lg:rounded-r-lg">
+          <div className="absolute inset-x-6 bottom-6 rounded-md bg-background/85 p-6 backdrop-blur-lg lg:inset-x-8 lg:bottom-8">
             <p className="text-sm leading-[1.6] text-foreground">
               Инженерный отдел проанализирует допуски, геометрию и пришлет детальную смету
               на оснастку и серийное литье в течение 48 часов.
             </p>
           </div>
         </div>
+
       </div>
     </div>
   );
