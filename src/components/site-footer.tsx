@@ -116,7 +116,7 @@ export function SiteFooter() {
           <button
             type="button"
             onClick={() => setModal(true)}
-            className="mt-8 inline-flex items-center justify-center rounded-[4px] border border-white px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#121214]"
+            className="mt-8 inline-flex items-center justify-center rounded-[4px] border border-white px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#FFFFFF] hover:text-[#121214]"
           >
             Написать в WhatsApp / Telegram
           </button>
