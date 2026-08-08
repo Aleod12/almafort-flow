@@ -99,7 +99,7 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
         <button
           type="button"
           onClick={() => onOpenProduct(p)}
-          className="block w-full truncate text-left text-sm font-medium text-[oklch(0.19_0.01_264)] hover:text-primary"
+          className="block w-full cursor-pointer truncate text-left text-sm font-medium text-[oklch(0.19_0.01_264)] transition-colors hover:text-primary"
         >
           {p.name}
         </button>
