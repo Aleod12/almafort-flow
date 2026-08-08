@@ -80,7 +80,7 @@ export function SiteFooter() {
   return (
     <footer id="contacts" className="bg-[#121214] text-white">
       <div className="mx-auto grid max-w-[1440px] grid-cols-1 lg:grid-cols-12">
-        <div className="px-5 py-16 lg:col-span-4 lg:px-10 lg:py-20">
+        <div className="px-[max(5vw,20px)] py-16 lg:col-span-4 lg:py-20 lg:pl-10 lg:pr-12">
           <div className="flex items-center gap-2">
             <span className="text-[26px] font-extrabold uppercase tracking-tight text-white">
               Alma<span className="text-[#E52421]">fort</span>
