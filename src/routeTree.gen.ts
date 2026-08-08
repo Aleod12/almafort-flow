@@ -17,6 +17,7 @@ import { Route as ApiCartRouteImport } from './routes/api/cart'
 import { Route as ApiSearchRouteImport } from './routes/api/search'
 import { Route as ApiShippingCalcRouteImport } from './routes/api/shipping-calc'
 import { Route as ApiCheckoutSubmitRouteImport } from './routes/api/checkout/submit'
+import { Route as ApiConfiguratorSolveRouteImport } from './routes/api/configurator/solve'
 import { Route as ApiDadataCityRouteImport } from './routes/api/dadata/city'
 import { Route as ApiParserUploadRouteImport } from './routes/api/parser/upload'
 import { Route as ApiVisionIdentifyRouteImport } from './routes/api/vision/identify'
@@ -62,6 +63,11 @@ const ApiCheckoutSubmitRoute = ApiCheckoutSubmitRouteImport.update({
   path: '/api/checkout/submit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiConfiguratorSolveRoute = ApiConfiguratorSolveRouteImport.update({
+  id: '/api/configurator/solve',
+  path: '/api/configurator/solve',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDadataCityRoute = ApiDadataCityRouteImport.update({
   id: '/api/dadata/city',
   path: '/api/dadata/city',
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
+  '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
   '/api/vision/identify': typeof ApiVisionIdentifyRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
+  '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
   '/api/vision/identify': typeof ApiVisionIdentifyRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
+  '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
   '/api/vision/identify': typeof ApiVisionIdentifyRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/api/search'
     | '/api/shipping-calc'
     | '/api/checkout/submit'
+    | '/api/configurator/solve'
     | '/api/dadata/city'
     | '/api/parser/upload'
     | '/api/vision/identify'
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/api/search'
     | '/api/shipping-calc'
     | '/api/checkout/submit'
+    | '/api/configurator/solve'
     | '/api/dadata/city'
     | '/api/parser/upload'
     | '/api/vision/identify'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/api/search'
     | '/api/shipping-calc'
     | '/api/checkout/submit'
+    | '/api/configurator/solve'
     | '/api/dadata/city'
     | '/api/parser/upload'
     | '/api/vision/identify'
@@ -180,6 +192,7 @@ export interface RootRouteChildren {
   ApiSearchRoute: typeof ApiSearchRoute
   ApiShippingCalcRoute: typeof ApiShippingCalcRoute
   ApiCheckoutSubmitRoute: typeof ApiCheckoutSubmitRoute
+  ApiConfiguratorSolveRoute: typeof ApiConfiguratorSolveRoute
   ApiDadataCityRoute: typeof ApiDadataCityRoute
   ApiParserUploadRoute: typeof ApiParserUploadRoute
   ApiVisionIdentifyRoute: typeof ApiVisionIdentifyRoute
@@ -244,6 +257,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCheckoutSubmitRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/configurator/solve': {
+      id: '/api/configurator/solve'
+      path: '/api/configurator/solve'
+      fullPath: '/api/configurator/solve'
+      preLoaderRoute: typeof ApiConfiguratorSolveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/dadata/city': {
       id: '/api/dadata/city'
       path: '/api/dadata/city'
@@ -284,6 +304,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSearchRoute: ApiSearchRoute,
   ApiShippingCalcRoute: ApiShippingCalcRoute,
   ApiCheckoutSubmitRoute: ApiCheckoutSubmitRoute,
+  ApiConfiguratorSolveRoute: ApiConfiguratorSolveRoute,
   ApiDadataCityRoute: ApiDadataCityRoute,
   ApiParserUploadRoute: ApiParserUploadRoute,
   ApiVisionIdentifyRoute: ApiVisionIdentifyRoute,
