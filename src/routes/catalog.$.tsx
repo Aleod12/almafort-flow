@@ -1,5 +1,8 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import type { Product } from "@/data/catalog";
+import { useState } from "react";
+import { isOnRequest, type Product } from "@/data/catalog";
+import { BackLink } from "@/components/back-link";
+import { QuoteRequestModal } from "@/components/catalog/quote-request-modal";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { formatMoney } from "@/lib/pricing";
@@ -80,6 +83,49 @@ function FacetNotFound() {
   );
 }
 
+function FacetRow({ p }: { p: Product }) {
+  const [quote, setQuote] = useState(false);
+  const onRequest = isOnRequest(p) || p.is_service;
+
+  return (
+    <li className="flex flex-wrap items-center gap-4 px-5 py-4">
+      <span className="w-[110px] shrink-0 font-mono text-xs text-muted-foreground">{p.sku}</span>
+      <span className="min-w-[220px] flex-1 text-sm font-semibold text-foreground">{p.name}</span>
+      <span className="w-[120px] text-sm tabular-nums text-muted-foreground">{p.dims}</span>
+      <span className="w-[140px] text-sm tabular-nums text-muted-foreground">
+        {p.is_service ? "Под заказ" : p.stock.qty > 0 ? `${p.stock.qty.toLocaleString("ru-RU")} шт` : p.stock.lead}
+      </span>
+      <span className="w-[170px] text-right text-sm font-bold tabular-nums text-foreground">
+        {onRequest ? (
+          <span className="inline-block whitespace-nowrap rounded-sm bg-[#F3F4F6] px-2 py-1 text-[11px] font-semibold text-muted-foreground">
+            По договоренности
+          </span>
+        ) : (
+          formatMoney(p.price)
+        )}
+      </span>
+      {onRequest && (
+        <button
+          type="button"
+          onClick={() => setQuote(true)}
+          className="rounded-[4px] border border-border px-3 py-2 text-xs font-semibold text-foreground transition-colors duration-200 hover:border-primary hover:text-primary"
+        >
+          Запросить расчет
+        </button>
+      )}
+      {quote && <QuoteRequestModal sku={p.sku} name={p.name} onClose={() => setQuote(false)} />}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            productJsonLd(p, `${SITE_URL}/catalog/${slugify(p.category)}/${p.sku.toLowerCase()}`),
+          ),
+        }}
+      />
+    </li>
+  );
+}
+
 function FacetPage() {
   const { facets, items } = Route.useLoaderData() as {
     facets: ReturnType<typeof parseFacetPath>;
@@ -129,6 +175,8 @@ function FacetPage() {
           ))}
         </nav>
 
+        <BackLink fallback="/catalog" className="mb-3" />
+
         <h1 className="text-3xl font-extrabold leading-[1.1] tracking-tight text-foreground lg:text-[40px]">
           {facetH1(facets)}
         </h1>
@@ -153,31 +201,7 @@ function FacetPage() {
         <section className="mt-10" style={{ minHeight: 320 }} aria-label="Позиции раздела">
           <ul className="divide-y divide-border rounded-sm border border-border bg-card">
             {items.map((p) => (
-              <li key={p.sku} className="flex flex-wrap items-center gap-4 px-5 py-4">
-                <span className="w-[110px] shrink-0 font-mono text-xs text-muted-foreground">
-                  {p.sku}
-                </span>
-                <span className="min-w-[220px] flex-1 text-sm font-semibold text-foreground">
-                  {p.name}
-                </span>
-                <span className="w-[120px] text-sm tabular-nums text-muted-foreground">
-                  {p.dims}
-                </span>
-                <span className="w-[140px] text-sm tabular-nums text-muted-foreground">
-                  {p.stock.qty > 0 ? `${p.stock.qty.toLocaleString("ru-RU")} шт` : p.stock.lead}
-                </span>
-                <span className="w-[110px] text-right text-sm font-bold tabular-nums text-foreground">
-                  {formatMoney(p.price)}
-                </span>
-                <script
-                  type="application/ld+json"
-                  dangerouslySetInnerHTML={{
-                    __html: JSON.stringify(
-                      productJsonLd(p, `${SITE_URL}/catalog/${slugify(p.category)}/${p.sku.toLowerCase()}`),
-                    ),
-                  }}
-                />
-              </li>
+              <FacetRow key={p.sku} p={p} />
             ))}
           </ul>
         </section>
