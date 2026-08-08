@@ -20,8 +20,8 @@ import {
   type PendingRow,
 } from "@/store/cart-store";
 
-const money = (n: number) =>
-  n.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+/** Единый валютный формат платформы: «150,00 ₽». */
+const money = (n: number) => formatPrice(n);
 
 const CARRIERS: Array<{ id: Carrier; label: string }> = [
   { id: "cdek", label: "СДЭК" },
@@ -290,7 +290,7 @@ export function CartPanel() {
                 type="button"
                 onClick={() => removeLine(l.sku)}
                 aria-label="Удалить позицию"
-                className="grid size-8 cursor-pointer place-items-center rounded-sm text-muted-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
+                className="grid size-8 cursor-pointer place-items-center rounded-sm text-muted-foreground transition-all duration-200 hover:scale-110 hover:bg-primary hover:text-primary-foreground active:scale-95"
               >
                 <Trash2 className="size-4" strokeWidth={1.75} />
               </button>
@@ -346,9 +346,9 @@ export function CartPanel() {
                       <span className="block text-sm font-semibold">{c.label}</span>
                       <span className="mt-1 block text-xs tabular-nums text-muted-foreground">
                         {c.id === "pickup"
-                          ? "0 ₽ · склад производства"
+                          ? `${formatPrice(0)} · склад производства`
                           : q
-                            ? `${money(q.price)} ₽ · ${q.days} дн. · ${q.toDoor ? "до двери" : "до терминала"}`
+                            ? `${money(q.price)} · ${q.days} дн. · ${q.toDoor ? "до двери" : "до терминала"}`
                             : "укажите город"}
                       </span>
                     </span>
@@ -375,31 +375,41 @@ export function CartPanel() {
         <div className="rounded-md border border-border p-5">
           <p className="text-sm font-semibold text-foreground">Контакты для счёта</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="flex flex-col gap-1">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Имя и фамилия <span className="font-bold text-[#E52421]">*</span>
+              </span>
             <input
               value={form.name}
               onChange={field("name")}
-              placeholder="Имя и фамилия*"
-              className="h-11 rounded-sm border border-[#D1D5DB] px-3 text-sm outline-none transition-colors focus:border-primary"
+              placeholder="Имя и фамилия"
+              className="h-11 rounded-sm border border-[#D1D5DB] px-3.5 py-2.5 text-[13px] leading-[1.3] outline-none transition-colors placeholder:text-[13px] focus:border-primary"
             />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Телефон <span className="font-bold text-[#E52421]">*</span>
+              </span>
             <input
               value={form.phone}
               onChange={field("phone")}
               inputMode="tel"
-              placeholder="Телефон*"
-              className="h-11 rounded-sm border border-[#D1D5DB] px-3 text-sm outline-none transition-colors focus:border-primary"
+              placeholder="+7 (___) ___-__-__"
+              className="h-11 rounded-sm border border-[#D1D5DB] px-3.5 py-2.5 text-[13px] leading-[1.3] outline-none transition-colors placeholder:text-[13px] focus:border-primary"
             />
+            </label>
             <input
               value={form.email}
               onChange={field("email")}
               inputMode="email"
               placeholder="E-mail для счёта"
-              className="h-11 rounded-sm border border-[#D1D5DB] px-3 text-sm outline-none transition-colors focus:border-primary"
+              className="h-11 rounded-sm border border-[#D1D5DB] px-3.5 py-2.5 text-[13px] leading-[1.3] outline-none transition-colors placeholder:text-[13px] focus:border-primary"
             />
             <input
               value={form.company}
               onChange={field("company")}
               placeholder="Компания"
-              className="h-11 rounded-sm border border-[#D1D5DB] px-3 text-sm outline-none transition-colors focus:border-primary"
+              className="h-11 rounded-sm border border-[#D1D5DB] px-3.5 py-2.5 text-[13px] leading-[1.3] outline-none transition-colors placeholder:text-[13px] focus:border-primary"
             />
           </div>
           <textarea
@@ -407,25 +417,25 @@ export function CartPanel() {
             onChange={field("comment")}
             rows={2}
             placeholder="Комментарий к отгрузке"
-            className="mt-3 w-full rounded-sm border border-[#D1D5DB] p-3 text-sm outline-none transition-colors focus:border-primary"
+            className="mt-3 w-full rounded-sm border border-[#D1D5DB] px-3.5 py-2.5 text-[13px] leading-[1.4] outline-none transition-colors placeholder:text-[13px] focus:border-primary"
           />
         </div>
 
         <div className="rounded-md bg-[#F8F9FA] p-5">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Товары</span>
-            <span className="tabular-nums text-foreground">{money(goods)} ₽</span>
+            <span className="tabular-nums text-foreground">{money(goods)}</span>
           </div>
           <div className="mt-2 flex justify-between text-sm">
             <span className="text-muted-foreground">Доставка</span>
             <span className="tabular-nums text-foreground">
-              {delivery ? `${money(delivery)} ₽` : "самовывоз"}
+              {delivery ? money(delivery) : "самовывоз"}
             </span>
           </div>
           <div className="mt-4 flex justify-between border-t border-border pt-4">
             <span className="text-sm font-semibold text-foreground">Итого к оплате</span>
             <span className="text-lg font-extrabold tabular-nums text-foreground">
-              {money(total)} ₽
+              {money(total)}
             </span>
           </div>
           <div className="mt-5">
@@ -444,7 +454,7 @@ export function CartPanel() {
               void submitOrder();
             }}
             disabled={ctaDisabled || submitting}
-            className="mt-5 flex w-full items-center justify-center gap-2 rounded-sm bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-sm bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-all duration-200 enabled:hover:-translate-y-px enabled:hover:brightness-95 enabled:hover:shadow-[0_4px_12px_rgba(229,36,33,0.2)] enabled:active:translate-y-0 enabled:active:scale-[0.98] enabled:active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
           >
             {submitting && <Loader2 className="size-4 animate-spin" strokeWidth={2} />}
             {submitting ? "Передаём заказ менеджеру…" : "Оформить заказ"}
@@ -453,7 +463,7 @@ export function CartPanel() {
             type="button"
             onClick={download}
             disabled={!cartReady}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-sm border border-[#D1D5DB] px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-sm border border-[#D1D5DB] px-4 py-3 text-sm font-semibold text-foreground transition-all duration-200 enabled:hover:-translate-y-px enabled:hover:border-primary enabled:hover:text-primary enabled:hover:shadow-[0_4px_12px_rgba(229,36,33,0.2)] enabled:active:translate-y-0 enabled:active:scale-[0.98] enabled:active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
           >
             <FileDown className="size-4" strokeWidth={2} />
             {pendingQuote && lines.length ? "Считаем доставку…" : "Скачать PDF-счёт"}
