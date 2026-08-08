@@ -72,10 +72,11 @@ export function FaqSection() {
                   style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
                 >
                   <div className="overflow-hidden">
-                    <p className="pb-6 pr-10 pt-4 text-base leading-[1.6] text-muted-foreground">
+                    <p className="pb-6 pr-10 pt-4 text-[16px] leading-[1.6] text-[#595959]">
                       {item.a}
                     </p>
                   </div>
+
                 </div>
               </div>
             );
