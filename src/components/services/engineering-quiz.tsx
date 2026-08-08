@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Check, FileUp, Loader2, X } from "lucide-react";
 import { uploadToS3, validateFile } from "@/lib/direct-upload";
 import { getRecaptchaToken } from "@/lib/recaptcha";
+import { ConsentCheckbox } from "@/components/consent-checkbox";
 
 type Upload = {
   id: string;
@@ -58,6 +59,8 @@ export function EngineeringQuiz() {
   const [dragging, setDragging] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
   const [fileError, setFileError] = useState<string | null>(null);
+  const [consent, setConsent] = useState(false);
+  const [triedSubmit, setTriedSubmit] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -86,6 +89,7 @@ export function EngineeringQuiz() {
   const canSubmit =
     status === "idle" &&
     !uploading &&
+    consent &&
     Boolean(volume && Number(String(volume).replace(/\s/g, "")) > 0) &&
     /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/.test(phone ?? "");
 
@@ -122,6 +126,10 @@ export function EngineeringQuiz() {
   }, []);
 
   const onSubmit = handleSubmit(async (values) => {
+    if (!consent) {
+      setTriedSubmit(true);
+      return;
+    }
     setStatus("loading");
     const token = await getRecaptchaToken("quiz_submit");
     try {
@@ -135,6 +143,7 @@ export function EngineeringQuiz() {
           quiz_answers: {
             "Исходная база": values.base,
             "Планируемый тираж": `${values.volume} шт`,
+            "Согласие на обработку ПДн (152-ФЗ)": "получено",
           },
           file_urls: files.filter((f) => f.url).map((f) => f.url as string),
           token,
@@ -332,8 +341,16 @@ export function EngineeringQuiz() {
               </div>
             </div>
 
+            <ConsentCheckbox
+              id="consent-quiz"
+              checked={consent}
+              onChange={setConsent}
+              invalid={triedSubmit}
+            />
+
             <button
               type="submit"
+              onClick={() => setTriedSubmit(true)}
               disabled={!canSubmit && status !== "success"}
               className={`mt-8 flex h-14 w-full items-center justify-center rounded-md text-base font-semibold transition-colors ${
                 status === "success"
