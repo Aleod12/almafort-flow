@@ -12,7 +12,15 @@ type Match = {
   lead: string | null;
 };
 
-type Result = { verdict: { type: string; shape: string; confidence: number }; matches: Match[] };
+type Verdict = {
+  type: string;
+  shape: string;
+  color: string;
+  has_threads: boolean;
+  confidence: number;
+};
+
+type Result = { verdict: Verdict; matches: Match[] };
 
 const money = (n: number) =>
   n.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -160,6 +168,8 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-[#D1D5DB]" />
           <h3 className="text-lg font-bold text-foreground">
             Распознана {result.verdict.type} {result.verdict.shape}
+            {result.verdict.color ? `, ${result.verdict.color}` : ""}
+            {result.verdict.has_threads ? ", с резьбой" : ""}
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
             Уверенность {Math.round(result.verdict.confidence * 100)}%. Наиболее точные совпадения

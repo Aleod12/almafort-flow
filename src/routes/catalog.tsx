@@ -8,6 +8,7 @@ import { useCart, cartTotals } from "@/store/cart-store";
 import { SearchPanel } from "@/components/catalog/search-panel";
 import { CatalogMatrix } from "@/components/catalog/catalog-matrix";
 import { ProductSheet } from "@/components/catalog/product-sheet";
+import { AiConfigurator } from "@/components/catalog/ai-configurator";
 import { type Product } from "@/data/catalog";
 
 export const Route = createFileRoute("/catalog")({
@@ -93,6 +94,7 @@ function CatalogPage() {
           <CatalogMatrix query={query} onOpenProduct={setProduct} onAdd={add} />
         </section>
 
+        <AiConfigurator />
       </main>
 
       {cart.lines > 0 && (
