@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { MapPin, Send, MessageCircle, X } from "lucide-react";
 import { COMPANY, companyEmail } from "@/lib/company";
 
-const LAT = 55.96165;
-const LON = 92.333;
+const LAT = COMPANY.lat;
+const LON = COMPANY.lon;
 
 
 /** Обфускация e-mail: адрес не встречается в исходном HTML целиком. */
