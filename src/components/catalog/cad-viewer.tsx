@@ -2,12 +2,11 @@ import { Suspense, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment, OrbitControls, useGLTF, useProgress, Center } from "@react-three/drei";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
-import type { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { Mesh, Group } from "three";
 import { Box, Grid3x3 } from "lucide-react";
 
 /** WASM-декодеры Draco лежат в public/draco/ — без них сжатая сетка не распакуется. */
-function attachDraco(loader: GLTFLoader) {
+function attachDraco(loader: { setDRACOLoader: (l: DRACOLoader) => void }) {
   const draco = new DRACOLoader();
   draco.setDecoderPath("/draco/");
   loader.setDRACOLoader(draco);
@@ -16,7 +15,7 @@ function attachDraco(loader: GLTFLoader) {
 const PLASTIC = { roughness: 0.6, metalness: 0.1, color: "#d8dade" } as const;
 
 function GltfModel({ url, wire }: { url: string; wire: boolean }) {
-  const { scene } = useGLTF(url, true, undefined, attachDraco);
+  const { scene } = useGLTF(url, true, undefined, attachDraco as never);
   const cloned = useMemo(() => {
     const s = scene.clone(true);
     s.traverse((o) => {
