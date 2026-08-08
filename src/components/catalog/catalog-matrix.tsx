@@ -240,16 +240,15 @@ export function CatalogMatrix({ query, onOpenProduct, onAdd }: Props) {
 
   return (
     <div className="table-container">
-      <div className="min-w-[1080px]">
-        <div
-          className={`sticky top-[72px] z-20 grid ${GRID} items-center border-b-2 border-[oklch(0.91_0.004_247.9)] bg-card`}
-        >
+      <div className="catalog-grid-parent">
+        {/* Шапка — display: contents, ячейки sticky по отдельности */}
+        <div className="catalog-row">
           {headers.map((h, i) => (
             <div
               key={i}
-              className={`px-3 py-3 text-xs font-semibold uppercase leading-tight tracking-wider text-muted-foreground ${
-                i >= 5 && i <= 7 ? "text-right" : ""
-              }`}
+              className={`catalog-cell sticky top-[72px] z-20 whitespace-nowrap border-b-2 border-[oklch(0.91_0.004_247.9)] bg-card text-xs font-semibold uppercase leading-tight tracking-wider text-muted-foreground ${
+                i >= 5 && i <= 7 ? "justify-end" : ""
+              } ${i === 2 ? "left-0 z-[21] md:static" : ""}`}
             >
               {h}
             </div>
@@ -260,11 +259,12 @@ export function CatalogMatrix({ query, onOpenProduct, onAdd }: Props) {
           <Row key={p.id} p={p} onOpenProduct={onOpenProduct} onAdd={onAdd} />
         ))}
         {rows.length === 0 && (
-          <div className="px-3 py-10 text-center text-sm text-muted-foreground">
+          <div className="col-span-full px-3 py-10 text-center text-sm text-muted-foreground">
             Позиции не найдены — уточните артикул или параметры.
           </div>
         )}
       </div>
+
     </div>
   );
 }
