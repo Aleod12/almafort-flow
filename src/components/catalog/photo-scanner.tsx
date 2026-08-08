@@ -113,6 +113,13 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
             muted
             className="h-full w-full object-cover opacity-90"
           />
+          {/* Тёмная маска с прозрачным окном видоискателя */}
+          <div
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[58vw] max-h-[420px] w-[58vw] max-w-[420px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-sm shadow-[0_0_0_100vmax_oklch(0_0_0/0.62)]"
+            aria-hidden
+          >
+            {busy && <span className="scan-beam" />}
+          </div>
           {/* Прицел */}
           <svg
             viewBox="0 0 100 100"
@@ -130,9 +137,11 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
           </svg>
 
           <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 p-8">
-            <p className="text-center text-xs text-white/70">
-              {camError ?? "Поместите деталь в рамку. Для чёрных деталей — светлый фон."}
+            <p className="max-w-[42ch] text-center text-xs leading-[1.5] text-white/75">
+              {camError ??
+                "Поместите деталь в центр. Для тёмных деталей используйте светлый фон."}
             </p>
+
             <button
               type="button"
               onClick={capture}
