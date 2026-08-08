@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Box, Check, Loader2, ShoppingCart } from "lucide-react";
 import { PRODUCTS, tierOf, type Product } from "@/data/catalog";
 import { formatMoney as money, lineTotal } from "@/lib/pricing";
-import { scoreMatch } from "@/lib/fuzzy-search";
+import { searchCatalog } from "@/lib/search-index";
 import { toast } from "sonner";
 
 type Props = {
@@ -173,18 +173,11 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
 export function CatalogMatrix({ query, onOpenProduct, onAdd }: Props) {
   const rows =
     query.trim().length >= 2
-      ? PRODUCTS.map((p) => ({
-          p,
-          s: Math.max(
-            scoreMatch(p.name, query),
-            scoreMatch(p.sku, query),
-            scoreMatch(p.category, query),
-            scoreMatch(p.dims, query),
-          ),
-        }))
-          .filter((r) => r.s > 0)
-          .sort((a, b) => b.s - a.s)
-          .map((r) => r.p)
+      ? (() => {
+          const hits = searchCatalog(query, 50);
+          const bySku = new Map(PRODUCTS.map((p) => [p.sku, p]));
+          return hits.map((h) => bySku.get(h.sku)).filter((p): p is Product => Boolean(p));
+        })()
       : PRODUCTS;
 
   const headers = [
