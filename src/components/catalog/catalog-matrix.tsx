@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Loader2, ShoppingCart } from "lucide-react";
+import { Box, Check, Loader2, ShoppingCart } from "lucide-react";
 import { PRODUCTS, tierOf, unitPrice, type Product } from "@/data/catalog";
 import { scoreMatch } from "@/lib/fuzzy-search";
 import { toast } from "sonner";
@@ -9,6 +9,8 @@ type Props = {
   onOpenProduct: (p: Product) => void;
   onAdd: (p: Product, qty: number) => void;
 };
+
+const GRID = "grid-cols-[40px_60px_3fr_1.2fr_1.2fr_1fr_1fr_1fr_120px_150px]";
 
 const money = (v: number) =>
   v.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -23,10 +25,23 @@ function StockCell({ p }: { p: Product }) {
   return (
     <span className="flex items-center gap-2 whitespace-nowrap">
       <span className={`size-2 shrink-0 rounded-full ${color}`} />
-      <span className="text-sm text-foreground">
+      <span className="text-sm tabular-nums text-foreground">
         {p.stock.qty > 0 ? `${p.stock.qty.toLocaleString("ru-RU")} шт` : p.stock.lead}
       </span>
     </span>
+  );
+}
+
+function Checkbox({ label }: { label: string }) {
+  return (
+    <label className="relative flex size-[18px] cursor-pointer items-center justify-center">
+      <input type="checkbox" aria-label={label} className="peer sr-only" />
+      <span className="size-[18px] rounded-[4px] border border-[oklch(0.85_0.005_264)] bg-card transition-colors duration-150 peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-foreground/30" />
+      <Check
+        className="pointer-events-none absolute size-3 text-primary-foreground opacity-0 peer-checked:opacity-100"
+        strokeWidth={3}
+      />
+    </label>
   );
 }
 
@@ -39,13 +54,17 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
     const active = tier === level && qty > 0;
     const struck = qty > 0 && level < tier;
     return (
-      <td
+      <div
         className={`px-3 py-3 text-right text-sm tabular-nums transition-all duration-200 ${
-          active ? "bg-[oklch(0.95_0.05_150)] font-bold text-foreground" : ""
-        } ${struck ? "text-muted-foreground line-through" : "text-foreground"}`}
+          active
+            ? "bg-[oklch(0.95_0.05_150)] font-bold text-foreground"
+            : struck
+              ? "text-[oklch(0.72_0.01_264)] line-through"
+              : "text-foreground"
+        }`}
       >
         {money(value)} ₽
-      </td>
+      </div>
     );
   };
 
@@ -62,34 +81,38 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
     }, 500);
   };
 
+  const hasSum = qty > 0 && state !== "done";
+
   return (
-    <tr className="border-b border-border transition-colors duration-200 hover:bg-surface">
-      <td className="px-3 py-3">
-        <input type="checkbox" aria-label={`Выбрать ${p.sku}`} className="size-4 accent-primary" />
-      </td>
-      <td className="px-3 py-3">
-        <span className="grid size-10 place-items-center rounded-sm bg-surface text-[10px] font-semibold text-muted-foreground">
-          {p.sku.slice(0, 2)}
+    <div
+      className={`grid ${GRID} items-center border-b border-border transition-colors duration-200 hover:bg-surface`}
+    >
+      <div className="flex items-center justify-center px-2 py-3">
+        <Checkbox label={`Выбрать ${p.sku}`} />
+      </div>
+      <div className="px-2 py-3">
+        <span className="grid size-10 place-items-center rounded-[6px] bg-[oklch(0.96_0.002_247.9)]">
+          <Box className="size-5 text-[oklch(0.75_0.01_264)]" strokeWidth={1.5} />
         </span>
-      </td>
-      <td className="min-w-[220px] px-3 py-3">
+      </div>
+      <div className="min-w-0 px-3 py-3">
         <button
           type="button"
           onClick={() => onOpenProduct(p)}
-          className="text-left text-sm font-medium text-foreground hover:text-primary"
+          className="block w-full truncate text-left text-sm font-medium text-[oklch(0.19_0.01_264)] hover:text-primary"
         >
           {p.name}
-          <span className="block text-xs font-normal text-muted-foreground">{p.sku}</span>
         </button>
-      </td>
-      <td className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground">{p.dims}</td>
-      <td className="px-3 py-3">
+        <span className="block text-xs tabular-nums text-[oklch(0.55_0.01_264)]">{p.sku}</span>
+      </div>
+      <div className="px-3 py-3 text-sm text-muted-foreground">{p.dims}</div>
+      <div className="px-3 py-3">
         <StockCell p={p} />
-      </td>
+      </div>
       {priceCell(p.price, 0)}
       {priceCell(p.price1000, 1)}
       {priceCell(p.price5000, 2)}
-      <td className="px-3 py-3">
+      <div className="px-3 py-3">
         <input
           type="number"
           min={0}
@@ -97,18 +120,20 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
           onChange={(e) => setQty(Math.max(0, Number(e.target.value)))}
           placeholder="0"
           aria-label={`Количество ${p.sku}`}
-          className="w-24 rounded-sm border border-border bg-card px-2 py-1.5 text-right text-sm tabular-nums text-foreground outline-none focus:border-primary"
+          className="w-full rounded-sm border border-border bg-card px-2 py-1.5 text-right text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus:border-foreground"
         />
-      </td>
-      <td className="px-3 py-3">
+      </div>
+      <div className="px-3 py-3">
         <button
           type="button"
           onClick={add}
           aria-label="Добавить в корзину"
-          className={`flex items-center gap-2 whitespace-nowrap rounded-sm border border-border px-3 py-2 text-xs font-semibold transition-all duration-200 ${
+          className={`group flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-sm px-3 py-2 text-xs font-semibold tabular-nums transition-all duration-200 ${
             state === "done"
-              ? "border-[oklch(0.62_0.16_150)] bg-[oklch(0.95_0.05_150)] text-[oklch(0.45_0.14_150)]"
-              : "text-muted-foreground hover:border-primary hover:bg-primary hover:text-primary-foreground"
+              ? "border border-[oklch(0.62_0.16_150)] bg-[oklch(0.95_0.05_150)] text-[oklch(0.45_0.14_150)]"
+              : hasSum
+                ? "bg-[oklch(0.96_0.002_247.9)] text-foreground hover:bg-primary hover:text-primary-foreground"
+                : "border border-border text-muted-foreground hover:border-primary hover:bg-primary hover:text-primary-foreground"
           }`}
         >
           {state === "loading" ? (
@@ -118,10 +143,10 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
           ) : (
             <ShoppingCart className="size-4" strokeWidth={1.75} />
           )}
-          {qty > 0 && state !== "done" ? `${money(unitPrice(p, qty) * qty)} ₽` : null}
+          {hasSum ? `${money(unitPrice(p, qty) * qty)} ₽` : null}
         </button>
-      </td>
-    </tr>
+      </div>
+    </div>
   );
 }
 
@@ -142,47 +167,46 @@ export function CatalogMatrix({ query, onOpenProduct, onAdd }: Props) {
           .map((r) => r.p)
       : PRODUCTS;
 
+  const headers = [
+    "",
+    "Фото",
+    "Артикул и название",
+    "Габариты",
+    "Наличие",
+    "Базовая",
+    "Опт 1 (>1000)",
+    "Опт 2 (>5000)",
+    "Кол-во",
+    "",
+  ];
+
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[1080px] border-collapse">
-        <thead className="sticky top-[72px] z-20 bg-background">
-          <tr className="border-b border-border text-left">
-            {[
-              "",
-              "Фото",
-              "Артикул и название",
-              "Габариты",
-              "Наличие",
-              "Базовая",
-              "Опт 1 (>1000)",
-              "Опт 2 (>5000)",
-              "Кол-во",
-              "",
-            ].map((h, i) => (
-              <th
-                key={i}
-                className={`px-3 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground ${
-                  i >= 5 && i <= 7 ? "text-right" : ""
-                }`}
-              >
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((p) => (
-            <Row key={p.id} p={p} onOpenProduct={onOpenProduct} onAdd={onAdd} />
+      <div className="min-w-[1080px]">
+        <div
+          className={`sticky top-[72px] z-10 grid ${GRID} items-center border-b-2 border-[oklch(0.91_0.004_247.9)] bg-card`}
+        >
+          {headers.map((h, i) => (
+            <div
+              key={i}
+              className={`px-3 py-3 text-xs font-semibold uppercase leading-tight tracking-wider text-muted-foreground ${
+                i >= 5 && i <= 7 ? "text-right" : ""
+              }`}
+            >
+              {h}
+            </div>
           ))}
-          {rows.length === 0 && (
-            <tr>
-              <td colSpan={10} className="px-3 py-10 text-center text-sm text-muted-foreground">
-                Позиции не найдены — уточните артикул или параметры.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+        </div>
+
+        {rows.map((p) => (
+          <Row key={p.id} p={p} onOpenProduct={onOpenProduct} onAdd={onAdd} />
+        ))}
+        {rows.length === 0 && (
+          <div className="px-3 py-10 text-center text-sm text-muted-foreground">
+            Позиции не найдены — уточните артикул или параметры.
+          </div>
+        )}
+      </div>
     </div>
   );
 }

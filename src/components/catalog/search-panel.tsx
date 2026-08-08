@@ -57,7 +57,7 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
 
   return (
     <div ref={wrapRef} className="relative z-30 mx-auto w-full lg:w-[60%]">
-      <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 focus-within:border-primary">
+      <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-shadow duration-200 focus-within:border-[oklch(0.85_0.005_264)] focus-within:shadow-[0_4px_6px_-1px_oklch(0_0_0/0.1)]">
         <Search className="size-5 shrink-0 text-muted-foreground" strokeWidth={1.5} />
         <input
           ref={inputRef}
@@ -86,7 +86,7 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
           onClick={startScan}
           title="Поиск по фото детали или чертежу"
           aria-label="Поиск по фото детали или чертежу"
-          className="grid size-9 shrink-0 place-items-center rounded-sm bg-primary text-primary-foreground hover:opacity-90"
+          className="grid size-9 shrink-0 place-items-center rounded-sm bg-[oklch(0.96_0.002_247.9)] text-[oklch(0.4_0.01_264)] transition-colors duration-200 hover:bg-primary hover:text-primary-foreground"
         >
           <Camera className="size-4" strokeWidth={1.75} />
         </button>
