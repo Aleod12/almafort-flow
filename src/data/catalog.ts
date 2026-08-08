@@ -1,5 +1,18 @@
 export type Stock = { qty: number; lead?: string };
 
+/**
+ * Инженерные ассеты детали. В БД это колонка JSONB `engineering_assets`,
+ * в которой хранятся только текстовые URL — бинарники лежат в S3
+ * (Yandex Object Storage, бакет almafort-cad-assets) с CORS для домена
+ * и заголовком Content-Disposition: attachment.
+ */
+export type EngineeringAssets = {
+  model_glb_url: string | null; // сжатая Draco-модель для WebGL-вьювера
+  model_step_url: string; // твердотельная модель
+  model_dwg_url: string; // 2D-чертёж AutoCAD
+  passport_pdf_url: string; // технический паспорт
+};
+
 export type Product = {
   id: string;
   sku: string;
@@ -15,6 +28,7 @@ export type Product = {
   price: number;
   price1000: number;
   price5000: number;
+  engineering_assets: EngineeringAssets;
 };
 
 export const CATEGORIES = [
@@ -55,6 +69,13 @@ export const PRODUCTS: Product[] = raw.map(([sku, name, category, dims, qty, p, 
   price: p,
   price1000: p1,
   price5000: p5,
+  engineering_assets: {
+    // Draco-сжатая модель появляется здесь, как только 3D-generalist выкладывает её в S3.
+    model_glb_url: null,
+    model_step_url: `/api/public/cad/${sku}/step`,
+    model_dwg_url: `/api/public/cad/${sku}/dwg`,
+    passport_pdf_url: `/api/public/cad/${sku}/pdf`,
+  },
 }));
 
 export function tierOf(qty: number): 0 | 1 | 2 {

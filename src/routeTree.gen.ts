@@ -20,6 +20,7 @@ import { Route as ApiCheckoutSubmitRouteImport } from './routes/api/checkout/sub
 import { Route as ApiDadataCityRouteImport } from './routes/api/dadata/city'
 import { Route as ApiParserUploadRouteImport } from './routes/api/parser/upload'
 import { Route as ApiVisionIdentifyRouteImport } from './routes/api/vision/identify'
+import { Route as ApiPublicCadSplatRouteImport } from './routes/api/public/cad/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -76,6 +77,11 @@ const ApiVisionIdentifyRoute = ApiVisionIdentifyRouteImport.update({
   path: '/api/vision/identify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCadSplatRoute = ApiPublicCadSplatRouteImport.update({
+  id: '/api/public/cad/$',
+  path: '/api/public/cad/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
   '/api/vision/identify': typeof ApiVisionIdentifyRoute
+  '/api/public/cad/$': typeof ApiPublicCadSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
   '/api/vision/identify': typeof ApiVisionIdentifyRoute
+  '/api/public/cad/$': typeof ApiPublicCadSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
   '/api/vision/identify': typeof ApiVisionIdentifyRoute
+  '/api/public/cad/$': typeof ApiPublicCadSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/api/dadata/city'
     | '/api/parser/upload'
     | '/api/vision/identify'
+    | '/api/public/cad/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/api/dadata/city'
     | '/api/parser/upload'
     | '/api/vision/identify'
+    | '/api/public/cad/$'
   id:
     | '__root__'
     | '/'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/api/dadata/city'
     | '/api/parser/upload'
     | '/api/vision/identify'
+    | '/api/public/cad/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,6 +183,7 @@ export interface RootRouteChildren {
   ApiDadataCityRoute: typeof ApiDadataCityRoute
   ApiParserUploadRoute: typeof ApiParserUploadRoute
   ApiVisionIdentifyRoute: typeof ApiVisionIdentifyRoute
+  ApiPublicCadSplatRoute: typeof ApiPublicCadSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -252,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiVisionIdentifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cad/$': {
+      id: '/api/public/cad/$'
+      path: '/api/public/cad/$'
+      fullPath: '/api/public/cad/$'
+      preLoaderRoute: typeof ApiPublicCadSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -267,6 +287,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDadataCityRoute: ApiDadataCityRoute,
   ApiParserUploadRoute: ApiParserUploadRoute,
   ApiVisionIdentifyRoute: ApiVisionIdentifyRoute,
+  ApiPublicCadSplatRoute: ApiPublicCadSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
