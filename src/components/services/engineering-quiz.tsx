@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Check, FileUp, Loader2, X } from "lucide-react";
-import productionFloor from "@/assets/production-floor.jpg";
 
 const BASES = ["Чертеж / 3D-модель", "Физический образец", "Только идея/ТЗ"] as const;
 
