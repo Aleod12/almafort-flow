@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as SuccessRouteImport } from './routes/success'
+import { Route as ApiSearchRouteImport } from './routes/api/search'
 import { Route as ApiShippingCalcRouteImport } from './routes/api/shipping-calc'
 import { Route as ApiCheckoutSubmitRouteImport } from './routes/api/checkout/submit'
 import { Route as ApiDadataCityRouteImport } from './routes/api/dadata/city'
@@ -37,6 +38,11 @@ const CatalogRoute = CatalogRouteImport.update({
 const SuccessRoute = SuccessRouteImport.update({
   id: '/success',
   path: '/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSearchRoute = ApiSearchRouteImport.update({
+  id: '/api/search',
+  path: '/api/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiShippingCalcRoute = ApiShippingCalcRouteImport.update({
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
   '/success': typeof SuccessRoute
+  '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
   '/success': typeof SuccessRoute
+  '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
   '/success': typeof SuccessRoute
+  '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/catalog'
     | '/success'
+    | '/api/search'
     | '/api/shipping-calc'
     | '/api/checkout/submit'
     | '/api/dadata/city'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/catalog'
     | '/success'
+    | '/api/search'
     | '/api/shipping-calc'
     | '/api/checkout/submit'
     | '/api/dadata/city'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/catalog'
     | '/success'
+    | '/api/search'
     | '/api/shipping-calc'
     | '/api/checkout/submit'
     | '/api/dadata/city'
@@ -140,6 +152,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CatalogRoute: typeof CatalogRoute
   SuccessRoute: typeof SuccessRoute
+  ApiSearchRoute: typeof ApiSearchRoute
   ApiShippingCalcRoute: typeof ApiShippingCalcRoute
   ApiCheckoutSubmitRoute: typeof ApiCheckoutSubmitRoute
   ApiDadataCityRoute: typeof ApiDadataCityRoute
@@ -175,6 +188,13 @@ declare module '@tanstack/react-router' {
       path: '/success'
       fullPath: '/success'
       preLoaderRoute: typeof SuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/search': {
+      id: '/api/search'
+      path: '/api/search'
+      fullPath: '/api/search'
+      preLoaderRoute: typeof ApiSearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/shipping-calc': {
@@ -220,6 +240,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CatalogRoute: CatalogRoute,
   SuccessRoute: SuccessRoute,
+  ApiSearchRoute: ApiSearchRoute,
   ApiShippingCalcRoute: ApiShippingCalcRoute,
   ApiCheckoutSubmitRoute: ApiCheckoutSubmitRoute,
   ApiDadataCityRoute: ApiDadataCityRoute,
@@ -229,13 +250,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
