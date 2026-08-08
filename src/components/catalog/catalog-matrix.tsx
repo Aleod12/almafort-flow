@@ -13,7 +13,11 @@ type Props = {
   onAdd: (p: Product, qty: number) => void;
 };
 
-const GRID = "grid-cols-[40px_60px_3fr_1.2fr_1.2fr_1fr_1fr_1fr_120px_150px]";
+// Общая база ячейки: границы и hover-подсветка живут на ячейках,
+// т.к. сама строка — display: contents и не рисует бокс.
+const CELL =
+  "catalog-cell border-b border-border transition-colors duration-200 group-hover/row:bg-surface";
+
 
 function StockCell({ p }: { p: Product }) {
   const color =
@@ -60,7 +64,7 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
   const priceCell = (value: number, level: 0 | 1 | 2) => {
     if (onRequest)
       return (
-        <div className="px-3 py-3 text-right">
+        <div className={`${CELL} justify-end`}>
           <span className="inline-block whitespace-nowrap rounded-sm bg-[#F3F4F6] px-2 py-1 text-[11px] font-semibold text-muted-foreground">
             По договоренности
           </span>
@@ -71,9 +75,9 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
     return (
       <div
         title={threshold(level)}
-        className={`px-3 py-3 text-right text-sm tabular-nums transition-all duration-200 ${
+        className={`${CELL} justify-end whitespace-nowrap text-sm tabular-nums ${
           active
-            ? "bg-[#E8F5E9] font-bold text-foreground"
+            ? "bg-[#E8F5E9] font-bold text-foreground group-hover/row:bg-[#E8F5E9]"
             : struck
               ? "text-[#9CA3AF] line-through"
               : "text-foreground"
@@ -83,6 +87,7 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
       </div>
     );
   };
+
 
   const add = async () => {
     if (onRequest) {
@@ -124,35 +129,42 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
           : null;
 
   return (
-    <div
-      className={`grid ${GRID} scroll-mt-[150px] items-center border-b border-border transition-colors duration-200 hover:bg-surface`}
-    >
-      <div className="flex items-center justify-center px-2 py-3">
+    <div className="catalog-row group/row scroll-mt-[150px]">
+      <div className={`${CELL} justify-center`}>
         <Checkbox label={`Выбрать ${p.sku}`} />
       </div>
-      <div className="px-2 py-3">
+      <div className={CELL}>
         <span className="block w-10">
           <ProductThumb src={p.image_url} alt={p.name} />
         </span>
       </div>
-      <div className="sticky left-0 z-[5] min-w-0 bg-card px-3 py-3 shadow-[6px_0_8px_-6px_oklch(0_0_0/0.18)] md:static md:shadow-none">
+      <div
+        className={`${CELL} sticky left-0 z-[5] flex-col items-start justify-center bg-card shadow-[6px_0_8px_-6px_oklch(0_0_0/0.18)] group-hover/row:bg-surface md:static md:shadow-none`}
+      >
         <button
           type="button"
           onClick={() => onOpenProduct(p)}
-          className="block w-full cursor-pointer truncate text-left text-sm font-medium text-[oklch(0.19_0.01_264)] transition-colors hover:text-primary"
+          title={p.name}
+          className="block w-full cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap text-left text-sm font-medium text-[oklch(0.19_0.01_264)] transition-colors hover:text-primary"
         >
           {p.name}
         </button>
-        <span className="block text-xs tabular-nums text-[oklch(0.55_0.01_264)]">{p.sku}</span>
+        <span className="block w-full overflow-hidden text-ellipsis whitespace-nowrap text-xs tabular-nums text-[oklch(0.55_0.01_264)]">
+          {p.sku}
+        </span>
       </div>
-      <div className="px-3 py-3 text-sm text-muted-foreground">{p.dims}</div>
-      <div className="px-3 py-3">
+      <div className={`${CELL} text-sm text-muted-foreground`}>
+        <span className="w-full overflow-hidden text-ellipsis whitespace-nowrap" title={p.dims}>
+          {p.dims}
+        </span>
+      </div>
+      <div className={CELL}>
         <StockCell p={p} />
       </div>
       {priceCell(p.price, 0)}
       {priceCell(p.price1000, 1)}
       {priceCell(p.price5000, 2)}
-      <div className="px-3 py-3">
+      <div className={CELL}>
         <input
           type="text"
           inputMode="numeric"
@@ -164,40 +176,42 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
           placeholder={onRequest ? "—" : "0"}
           disabled={onRequest}
           aria-label={`Количество ${p.sku}`}
-          className="w-full rounded-sm border border-[#D1D5DB] disabled:cursor-not-allowed disabled:bg-[#F3F4F6] bg-card px-2 py-1.5 text-right text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus:border-foreground"
+          className="w-full min-w-0 rounded-sm border border-[#D1D5DB] disabled:cursor-not-allowed disabled:bg-[#F3F4F6] bg-card px-2 py-1.5 text-right text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus:border-foreground"
         />
       </div>
-      <div className="px-3 py-3">
+      <div className={CELL}>
         <button
           type="button"
           onClick={() => void add()}
           disabled={state === "loading"}
           aria-label={onRequest ? "Запросить индивидуальный расчет" : "Добавить в корзину"}
-          className={`group flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-sm px-3 py-2 text-xs font-semibold tabular-nums transition-all duration-200 disabled:cursor-not-allowed ${
+          className={`group flex w-full min-w-0 cursor-pointer items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-sm px-3 py-2 text-xs font-semibold tabular-nums transition-all duration-200 disabled:cursor-not-allowed ${
             state === "done"
               ? "bg-[#10B981] text-white"
               : hasSum
                 ? "bg-[#F3F4F6] text-foreground hover:bg-primary hover:text-primary-foreground"
                 : "border border-[#D1D5DB] bg-[#F3F4F6] text-muted-foreground hover:border-primary hover:bg-primary hover:text-primary-foreground"
           }`}
-
         >
           {state === "loading" ? (
-            <Loader2 className="size-4 animate-spin" strokeWidth={1.75} />
+            <Loader2 className="size-4 shrink-0 animate-spin" strokeWidth={1.75} />
           ) : state === "done" ? (
-            <Check className="size-4" strokeWidth={2} />
+            <Check className="size-4 shrink-0" strokeWidth={2} />
           ) : onRequest ? (
-            <MessageSquareQuote className="size-4" strokeWidth={1.75} />
+            <MessageSquareQuote className="size-4 shrink-0" strokeWidth={1.75} />
           ) : (
-            <ShoppingCart className="size-4" strokeWidth={1.75} />
+            <ShoppingCart className="size-4 shrink-0" strokeWidth={1.75} />
           )}
-          {state === "loading" ? null : label}
+          {state === "loading" ? null : (
+            <span className="overflow-hidden text-ellipsis whitespace-nowrap">{label}</span>
+          )}
         </button>
       </div>
       {quote && (
         <QuoteRequestModal sku={p.sku} name={p.name} onClose={() => setQuote(false)} />
       )}
     </div>
+
   );
 }
 
@@ -226,31 +240,32 @@ export function CatalogMatrix({ query, onOpenProduct, onAdd }: Props) {
 
   return (
     <div className="table-container">
-      <div className="min-w-[1080px]">
-        <div
-          className={`sticky top-[72px] z-20 grid ${GRID} items-center border-b-2 border-[oklch(0.91_0.004_247.9)] bg-card`}
-        >
-          {headers.map((h, i) => (
-            <div
-              key={i}
-              className={`px-3 py-3 text-xs font-semibold uppercase leading-tight tracking-wider text-muted-foreground ${
-                i >= 5 && i <= 7 ? "text-right" : ""
-              }`}
-            >
-              {h}
-            </div>
-          ))}
-        </div>
+      {/* Шапка: тот же шаблон колонок, sticky относительно страницы */}
+      <div className="catalog-grid-header sticky top-[72px] z-20 border-b-2 border-[oklch(0.91_0.004_247.9)] bg-card">
+        {headers.map((h, i) => (
+          <div
+            key={i}
+            className={`catalog-cell whitespace-nowrap text-xs font-semibold uppercase leading-tight tracking-wider text-muted-foreground ${
+              i >= 5 && i <= 7 ? "justify-end" : ""
+            }`}
+          >
+            {h}
+          </div>
+        ))}
+      </div>
 
+      <div className="catalog-grid-parent">
         {rows.map((p) => (
           <Row key={p.id} p={p} onOpenProduct={onOpenProduct} onAdd={onAdd} />
         ))}
         {rows.length === 0 && (
-          <div className="px-3 py-10 text-center text-sm text-muted-foreground">
+          <div className="col-span-full px-3 py-10 text-center text-sm text-muted-foreground">
             Позиции не найдены — уточните артикул или параметры.
           </div>
         )}
       </div>
+
+
     </div>
   );
 }
