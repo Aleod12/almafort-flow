@@ -1,13 +1,21 @@
 // Vision-конвейер: изображение → ИИ-классификатор → подбор SKU по каталогу ALMAFORT.
 import { PRODUCTS, type Product } from "@/data/catalog";
 
-export type VisionVerdict = { type: string; shape: string; confidence: number };
+export type VisionVerdict = {
+  type: string;
+  shape: string;
+  color: string;
+  has_threads: boolean;
+  confidence: number;
+};
 
 const SYSTEM_PROMPT =
-  "Ты — инженер-конструктор завода пластиковой фурнитуры ALMAFORT. Проанализируй изображение. " +
-  "Твоя задача: 1. Определить тип детали (заглушка, опора, крепеж, колпачок, хомут). " +
-  "2. Оценить форму (круглая, квадратная, прямоугольная). 3. Вычислить примерные пропорции. " +
-  'Верни ответ СТРОГО в формате JSON без markdown-разметки: {"type": "заглушка", "shape": "квадрат", "confidence": 0.95}.';
+  "Ты — эксперт-технолог завода пластиковой фурнитуры. Проанализируй изображение детали. " +
+  "Твоя задача — извлечь физические свойства, а не угадывать артикул. " +
+  "Верни ответ СТРОГО в формате JSON без markdown-разметки. Структура: " +
+  '{"type": "заглушка/опора/крепеж/колпачок/хомут", "shape": "квадрат/круг/прямоугольник", ' +
+  '"color": "черный/серый/белый", "has_threads": boolean, "confidence": float}.';
+
 
 export async function identifyPart(imageDataUrl: string): Promise<VisionVerdict> {
   const apiKey = process.env["LOVABLE_API_KEY"];
