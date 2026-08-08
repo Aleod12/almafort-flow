@@ -3,7 +3,7 @@ import { Loader2, Sparkles, Calculator, FileText, ShieldCheck, Wrench } from "lu
 import { toast } from "sonner";
 import { useCart } from "@/store/cart-store";
 import { PRODUCTS, isOnRequest, tierOf } from "@/data/catalog";
-import { unitPriceOf, lineTotal, formatMoney } from "@/lib/pricing";
+import { unitPriceOf, lineTotal, formatPrice } from "@/lib/pricing";
 import { ProductThumb } from "@/components/catalog/product-thumb";
 
 type SolutionItem = {
@@ -96,7 +96,7 @@ export function AiConfigurator() {
     const payable = rows.filter((r) => !r.on_request);
     if (payable.length === 0) return;
     for (const r of payable) addLine(r.sku, r.quantity);
-    toast.success(`Спецификация в корзине: ${payable.length} поз. на ${formatMoney(total)} ₽`);
+    toast.success(`Спецификация в корзине: ${payable.length} поз. на ${formatPrice(total)}`);
   };
 
   const scrollToQuiz = () => {
@@ -138,7 +138,7 @@ export function AiConfigurator() {
           type="button"
           onClick={() => solve(query)}
           disabled={busy}
-          className="flex h-fit cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-7 py-4 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex h-fit cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-7 py-4 text-sm font-semibold text-primary-foreground shadow-[0_6px_18px_-6px_oklch(0.573_0.221_27.5/0.55)] transition-[background-color,transform,box-shadow] duration-200 hover:bg-[#B91C1C] hover:shadow-[0_10px_24px_-8px_oklch(0.573_0.221_27.5/0.7)] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {busy ? <Loader2 className="size-4 animate-spin" /> : <Calculator className="size-4" />}
           {busy ? "Считаем узел…" : "Подобрать решение"}
@@ -154,7 +154,7 @@ export function AiConfigurator() {
                 setQuery(ex);
                 void solve(ex);
               }}
-              className="cursor-pointer rounded-full border border-[#D1D5DB] bg-card px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+              className="cursor-pointer rounded-full border border-[#D1D5DB] bg-card px-3 py-1.5 text-xs text-muted-foreground transition-all duration-200 hover:border-primary hover:text-primary hover:shadow-[0_4px_6px_rgba(0,0,0,0.05)] active:scale-[0.97]"
             >
               {ex.length > 64 ? `${ex.slice(0, 64)}…` : ex}
             </button>
@@ -227,7 +227,7 @@ export function AiConfigurator() {
                     ) : (
                       <>
                         <span className="text-sm tabular-nums text-foreground">
-                          {formatMoney(r.unit_price)} ₽/шт
+                          {formatPrice(r.unit_price)}/шт
                         </span>
                         {r.tier > 0 && (
                           <span className="ml-2 inline-block rounded-sm bg-[#E8F5E9] px-2 py-0.5 text-[11px] font-bold text-[#1B5E20]">
@@ -238,7 +238,7 @@ export function AiConfigurator() {
                     )}
                   </div>
                   <div className="col-start-2 text-sm font-bold tabular-nums text-foreground lg:col-start-5 lg:text-right">
-                    {r.on_request ? "—" : `${formatMoney(r.total_price)} ₽`}
+                    {r.on_request ? "—" : formatPrice(r.total_price)}
                   </div>
                 </li>
               ))}
@@ -246,7 +246,7 @@ export function AiConfigurator() {
 
             {!isService && (
               <p className="mt-4 text-right text-sm font-bold tabular-nums text-foreground">
-                Итого: {formatMoney(total)} ₽
+                Итого: {formatPrice(total)}
               </p>
             )}
           </div>
@@ -260,7 +260,7 @@ export function AiConfigurator() {
               <button
                 type="button"
                 onClick={scrollToQuiz}
-                className="flex cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-8 py-4 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-8 py-4 text-sm font-bold text-primary-foreground shadow-[0_6px_18px_-6px_oklch(0.573_0.221_27.5/0.55)] transition-[background-color,transform,box-shadow] duration-200 hover:bg-[#B91C1C] hover:shadow-[0_10px_24px_-8px_oklch(0.573_0.221_27.5/0.7)] active:scale-[0.97]"
               >
                 <Wrench className="size-4" strokeWidth={2} />
                 Прикрепить ТЗ и запросить расчёт

@@ -30,22 +30,27 @@ function LazyMap() {
   }, [visible]);
 
   return (
-    <div ref={ref} className="relative h-[240px] max-h-[240px] w-full overflow-hidden bg-[#1B1B1F]">
+    <div
+      ref={ref}
+      className="relative h-full min-h-[400px] w-full overflow-hidden bg-[#1B1B1F]"
+    >
       {visible ? (
         <iframe
           title="ALMAFORT — производство и склад: Дивногорск, Нижний проезд, 15/1"
           loading="lazy"
-          src={`https://yandex.ru/map-widget/v1/?ll=${LON}%2C${LAT}&z=17&l=map&text=${encodeURIComponent(
+          scrolling="no"
+          src={`https://yandex.ru/map-widget/v1/?ll=${LON}%2C${LAT}&z=17&l=map&controls=zoomControl%2CfullscreenControl&text=${encodeURIComponent(
             "Дивногорск, Нижний проезд, 15/1",
           )}`}
-          className="h-full w-full border-0 opacity-90 [filter:invert(1)_hue-rotate(180deg)_saturate(0.6)_brightness(0.95)]"
+          className="block h-full min-h-[400px] w-full overflow-hidden border-0 opacity-90 [filter:invert(1)_hue-rotate(180deg)_saturate(0.6)_brightness(0.95)]"
         />
 
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-[#1B1B1F] text-sm text-[#4B5563]">
+        <div className="flex h-full min-h-[400px] w-full items-center justify-center bg-[#1B1B1F] text-sm text-[#4B5563]">
           Карта загрузится при прокрутке
         </div>
       )}
+
       <div className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-full flex-col items-center">
         <span className="mb-1 rounded-[3px] bg-[#121214] px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-lg">
           ALMAFORT

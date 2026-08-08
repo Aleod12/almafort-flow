@@ -5,7 +5,7 @@ import { BackLink } from "@/components/back-link";
 import { QuoteRequestModal } from "@/components/catalog/quote-request-modal";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { formatMoney } from "@/lib/pricing";
+import { formatPrice } from "@/lib/pricing";
 import {
   breadcrumbJsonLd,
   COLORS,
@@ -101,7 +101,7 @@ function FacetRow({ p }: { p: Product }) {
             По договоренности
           </span>
         ) : (
-          formatMoney(p.price)
+          formatPrice(p.price)
         )}
       </span>
       {onRequest && (
