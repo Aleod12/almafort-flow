@@ -11,7 +11,7 @@ import { ProductSheet } from "@/components/catalog/product-sheet";
 import { AiConfigurator } from "@/components/catalog/ai-configurator";
 import { type Product } from "@/data/catalog";
 
-export const Route = createFileRoute("/catalog")({
+export const Route = createFileRoute("/catalog/")({
   head: () => ({
     meta: [
       { title: "Каталог ALMAFORT — прайс-матрица пластиковых комплектующих" },
