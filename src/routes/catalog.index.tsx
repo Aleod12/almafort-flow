@@ -7,10 +7,12 @@ import { ParsingSkeleton, SpecUpload } from "@/components/cart/spec-upload";
 import { useCart, cartTotals } from "@/store/cart-store";
 import { SearchPanel } from "@/components/catalog/search-panel";
 import { CatalogMatrix } from "@/components/catalog/catalog-matrix";
+import { formatPrice } from "@/lib/pricing";
 import { ProductSheet } from "@/components/catalog/product-sheet";
 import { AiConfigurator } from "@/components/catalog/ai-configurator";
 import { type Product } from "@/data/catalog";
 import { CATEGORY_FACETS } from "@/lib/seo";
+import { BackLink } from "@/components/back-link";
 
 export const Route = createFileRoute("/catalog/")({
   head: () => ({
@@ -56,6 +58,10 @@ function CatalogPage() {
       <SiteHeader />
 
       <main className="flex-1 mx-auto max-w-[1440px] px-5 pb-24 pt-10 lg:px-10">
+        <div className="mb-6">
+          <BackLink fallback="/" label="Назад" />
+        </div>
+
         <header className="mb-8 text-center">
           <h1 className="text-3xl font-extrabold leading-[1.08] tracking-tight text-foreground lg:text-[44px]">
             Каталог серийной продукции
@@ -118,7 +124,7 @@ function CatalogPage() {
           <span className="font-semibold text-foreground">{cart.lines}</span>
           <span className="mx-3 text-border">|</span>
           <span className="font-bold tabular-nums text-primary">
-            {cart.total.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} ₽
+            {formatPrice(cart.total)}
           </span>
           <a
             href="/cart"

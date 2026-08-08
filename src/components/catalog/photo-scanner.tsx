@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CameraOff, ImageUp, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/store/cart-store";
+import { formatPrice } from "@/lib/pricing";
 
 type Match = {
   sku: string;
@@ -21,9 +22,6 @@ type Verdict = {
 };
 
 type Result = { verdict: Verdict; matches: Match[] };
-
-const money = (n: number) =>
-  n.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -125,13 +123,17 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
     if (!video || !video.videoWidth) return;
     setBusy(true);
     try {
-      // Масштабируем до 1024px и жмём в WebP 0.8 — payload в килобайтах, не мегабайтах.
-      const scale = Math.min(1, 1024 / video.videoWidth);
+      // Кроп строго по центральной рамке видоискателя: нейросеть получает деталь,
+      // а не стол, руки и фон. Далее ужимаем до 1024px и жмём в WebP 0.8.
+      const side = Math.round(Math.min(video.videoWidth, video.videoHeight) * 0.72);
+      const sx = Math.round((video.videoWidth - side) / 2);
+      const sy = Math.round((video.videoHeight - side) / 2);
+      const out = Math.min(1024, side);
       const canvas = document.createElement("canvas");
-      canvas.width = Math.round(video.videoWidth * scale);
-      canvas.height = Math.round(video.videoHeight * scale);
-      canvas.getContext("2d")?.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const image = canvas.toDataURL("image/webp", 0.8);
+      canvas.width = out;
+      canvas.height = out;
+      canvas.getContext("2d")?.drawImage(video, sx, sy, side, side, 0, 0, out, out);
+      const image = canvas.toDataURL("image/webp", 0.85);
 
       const res = await fetch("/api/vision/identify", {
         method: "POST",
@@ -235,7 +237,8 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
 
           <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 p-8">
             <p className="max-w-[42ch] text-center text-xs leading-[1.5] text-white/75">
-              Поместите деталь в центр. Для тёмных деталей используйте светлый фон.
+              Поместите деталь в центр рамки и обеспечьте хорошее освещение. В анализ уходит
+              только область внутри рамки.
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-3">
@@ -296,7 +299,7 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
                     {m.stock > 0 ? `${m.stock.toLocaleString("ru-RU")} шт на складе` : "под заказ"}
                   </span>
                   <span className="mt-1 block text-sm font-bold tabular-nums text-foreground">
-                    {money(m.price)} ₽
+                    {formatPrice(m.price)}
                   </span>
                 </span>
                 <button

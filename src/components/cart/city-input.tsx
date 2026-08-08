@@ -18,7 +18,7 @@ export function CityInput({
   const [items, setItems] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
   const picked = useRef(value.city);
-  const debounced = useDebounce(query, 500);
+  const debounced = useDebounce(query, 300);
 
   useEffect(() => {
     const q = debounced.trim();

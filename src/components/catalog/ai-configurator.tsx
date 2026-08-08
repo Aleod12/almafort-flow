@@ -141,7 +141,7 @@ export function AiConfigurator() {
           className="flex h-fit cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-7 py-4 text-sm font-semibold text-primary-foreground shadow-[0_6px_18px_-6px_oklch(0.573_0.221_27.5/0.55)] transition-[background-color,transform,box-shadow] duration-200 hover:bg-[#B91C1C] hover:shadow-[0_10px_24px_-8px_oklch(0.573_0.221_27.5/0.7)] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {busy ? <Loader2 className="size-4 animate-spin" /> : <Calculator className="size-4" />}
-          {busy ? "Считаем узел…" : "Подобрать решение"}
+          {busy ? "Инженерный анализ…" : "Подобрать решение"}
         </button>
       </div>
 
@@ -154,7 +154,7 @@ export function AiConfigurator() {
                 setQuery(ex);
                 void solve(ex);
               }}
-              className="cursor-pointer rounded-full border border-[#D1D5DB] bg-card px-3 py-1.5 text-xs text-muted-foreground transition-all duration-200 hover:border-primary hover:text-primary hover:shadow-[0_4px_6px_rgba(0,0,0,0.05)] active:scale-[0.97]"
+              className="cursor-pointer rounded-full border border-[#D1D5DB] bg-card px-3.5 py-2 text-xs text-muted-foreground transition-all duration-200 hover:border-[#E52421] hover:bg-[#FEF2F2] hover:text-[#E52421] hover:shadow-[0_4px_6px_rgba(0,0,0,0.05)] active:scale-[0.97]"
             >
               {ex.length > 64 ? `${ex.slice(0, 64)}…` : ex}
             </button>
