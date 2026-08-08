@@ -3,6 +3,8 @@ import { Check, FileDown, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { PRODUCTS, type Product } from "@/data/catalog";
 import { scoreMatch } from "@/lib/fuzzy-search";
+import { useDebounce } from "@/hooks/use-debounce";
+import { CityInput } from "@/components/cart/city-input";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import {
   cartTotals,
@@ -30,7 +32,8 @@ export function CartPanel() {
   const carrier = useCart((s) => s.carrier);
   const city = useCart((s) => s.city);
   const setCarrier = useCart((s) => s.setCarrier);
-  const setCity = useCart((s) => s.setCity);
+  const fiasId = useCart((s) => s.fiasId);
+  const setDestination = useCart((s) => s.setDestination);
   const setQuantity = useCart((s) => s.setQuantity);
   const removeLine = useCart((s) => s.removeLine);
   const confirmAnalog = useCart((s) => s.confirmAnalog);
@@ -45,47 +48,68 @@ export function CartPanel() {
   const setQuoting = useCart((s) => s.setQuoting);
   const setQuoteError = useCart((s) => s.setQuoteError);
 
-  const { goods, weight } = useMemo(() => cartTotals(lines), [lines]);
+  const { goods, weight, volume } = useMemo(() => cartTotals(lines), [lines]);
 
-  // Запрос в сервис логистики при изменении города или веса партии.
+  // Единый дебаунс 500 мс: и на ввод города, и на изменение габаритов партии —
+  // один запрос к ТК вместо шквала при наборе количества.
+  const payloadKey = `${city.trim()}|${fiasId ?? ""}|${weight}|${volume}`;
+  const debouncedKey = useDebounce(payloadKey, 500);
+
+  // Запрос в /api/shipping-calc: параллельно СДЭК + Деловые Линии на бэкенде.
   useEffect(() => {
-    const city0 = city.trim();
-    if (city0.length < 2 || weight <= 0) {
+    const [city0 = "", fias0 = "", w0 = "0", v0 = "0"] = debouncedKey.split("|");
+    const totalWeight = Number(w0);
+    const totalVolume = Number(v0);
+    if (city0.length < 2 || totalWeight <= 0) {
       setQuotes([]);
       return;
     }
     const ctrl = new AbortController();
-    const t = setTimeout(async () => {
-      setQuoting(true);
+    let alive = true;
+    setQuoting(true);
+    (async () => {
       try {
-        const res = await fetch("/api/logistics/quote", {
+        const res = await fetch("/api/shipping-calc", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ city: city0, weight }),
+          body: JSON.stringify({
+            destination: { city: city0, fias_id: fias0 || null },
+            parcel: { totalWeight, totalVolume },
+          }),
           signal: ctrl.signal,
         });
         const json = await res.json();
+        if (!alive) return;
         if (!res.ok) throw new Error(json?.error ?? "Не удалось рассчитать доставку");
         setQuotes(json.quotes);
       } catch (e) {
-        if ((e as Error).name !== "AbortError")
+        if ((e as Error).name !== "AbortError" && alive)
           setQuoteError(e instanceof Error ? e.message : "Ошибка расчёта доставки");
       } finally {
-        setQuoting(false);
+        if (alive) setQuoting(false);
       }
-    }, 450);
+    })();
     return () => {
+      alive = false;
       ctrl.abort();
-      clearTimeout(t);
     };
-  }, [city, weight, setQuotes, setQuoting, setQuoteError]);
+  }, [debouncedKey, setQuotes, setQuoting, setQuoteError]);
 
   const quoteFor = (c: Carrier) => quotes.find((q) => q.carrier === c);
   const delivery =
     carrier === "pickup" ? 0 : (quoteFor(carrier)?.price ?? deliveryCost(carrier, weight));
   const total = goods + delivery;
 
+  const pendingQuote =
+    quoting ||
+    (carrier !== "pickup" &&
+      city.trim().length >= 2 &&
+      weight > 0 &&
+      (payloadKey !== debouncedKey || !quoteFor(carrier)));
+  const ctaDisabled = !lines.length || pendingQuote;
+
   const download = async () => {
+    if (ctaDisabled) return;
     if (!lines.length) {
       toast.error("Корзина пуста — добавьте позиции или загрузите спецификацию");
       return;
@@ -254,46 +278,64 @@ export function CartPanel() {
       <section className="grid gap-6 rounded-lg border border-border bg-card p-6 lg:grid-cols-[1fr_320px]">
         <div>
           <p className="text-sm font-semibold text-foreground">Доставка</p>
-          <input
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="Город доставки"
-            className="mt-3 h-11 w-full max-w-[320px] rounded-sm border border-[#D1D5DB] px-3 text-sm outline-none transition-colors focus:border-foreground"
+          <CityInput
+            value={{ city, fiasId }}
+            onChange={(v) => setDestination(v.city, v.fiasId)}
           />
 
-          <div className="mt-4 grid gap-2 sm:grid-cols-3">
-            {CARRIERS.map((c) => {
-              const q = quoteFor(c.id);
-              const active = carrier === c.id;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => setCarrier(c.id)}
-                  className={`cursor-pointer rounded-sm border-2 px-4 py-3 text-left transition-colors ${
-                    active
-                      ? "border-primary text-foreground"
-                      : "border-[#D1D5DB] text-muted-foreground hover:border-[#9CA3AF] hover:text-foreground"
-                  }`}
-                >
-                  <span className="block text-sm font-semibold">{c.label}</span>
-                  <span className="mt-1 block text-xs tabular-nums text-muted-foreground">
-                    {c.id === "pickup"
-                      ? "0 ₽ · Дивногорск"
-                      : quoting
-                        ? "считаем…"
-                        : q
-                          ? `${money(q.price)} ₽ · ${q.days} дн.`
-                          : "укажите город"}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          {quoting ? (
+            <div className="mt-4 grid gap-2 sm:grid-cols-3">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="h-[74px] animate-pulse rounded-sm border border-[#E5E7EB] bg-[#F1F3F5]"
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="mt-4 grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Способ доставки">
+              {CARRIERS.map((c) => {
+                const q = quoteFor(c.id);
+                const active = carrier === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setCarrier(c.id)}
+                    className={`flex cursor-pointer items-start gap-3 rounded-sm border-2 px-4 py-3 text-left transition-colors ${
+                      active
+                        ? "border-primary text-foreground"
+                        : "border-[#D1D5DB] text-muted-foreground hover:border-[#9CA3AF] hover:text-foreground"
+                    }`}
+                  >
+                    <span
+                      className={`mt-0.5 grid size-4 shrink-0 place-items-center rounded-full border-2 ${
+                        active ? "border-primary" : "border-[#9CA3AF]"
+                      }`}
+                    >
+                      {active && <span className="size-2 rounded-full bg-primary" />}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold">{c.label}</span>
+                      <span className="mt-1 block text-xs tabular-nums text-muted-foreground">
+                        {c.id === "pickup"
+                          ? "0 ₽ · Красноярск / Дивногорск"
+                          : q
+                            ? `${money(q.price)} ₽ · ${q.days} дн. · ${q.toDoor ? "до двери" : "до терминала"}`
+                            : "укажите город"}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <p className="mt-3 text-xs text-muted-foreground">
-            Расчётный вес партии: {weight.toFixed(1)} кг
-            {quoteError ? ` · ${quoteError}` : ""}
+            Партия: {weight.toFixed(1)} кг · {volume.toFixed(3)} м³ · отгрузка с терминалов
+            Красноярска{quoteError ? ` · ${quoteError}` : ""}
           </p>
         </div>
 
@@ -317,10 +359,11 @@ export function CartPanel() {
           <button
             type="button"
             onClick={download}
-            className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+            disabled={ctaDisabled}
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-sm bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
           >
             <FileDown className="size-4" strokeWidth={2} />
-            Скачать PDF-счёт
+            {pendingQuote && lines.length ? "Считаем доставку…" : "Скачать PDF-счёт"}
           </button>
           {lines.length > 0 && (
             <button
