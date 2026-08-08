@@ -24,7 +24,6 @@ export function ProductSheet({
     return [
       { name: "СДЭК (до двери)", days: "4 дня", cost: Math.round(900 + w * 9) },
       { name: "Деловые Линии (до терминала)", days: "отгрузка в среду", cost: Math.round(500 + w * 5) },
-      { name: "ПЭК (до терминала)", days: "5 дней", cost: Math.round(480 + w * 4.6) },
     ];
   }, [product]);
 
