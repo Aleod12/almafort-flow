@@ -1,0 +1,106 @@
+import { useEffect, useState } from "react";
+import { Clock, MapPin, Phone, UserRound, Menu } from "lucide-react";
+
+const NAV = [
+  { label: "Каталог", href: "#catalog" },
+  { label: "Производство", href: "#production" },
+  { label: "Реверс-инжиниринг", href: "#reverse" },
+  { label: "Доставка", href: "#delivery" },
+  { label: "Контакты", href: "#contacts" },
+];
+
+export function SiteHeader() {
+  const [elevated, setElevated] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setElevated(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <header
+      className="sticky top-0 z-50 bg-background"
+      style={elevated ? { boxShadow: "var(--shadow-header)" } : undefined}
+    >
+      <div className="mx-auto grid max-w-[1440px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 lg:grid-cols-12 lg:gap-6 lg:px-10">
+        <a href="/" className="col-span-1 flex min-w-0 items-center lg:col-span-2">
+          <span className="text-xl font-extrabold tracking-tight text-primary">ALMAFORT</span>
+        </a>
+
+        <nav className="hidden lg:col-span-5 lg:flex lg:items-center lg:gap-6">
+          {NAV.map((item) => (
+            <a
+              key={item.label}
+              href={item.href}
+              className="text-sm font-medium text-foreground hover:text-primary"
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
+
+        <div className="hidden lg:col-span-5 lg:flex lg:items-center lg:justify-end lg:gap-5">
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Clock className="size-4 shrink-0" strokeWidth={1.5} />
+            Пн-Пт 08:00–19:00 (МСК+4)
+          </span>
+          <span className="hidden items-center gap-1.5 text-xs text-muted-foreground xl:flex">
+            <MapPin className="size-4 shrink-0" strokeWidth={1.5} />
+            Нижний проезд, 15/1
+          </span>
+          <a
+            href="tel:+79029229734"
+            className="flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary"
+          >
+            <Phone className="size-4 shrink-0" strokeWidth={1.5} />
+            +7 (902) 922-97-34
+          </a>
+          <a
+            href="#account"
+            aria-label="Личный кабинет"
+            className="grid size-9 shrink-0 place-items-center rounded-sm border border-border text-foreground hover:border-primary hover:text-primary"
+          >
+            <UserRound className="size-4" strokeWidth={1.5} />
+          </a>
+        </div>
+
+        <div className="flex items-center gap-2 justify-self-end lg:hidden">
+          <a
+            href="tel:+79029229734"
+            aria-label="Позвонить"
+            className="grid size-10 place-items-center rounded-sm border border-border text-foreground"
+          >
+            <Phone className="size-4" strokeWidth={1.5} />
+          </a>
+          <button
+            type="button"
+            aria-label="Меню"
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+            className="grid size-10 place-items-center rounded-sm border border-border text-foreground"
+          >
+            <Menu className="size-4" strokeWidth={1.5} />
+          </button>
+        </div>
+      </div>
+
+      {open && (
+        <div className="border-t border-border px-5 py-4 lg:hidden">
+          <nav className="flex flex-col gap-3">
+            {NAV.map((item) => (
+              <a key={item.label} href={item.href} className="text-sm font-medium text-foreground">
+                {item.label}
+              </a>
+            ))}
+          </nav>
+          <p className="mt-4 text-xs text-muted-foreground">
+            Пн-Пт 08:00–19:00 (МСК+4) · Нижний проезд, 15/1
+          </p>
+        </div>
+      )}
+    </header>
+  );
+}
