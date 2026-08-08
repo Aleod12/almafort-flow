@@ -1,0 +1,198 @@
+// Клиентская генерация PDF-счёта через pdfmake (без Chromium/Puppeteer).
+import type { CartLine, Carrier } from "@/store/cart-store";
+import { linePrice, productBySku, deliveryCost, cartTotals } from "@/store/cart-store";
+
+const CARRIER_LABEL: Record<Carrier, string> = {
+  cdek: "СДЭК, до терминала",
+  dl: "Деловые Линии, до терминала",
+  pickup: "Самовывоз, г. Дивногорск",
+};
+
+const money = (n: number) =>
+  n.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+// Факсимиле подписи и печать — inline Base64, чтобы файл открывался без интернета.
+const STAMP_BASE64 =
+  "data:image/svg+xml;base64," +
+  btoa(
+    unescape(
+      encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="120">
+<circle cx="150" cy="60" r="52" fill="none" stroke="#1f4fd8" stroke-width="3"/>
+<circle cx="150" cy="60" r="43" fill="none" stroke="#1f4fd8" stroke-width="1.5"/>
+<text x="150" y="52" text-anchor="middle" font-family="Helvetica" font-size="13" fill="#1f4fd8">ALMAFORT</text>
+<text x="150" y="68" text-anchor="middle" font-family="Helvetica" font-size="8" fill="#1f4fd8">PROIZVODSTVO</text>
+<text x="150" y="82" text-anchor="middle" font-family="Helvetica" font-size="8" fill="#1f4fd8">DIVNOGORSK</text>
+<path d="M10 80 C40 20, 60 100, 95 45 S130 95, 140 60" fill="none" stroke="#1f4fd8" stroke-width="2.4"/>
+</svg>`,
+      ),
+    ),
+  );
+
+export type InvoiceInput = {
+  lines: CartLine[];
+  carrier: Carrier;
+  city: string;
+};
+
+export async function generateInvoicePdf({ lines, carrier, city }: InvoiceInput) {
+  const pdfMakeModule = await import("pdfmake/build/pdfmake");
+  const fontsModule = await import("pdfmake/build/vfs_fonts");
+  const pdfMake = ((pdfMakeModule as unknown as { default?: unknown }).default ??
+    pdfMakeModule) as typeof import("pdfmake/build/pdfmake");
+  const vfsSource = (fontsModule as unknown as { default?: unknown }).default ?? fontsModule;
+  const vfs =
+    (vfsSource as { pdfMake?: { vfs?: Record<string, string> }; vfs?: Record<string, string> })
+      .pdfMake?.vfs ?? (vfsSource as { vfs?: Record<string, string> }).vfs;
+  if (vfs) (pdfMake as unknown as { vfs: Record<string, string> }).vfs = vfs;
+
+  const { goods, weight } = cartTotals(lines);
+  const delivery = deliveryCost(carrier, weight);
+  const total = goods + delivery;
+
+  const date = new Date();
+  const dd = String(date.getDate()).padStart(2, "0");
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const stamp = `${dd}-${mm}-${date.getFullYear()}`;
+
+  const body: unknown[][] = [
+    [
+      { text: "№", style: "th" },
+      { text: "Артикул", style: "th" },
+      { text: "Наименование", style: "th" },
+      { text: "Кол-во", style: "th", alignment: "right" },
+      { text: "Цена за ед.", style: "th", alignment: "right" },
+      { text: "Сумма", style: "th", alignment: "right" },
+    ],
+  ];
+
+  lines.forEach((l, i) => {
+    const { unit, sum } = linePrice(l.sku, l.quantity);
+    body.push([
+      { text: String(i + 1) },
+      { text: l.sku },
+      { text: productBySku(l.sku)?.name ?? l.name },
+      { text: l.quantity.toLocaleString("ru-RU"), alignment: "right" },
+      { text: money(unit), alignment: "right" },
+      { text: money(sum), alignment: "right" },
+    ]);
+  });
+
+  if (delivery > 0) {
+    body.push([
+      { text: String(lines.length + 1) },
+      { text: "DELIVERY" },
+      { text: `Доставка: ${CARRIER_LABEL[carrier]}${city ? `, ${city}` : ""}` },
+      { text: "1", alignment: "right" },
+      { text: money(delivery), alignment: "right" },
+      { text: money(delivery), alignment: "right" },
+    ]);
+  }
+
+  const docDefinition = {
+    pageSize: "A4",
+    pageMargins: [36, 36, 36, 48],
+    defaultStyle: { font: "Roboto", fontSize: 9, lineHeight: 1.25 },
+    content: [
+      {
+        columns: [
+          [
+            { text: "ALMAFORT", style: "logo" },
+            { text: "Производство пластиковых комплектующих", fontSize: 8, color: "#595959" },
+          ],
+          {
+            width: 260,
+            stack: [
+              { text: "ИП Сазонов Е. О.", bold: true, alignment: "right" },
+              {
+                text: "663091, Красноярский край, г. Дивногорск, Нижний проезд, 15/1",
+                alignment: "right",
+                color: "#595959",
+              },
+              { text: "ИНН 244313770850 · ОГРНИП 306244323700012", alignment: "right", color: "#595959" },
+              { text: "Р/с 40802810931000012345", alignment: "right", color: "#595959" },
+              { text: "Банк: Красноярское отделение №8646 ПАО Сбербанк", alignment: "right", color: "#595959" },
+              { text: "БИК 040407627 · К/с 30101810800000000627", alignment: "right", color: "#595959" },
+            ],
+          },
+        ],
+      },
+      { text: " ", margin: [0, 6] },
+      {
+        canvas: [{ type: "line", x1: 0, y1: 0, x2: 523, y2: 0, lineWidth: 2, lineColor: "#E52421" }],
+      },
+      {
+        text: `Счёт на оплату № ${date.getTime().toString().slice(-6)} от ${dd}.${mm}.${date.getFullYear()}`,
+        style: "h1",
+        margin: [0, 14, 0, 12],
+      },
+      {
+        table: { headerRows: 1, widths: [18, 70, "*", 45, 55, 60], body },
+        layout: {
+          hLineWidth: () => 0.6,
+          vLineWidth: () => 0.6,
+          hLineColor: () => "#D1D5DB",
+          vLineColor: () => "#D1D5DB",
+          paddingTop: () => 5,
+          paddingBottom: () => 5,
+        },
+      },
+      {
+        margin: [0, 14, 0, 0],
+        columns: [
+          { text: "" },
+          {
+            width: 260,
+            stack: [
+              { text: `Товары: ${money(goods)} руб.`, alignment: "right" },
+              {
+                text: `Доставка: ${delivery ? `${money(delivery)} руб.` : "самовывоз"}`,
+                alignment: "right",
+              },
+              {
+                text: `Итого к оплате: ${money(total)} руб. Без НДС`,
+                alignment: "right",
+                bold: true,
+                fontSize: 12,
+                margin: [0, 6, 0, 0],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        text: "Счёт действителен в течение 3-х банковских дней. Отгрузка производится после поступления средств на расчётный счёт.",
+        margin: [0, 16, 0, 0],
+        color: "#595959",
+      },
+      {
+        margin: [0, 18, 0, 0],
+        columns: [
+          {
+            stack: [
+              { text: "Руководитель производства", color: "#595959" },
+              { text: "Сазонов Е. О.", bold: true, margin: [0, 26, 0, 0] },
+            ],
+          },
+          { width: 220, svg: decodeSvg(STAMP_BASE64) },
+        ],
+      },
+    ],
+    styles: {
+      logo: { fontSize: 20, bold: true, color: "#E52421" },
+      h1: { fontSize: 14, bold: true },
+      th: { bold: true, fillColor: "#F3F4F6" },
+    },
+  };
+
+  const doc = (
+    pdfMake as unknown as {
+      createPdf: (d: unknown) => { download: (name: string) => void };
+    }
+  ).createPdf(docDefinition);
+  doc.download(`Schet_Almafort_${stamp}.pdf`);
+}
+
+function decodeSvg(dataUrl: string) {
+  return decodeURIComponent(escape(atob(dataUrl.split(",")[1] ?? "")));
+}
