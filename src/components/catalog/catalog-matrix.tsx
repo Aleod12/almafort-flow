@@ -248,7 +248,7 @@ export function CatalogMatrix({ query, onOpenProduct, onAdd }: Props) {
               key={i}
               className={`catalog-cell sticky top-[72px] z-20 whitespace-nowrap border-b-2 border-[oklch(0.91_0.004_247.9)] bg-card text-xs font-semibold uppercase leading-tight tracking-wider text-muted-foreground ${
                 i >= 5 && i <= 7 ? "justify-end" : ""
-              } ${i === 2 ? "left-0 z-[21] md:static" : ""}`}
+              } ${i === 2 ? "max-md:left-0 z-[21]" : ""}`}
             >
               {h}
             </div>
