@@ -260,7 +260,7 @@ export function AiConfigurator() {
               <button
                 type="button"
                 onClick={scrollToQuiz}
-                className="flex cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-8 py-4 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-8 py-4 text-sm font-bold text-primary-foreground shadow-[0_6px_18px_-6px_oklch(0.573_0.221_27.5/0.55)] transition-[background-color,transform,box-shadow] duration-200 hover:bg-[#B91C1C] hover:shadow-[0_10px_24px_-8px_oklch(0.573_0.221_27.5/0.7)] active:scale-[0.97]"
               >
                 <Wrench className="size-4" strokeWidth={2} />
                 Прикрепить ТЗ и запросить расчёт
