@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CatalogRouteImport } from './routes/catalog'
+import { Route as SitemapCategoriesDotxmlRouteImport } from './routes/sitemap-categories[.]xml'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SuccessRouteImport } from './routes/success'
 import { Route as ApiCartRouteImport } from './routes/api/cart'
@@ -39,6 +40,11 @@ const CartRoute = CartRouteImport.update({
 const CatalogRoute = CatalogRouteImport.update({
   id: '/catalog',
   path: '/catalog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapCategoriesDotxmlRoute = SitemapCategoriesDotxmlRouteImport.update({
+  id: '/sitemap-categories.xml',
+  path: '/sitemap-categories.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRouteWithChildren
+  '/sitemap-categories.xml': typeof SitemapCategoriesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
   '/api/cart': typeof ApiCartRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
+  '/sitemap-categories.xml': typeof SitemapCategoriesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
   '/api/cart': typeof ApiCartRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRouteWithChildren
+  '/sitemap-categories.xml': typeof SitemapCategoriesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
   '/api/cart': typeof ApiCartRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cart'
     | '/catalog'
+    | '/sitemap-categories.xml'
     | '/sitemap.xml'
     | '/success'
     | '/api/cart'
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/cart'
+    | '/sitemap-categories.xml'
     | '/sitemap.xml'
     | '/success'
     | '/api/cart'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cart'
     | '/catalog'
+    | '/sitemap-categories.xml'
     | '/sitemap.xml'
     | '/success'
     | '/api/cart'
@@ -221,6 +233,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CartRoute: typeof CartRoute
   CatalogRoute: typeof CatalogRouteWithChildren
+  SitemapCategoriesDotxmlRoute: typeof SitemapCategoriesDotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SuccessRoute: typeof SuccessRoute
   ApiCartRoute: typeof ApiCartRoute
@@ -255,6 +268,13 @@ declare module '@tanstack/react-router' {
       path: '/catalog'
       fullPath: '/catalog'
       preLoaderRoute: typeof CatalogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap-categories.xml': {
+      id: '/sitemap-categories.xml'
+      path: '/sitemap-categories.xml'
+      fullPath: '/sitemap-categories.xml'
+      preLoaderRoute: typeof SitemapCategoriesDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -368,6 +388,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CartRoute: CartRoute,
   CatalogRoute: CatalogRouteWithChildren,
+  SitemapCategoriesDotxmlRoute: SitemapCategoriesDotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SuccessRoute: SuccessRoute,
   ApiCartRoute: ApiCartRoute,
