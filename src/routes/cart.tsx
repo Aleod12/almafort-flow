@@ -11,7 +11,7 @@ export const Route = createFileRoute("/cart")({
       {
         name: "description",
         content:
-          "Загрузите смету в Excel или CSV: система распознает артикулы, подберёт аналоги, применит оптовые скидки и сформирует PDF-счёт без НДС.",
+          "Загрузите смету в Excel или CSV: система распознает артикулы, подберёт аналоги, применит оптовые скидки и сформирует готовый PDF-счёт.",
       },
       { property: "og:title", content: "B2B-корзина ALMAFORT — парсинг спецификаций" },
       {
@@ -41,7 +41,7 @@ function CartPage() {
           <p className="mt-3 max-w-[70ch] text-sm leading-[1.6] text-muted-foreground lg:text-base">
             Загрузите файл сметы: алгоритм пройдёт по всем листам, отбросит логотипы и реквизиты,
             найдёт артикулы точно, по габаритам и нечётким поиском, применит оптовые скидки и
-            выдаст готовый PDF-счёт без НДС.
+            выдаст готовый PDF-счёт.
           </p>
           {fileName && (
             <p className="mt-3 text-xs text-muted-foreground">Файл: {fileName}</p>

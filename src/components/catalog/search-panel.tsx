@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Camera, FileText, FolderTree, Package, Search, X } from "lucide-react";
 import { CATEGORIES, PRODUCTS, type Product } from "@/data/catalog";
 import { scoreMatch } from "@/lib/fuzzy-search";
+import { PhotoScanner } from "@/components/catalog/photo-scanner";
 
 type Props = {
   query: string;
@@ -47,12 +48,11 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
   const startScan = () => {
     setScan(true);
     onScanChange(true);
-    window.setTimeout(() => {
-      setScan(false);
-      onScanChange(false);
-      onQuery("КРЕПСС 458");
-      setOpen(true);
-    }, 2200);
+  };
+
+  const stopScan = () => {
+    setScan(false);
+    onScanChange(false);
   };
 
   return (
@@ -169,16 +169,7 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
         </div>
       )}
 
-      {scan && (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-background/60 backdrop-blur-md">
-          <div className="relative h-64 w-72 overflow-hidden rounded-lg border-2 border-dashed border-primary/60">
-            <div className="scan-beam" />
-            <p className="absolute inset-x-0 bottom-4 px-4 text-center text-xs text-muted-foreground">
-              Поместите деталь в центр. Для чёрных деталей используйте светлый фон.
-            </p>
-          </div>
-        </div>
-      )}
+      <PhotoScanner open={scan} onClose={stopScan} />
     </div>
   );
 }

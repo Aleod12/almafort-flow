@@ -12,9 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CatalogRouteImport } from './routes/catalog'
+import { Route as SuccessRouteImport } from './routes/success'
 import { Route as ApiShippingCalcRouteImport } from './routes/api/shipping-calc'
+import { Route as ApiCheckoutSubmitRouteImport } from './routes/api/checkout/submit'
 import { Route as ApiDadataCityRouteImport } from './routes/api/dadata/city'
 import { Route as ApiParserUploadRouteImport } from './routes/api/parser/upload'
+import { Route as ApiVisionIdentifyRouteImport } from './routes/api/vision/identify'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -31,9 +34,19 @@ const CatalogRoute = CatalogRouteImport.update({
   path: '/catalog',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SuccessRoute = SuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiShippingCalcRoute = ApiShippingCalcRouteImport.update({
   id: '/api/shipping-calc',
   path: '/api/shipping-calc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCheckoutSubmitRoute = ApiCheckoutSubmitRouteImport.update({
+  id: '/api/checkout/submit',
+  path: '/api/checkout/submit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiDadataCityRoute = ApiDadataCityRouteImport.update({
@@ -46,31 +59,45 @@ const ApiParserUploadRoute = ApiParserUploadRouteImport.update({
   path: '/api/parser/upload',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiVisionIdentifyRoute = ApiVisionIdentifyRouteImport.update({
+  id: '/api/vision/identify',
+  path: '/api/vision/identify',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
+  '/success': typeof SuccessRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
+  '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
+  '/api/vision/identify': typeof ApiVisionIdentifyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
+  '/success': typeof SuccessRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
+  '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
+  '/api/vision/identify': typeof ApiVisionIdentifyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
+  '/success': typeof SuccessRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
+  '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
+  '/api/vision/identify': typeof ApiVisionIdentifyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -78,34 +105,46 @@ export interface FileRouteTypes {
     | '/'
     | '/cart'
     | '/catalog'
+    | '/success'
     | '/api/shipping-calc'
+    | '/api/checkout/submit'
     | '/api/dadata/city'
     | '/api/parser/upload'
+    | '/api/vision/identify'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/cart'
     | '/catalog'
+    | '/success'
     | '/api/shipping-calc'
+    | '/api/checkout/submit'
     | '/api/dadata/city'
     | '/api/parser/upload'
+    | '/api/vision/identify'
   id:
     | '__root__'
     | '/'
     | '/cart'
     | '/catalog'
+    | '/success'
     | '/api/shipping-calc'
+    | '/api/checkout/submit'
     | '/api/dadata/city'
     | '/api/parser/upload'
+    | '/api/vision/identify'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CartRoute: typeof CartRoute
   CatalogRoute: typeof CatalogRoute
+  SuccessRoute: typeof SuccessRoute
   ApiShippingCalcRoute: typeof ApiShippingCalcRoute
+  ApiCheckoutSubmitRoute: typeof ApiCheckoutSubmitRoute
   ApiDadataCityRoute: typeof ApiDadataCityRoute
   ApiParserUploadRoute: typeof ApiParserUploadRoute
+  ApiVisionIdentifyRoute: typeof ApiVisionIdentifyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -131,11 +170,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CatalogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/success': {
+      id: '/success'
+      path: '/success'
+      fullPath: '/success'
+      preLoaderRoute: typeof SuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/shipping-calc': {
       id: '/api/shipping-calc'
       path: '/api/shipping-calc'
       fullPath: '/api/shipping-calc'
       preLoaderRoute: typeof ApiShippingCalcRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/checkout/submit': {
+      id: '/api/checkout/submit'
+      path: '/api/checkout/submit'
+      fullPath: '/api/checkout/submit'
+      preLoaderRoute: typeof ApiCheckoutSubmitRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/dadata/city': {
@@ -152,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiParserUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/vision/identify': {
+      id: '/api/vision/identify'
+      path: '/api/vision/identify'
+      fullPath: '/api/vision/identify'
+      preLoaderRoute: typeof ApiVisionIdentifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -159,10 +219,23 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CartRoute: CartRoute,
   CatalogRoute: CatalogRoute,
+  SuccessRoute: SuccessRoute,
   ApiShippingCalcRoute: ApiShippingCalcRoute,
+  ApiCheckoutSubmitRoute: ApiCheckoutSubmitRoute,
   ApiDadataCityRoute: ApiDadataCityRoute,
   ApiParserUploadRoute: ApiParserUploadRoute,
+  ApiVisionIdentifyRoute: ApiVisionIdentifyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

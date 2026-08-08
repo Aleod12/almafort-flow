@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { Check, FileDown, Search, Trash2, X } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { Check, FileDown, Loader2, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { PRODUCTS, type Product } from "@/data/catalog";
 import { scoreMatch } from "@/lib/fuzzy-search";
 import { useDebounce } from "@/hooks/use-debounce";
 import { CityInput } from "@/components/cart/city-input";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
+import { saveLastOrder } from "@/lib/last-order";
 import {
   cartTotals,
   deliveryCost,
@@ -41,6 +43,7 @@ export function CartPanel() {
   const resolveUnmapped = useCart((s) => s.resolveUnmapped);
   const removeUnmapped = useCart((s) => s.removeUnmapped);
   const clear = useCart((s) => s.clear);
+  const navigate = useNavigate();
   const quotes = useCart((s) => s.quotes);
   const quoting = useCart((s) => s.quoting);
   const quoteError = useCart((s) => s.quoteError);
@@ -107,6 +110,72 @@ export function CartPanel() {
       weight > 0 &&
       (payloadKey !== debouncedKey || !quoteFor(carrier)));
   const ctaDisabled = !lines.length || pendingQuote;
+
+  const [form, setForm] = useState({ name: "", phone: "", email: "", company: "", comment: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const field = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const submitOrder = async () => {
+    if (!lines.length) {
+      toast.error("Корзина пуста — добавьте позиции или загрузите спецификацию");
+      return;
+    }
+    if (form.name.trim().length < 2 || form.phone.replace(/\D/g, "").length < 10) {
+      toast.error("Укажите имя и телефон — менеджер должен знать, кому подтверждать отгрузку");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      // PDF не должен блокировать заявку: если генерация подвисла — уходим без вложения.
+      const invoicePdfBase64 = await Promise.race([
+        generateInvoicePdf({ lines, carrier, city, delivery, output: "base64" }).catch(() => null),
+        new Promise<null>((r) => window.setTimeout(() => r(null), 20000)),
+      ]);
+
+      const res = await fetch("/api/checkout/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: {
+            name: form.name.trim(),
+            phone: form.phone.trim(),
+            email: form.email.trim(),
+            company: form.company.trim(),
+            comment: form.comment.trim(),
+          },
+          city,
+          carrier,
+          deliveryPrice: delivery,
+          goodsPrice: goods,
+          total,
+          items: lines.map((l) => {
+            const { unit, sum } = linePrice(l.sku, l.quantity);
+            return { sku: l.sku, name: l.name, quantity: l.quantity, unit, sum };
+          }),
+          ...(invoicePdfBase64 ? { invoicePdfBase64 } : {}),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error ?? "Не удалось оформить заказ");
+
+      saveLastOrder({
+        orderId: json.orderId,
+        lines,
+        carrier,
+        city,
+        delivery,
+        total,
+        invoiceUrl: json.invoiceUrl ?? null,
+      });
+      clear();
+      await navigate({ to: "/success" });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Не удалось оформить заказ");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const download = async () => {
     if (ctaDisabled) return;
@@ -339,6 +408,45 @@ export function CartPanel() {
           </p>
         </div>
 
+        <div className="rounded-md border border-border p-5">
+          <p className="text-sm font-semibold text-foreground">Контакты для счёта</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <input
+              value={form.name}
+              onChange={field("name")}
+              placeholder="Имя и фамилия*"
+              className="h-11 rounded-sm border border-[#D1D5DB] px-3 text-sm outline-none transition-colors focus:border-primary"
+            />
+            <input
+              value={form.phone}
+              onChange={field("phone")}
+              inputMode="tel"
+              placeholder="Телефон*"
+              className="h-11 rounded-sm border border-[#D1D5DB] px-3 text-sm outline-none transition-colors focus:border-primary"
+            />
+            <input
+              value={form.email}
+              onChange={field("email")}
+              inputMode="email"
+              placeholder="E-mail для счёта"
+              className="h-11 rounded-sm border border-[#D1D5DB] px-3 text-sm outline-none transition-colors focus:border-primary"
+            />
+            <input
+              value={form.company}
+              onChange={field("company")}
+              placeholder="Компания"
+              className="h-11 rounded-sm border border-[#D1D5DB] px-3 text-sm outline-none transition-colors focus:border-primary"
+            />
+          </div>
+          <textarea
+            value={form.comment}
+            onChange={field("comment")}
+            rows={2}
+            placeholder="Комментарий к отгрузке"
+            className="mt-3 w-full rounded-sm border border-[#D1D5DB] p-3 text-sm outline-none transition-colors focus:border-primary"
+          />
+        </div>
+
         <div className="rounded-md bg-[#F8F9FA] p-5">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Товары</span>
@@ -351,16 +459,25 @@ export function CartPanel() {
             </span>
           </div>
           <div className="mt-4 flex justify-between border-t border-border pt-4">
-            <span className="text-sm font-semibold text-foreground">Итого без НДС</span>
+            <span className="text-sm font-semibold text-foreground">Итого к оплате</span>
             <span className="text-lg font-extrabold tabular-nums text-foreground">
               {money(total)} ₽
             </span>
           </div>
           <button
             type="button"
+            onClick={submitOrder}
+            disabled={ctaDisabled || submitting}
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-sm bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
+          >
+            {submitting && <Loader2 className="size-4 animate-spin" strokeWidth={2} />}
+            {submitting ? "Передаём заказ менеджеру…" : "Оформить заказ"}
+          </button>
+          <button
+            type="button"
             onClick={download}
             disabled={ctaDisabled}
-            className="mt-5 flex w-full items-center justify-center gap-2 rounded-sm bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-sm border border-[#D1D5DB] px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
           >
             <FileDown className="size-4" strokeWidth={2} />
             {pendingQuote && lines.length ? "Считаем доставку…" : "Скачать PDF-счёт"}
