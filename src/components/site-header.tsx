@@ -25,35 +25,35 @@ export function SiteHeader() {
       className="sticky top-0 z-50 bg-background"
       style={elevated ? { boxShadow: "var(--shadow-header)" } : undefined}
     >
-      <div className="mx-auto grid max-w-[1440px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 lg:grid-cols-12 lg:gap-6 lg:px-10">
-        <a href="/" className="col-span-1 flex min-w-0 items-center lg:col-span-2">
+      <div className="mx-auto grid max-w-[1440px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 lg:flex lg:items-center lg:justify-between lg:gap-12 lg:px-10">
+        <a href="/" className="flex min-w-0 shrink-0 items-center">
           <span className="text-xl font-extrabold tracking-tight text-primary">ALMAFORT</span>
         </a>
 
-        <nav className="hidden lg:col-span-5 lg:flex lg:items-center lg:gap-6">
+        <nav className="hidden lg:flex lg:items-center lg:gap-7">
           {NAV.map((item) => (
             <a
               key={item.label}
               href={item.href}
-              className="text-sm font-medium text-foreground hover:text-primary"
+              className="whitespace-nowrap text-sm font-medium text-foreground hover:text-primary"
             >
               {item.label}
             </a>
           ))}
         </nav>
 
-        <div className="hidden lg:col-span-5 lg:flex lg:items-center lg:justify-end lg:gap-5">
-          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <div className="hidden lg:flex lg:shrink-0 lg:items-center lg:gap-5">
+          <span className="flex items-center gap-2 whitespace-nowrap text-[13px] leading-none text-muted-foreground">
             <Clock className="size-4 shrink-0" strokeWidth={1.5} />
             Пн-Пт 08:00–19:00 (МСК+4)
           </span>
-          <span className="hidden items-center gap-1.5 text-xs text-muted-foreground xl:flex">
+          <span className="hidden items-center gap-2 whitespace-nowrap text-[13px] leading-none text-muted-foreground xl:flex">
             <MapPin className="size-4 shrink-0" strokeWidth={1.5} />
             Нижний проезд, 15/1
           </span>
           <a
             href="tel:+79029229734"
-            className="flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary"
+            className="flex items-center gap-2 whitespace-nowrap text-[14px] font-semibold leading-none text-foreground hover:text-primary"
           >
             <Phone className="size-4 shrink-0" strokeWidth={1.5} />
             +7 (902) 922-97-34
@@ -66,6 +66,7 @@ export function SiteHeader() {
             <UserRound className="size-4" strokeWidth={1.5} />
           </a>
         </div>
+
 
         <div className="flex items-center gap-2 justify-self-end lg:hidden">
           <a
