@@ -3,7 +3,7 @@ import { Loader2, Sparkles, Calculator, FileText, ShieldCheck, Wrench } from "lu
 import { toast } from "sonner";
 import { useCart } from "@/store/cart-store";
 import { PRODUCTS, isOnRequest, tierOf } from "@/data/catalog";
-import { unitPriceOf, lineTotal, formatMoney, formatPrice } from "@/lib/pricing";
+import { unitPriceOf, lineTotal, formatPrice } from "@/lib/pricing";
 import { ProductThumb } from "@/components/catalog/product-thumb";
 
 type SolutionItem = {

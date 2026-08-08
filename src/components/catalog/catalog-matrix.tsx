@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Check, Loader2, MessageSquareQuote, ShoppingCart } from "lucide-react";
 import { PRODUCTS, isOnRequest, tierOf, type Product } from "@/data/catalog";
-import { formatMoney as money, formatPrice, lineTotal } from "@/lib/pricing";
+import { formatPrice, lineTotal } from "@/lib/pricing";
 import { searchCatalog } from "@/lib/search-index";
 import { toast } from "sonner";
 import { QuoteRequestModal } from "@/components/catalog/quote-request-modal";
