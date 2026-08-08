@@ -35,7 +35,14 @@ export function SpecUpload({ compact = false }: { compact?: boolean }) {
           description: analogs
             ? `${found} точных совпадений, ${analogs} аналогов требуют подтверждения.`
             : `${found} позиций добавлено в корзину.`,
+          action: {
+            label: "Открыть корзину",
+            onClick: () => {
+              window.location.href = "/cart";
+            },
+          },
         });
+
       } catch (e) {
         setParsing(false);
         toast.error(e instanceof Error ? e.message : "Не удалось разобрать файл");
