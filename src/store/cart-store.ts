@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { PRODUCTS, tierOf, unitPrice, type Product } from "@/data/catalog";
+import type { Candidate } from "@/lib/spec-matcher";
 import {
   FALLBACK_VOLUME_M3,
   FALLBACK_WEIGHT_KG,
@@ -16,30 +17,29 @@ export type CartLine = {
   originalName?: string | undefined;
 };
 
-export type AnalogSuggestion = {
+/** Строка спецификации, требующая участия человека (жёлтая / красная). */
+export type PendingRow = {
   id: string;
-  originalName: string;
+  originalString: string;
   quantity: number;
-  suggestedSku: string;
-  suggestedName: string;
-  matchConfidence: number;
+  status: "AMBIGUOUS" | "NOT_FOUND";
+  score: number;
+  candidates: Candidate[];
 };
-
-export type UnmappedLine = { id: string; originalString: string; quantity: number };
 
 export type Carrier = CarrierId;
 
 export type ParsePayload = {
   fileName?: string;
-  exactMatches: Array<{ sku: string; name?: string; quantity: number; originalName?: string }>;
-  suggestedAnalogs: Array<{
-    originalName: string;
+  rows: Array<{
+    id?: string;
+    originalString: string;
     quantity: number;
-    suggestedSku: string;
-    suggestedName?: string;
-    matchConfidence: number;
+    status: "MATCHED" | "AMBIGUOUS" | "NOT_FOUND";
+    score: number;
+    sku: string | null;
+    candidates: Candidate[];
   }>;
-  unmapped: Array<{ originalString: string; quantity: number }>;
 };
 
 export const productBySku = (sku: string) => PRODUCTS.find((p) => p.sku === sku);
@@ -83,8 +83,7 @@ type State = {
   fileName: string | null;
   parsing: boolean;
   lines: CartLine[];
-  analogs: AnalogSuggestion[];
-  unmapped: UnmappedLine[];
+  pending: PendingRow[];
   carrier: Carrier;
   city: string;
   fiasId: string | null;
@@ -99,10 +98,8 @@ type State = {
   addLine: (sku: string, quantity: number, originalName?: string) => void;
   setQuantity: (sku: string, quantity: number) => void;
   removeLine: (sku: string) => void;
-  confirmAnalog: (id: string) => void;
-  rejectAnalog: (id: string) => void;
-  resolveUnmapped: (id: string, product: Product) => void;
-  removeUnmapped: (id: string) => void;
+  resolvePending: (id: string, sku: string) => void;
+  removePending: (id: string) => void;
   setCarrier: (c: Carrier) => void;
   setCity: (c: string) => void;
   setDestination: (city: string, fiasId: string | null) => void;
@@ -117,8 +114,7 @@ export const useCart = create<State>()(
   fileName: null,
   parsing: false,
   lines: [],
-  analogs: [],
-  unmapped: [],
+  pending: [],
   carrier: "cdek",
   city: "",
   fiasId: null,
@@ -135,38 +131,37 @@ export const useCart = create<State>()(
   applyParse: (payload) =>
     set((s) => {
       const lines = [...s.lines];
-      for (const m of payload.exactMatches) {
-        const p = productBySku(m.sku);
-        if (!p) continue;
-        const found = lines.find((l) => l.sku === m.sku);
-        if (found) found.quantity += m.quantity;
-        else
-          lines.push({
-            sku: p.sku,
-            name: p.name,
-            quantity: m.quantity,
-            originalName: m.originalName,
-          });
+      const pending: PendingRow[] = [...s.pending];
+      for (const r of payload.rows) {
+        if (r.status === "MATCHED" && r.sku) {
+          const p = productBySku(r.sku);
+          if (p) {
+            const found = lines.find((l) => l.sku === p.sku);
+            if (found) found.quantity += r.quantity;
+            else
+              lines.push({
+                sku: p.sku,
+                name: p.name,
+                quantity: r.quantity,
+                originalName: r.originalString,
+              });
+            continue;
+          }
+        }
+        pending.push({
+          id: r.id ?? uid(),
+          originalString: r.originalString,
+          quantity: r.quantity,
+          status: r.status === "MATCHED" ? "NOT_FOUND" : r.status,
+          score: r.score,
+          candidates: r.candidates ?? [],
+        });
       }
       return {
         fileName: payload.fileName ?? s.fileName,
         parsing: false,
         lines,
-        analogs: [
-          ...s.analogs,
-          ...payload.suggestedAnalogs.map((a) => ({
-            id: uid(),
-            originalName: a.originalName,
-            quantity: a.quantity,
-            suggestedSku: a.suggestedSku,
-            suggestedName: a.suggestedName ?? productBySku(a.suggestedSku)?.name ?? a.suggestedSku,
-            matchConfidence: a.matchConfidence,
-          })),
-        ],
-        unmapped: [
-          ...s.unmapped,
-          ...payload.unmapped.map((u) => ({ id: uid(), ...u })),
-        ],
+        pending,
       };
     }),
 
@@ -188,72 +183,40 @@ export const useCart = create<State>()(
 
   removeLine: (sku) => set((s) => ({ lines: s.lines.filter((l) => l.sku !== sku) })),
 
-  confirmAnalog: (id) =>
+  resolvePending: (id, sku) =>
     set((s) => {
-      const a = s.analogs.find((x) => x.id === id);
-      if (!a) return s;
-      const p = productBySku(a.suggestedSku);
-      if (!p) return s;
+      const row = s.pending.find((x) => x.id === id);
+      const p = productBySku(sku);
+      if (!row || !p) return s;
       const lines = [...s.lines];
       const found = lines.find((l) => l.sku === p.sku);
-      if (found) found.quantity += a.quantity;
+      if (found) found.quantity += row.quantity;
       else
         lines.push({
           sku: p.sku,
           name: p.name,
-          quantity: a.quantity,
-          originalName: a.originalName,
+          quantity: row.quantity,
+          originalName: row.originalString,
         });
-      return { lines, analogs: s.analogs.filter((x) => x.id !== id) };
+      return { lines, pending: s.pending.filter((x) => x.id !== id) };
     }),
 
-  rejectAnalog: (id) =>
-    set((s) => {
-      const a = s.analogs.find((x) => x.id === id);
-      if (!a) return s;
-      return {
-        analogs: s.analogs.filter((x) => x.id !== id),
-        unmapped: [
-          ...s.unmapped,
-          { id: uid(), originalString: a.originalName, quantity: a.quantity },
-        ],
-      };
-    }),
-
-  resolveUnmapped: (id, product) =>
-    set((s) => {
-      const u = s.unmapped.find((x) => x.id === id);
-      if (!u) return s;
-      const lines = [...s.lines];
-      const found = lines.find((l) => l.sku === product.sku);
-      if (found) found.quantity += u.quantity;
-      else
-        lines.push({
-          sku: product.sku,
-          name: product.name,
-          quantity: u.quantity,
-          originalName: u.originalString,
-        });
-      return { lines, unmapped: s.unmapped.filter((x) => x.id !== id) };
-    }),
-
-  removeUnmapped: (id) => set((s) => ({ unmapped: s.unmapped.filter((x) => x.id !== id) })),
+  removePending: (id) => set((s) => ({ pending: s.pending.filter((x) => x.id !== id) })),
 
   setCarrier: (carrier) => set({ carrier }),
   setCity: (city) => set({ city, fiasId: null }),
   setDestination: (city, fiasId) => set({ city, fiasId }),
 
   clear: () =>
-    set({ lines: [], analogs: [], unmapped: [], fileName: null, quotes: [], quoteError: null, fiasId: null }),
+    set({ lines: [], pending: [], fileName: null, quotes: [], quoteError: null, fiasId: null }),
     }),
     {
       // Корзина переживает переход между страницами и закрытие вкладки.
-      name: "almafort:cart",
+      name: "almafort:cart:v5",
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({
         lines: s.lines,
-        analogs: s.analogs,
-        unmapped: s.unmapped,
+        pending: s.pending,
         fileName: s.fileName,
         carrier: s.carrier,
         city: s.city,
