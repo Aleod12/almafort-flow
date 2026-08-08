@@ -27,7 +27,7 @@ const schema = z.object({
     .min(1)
     .max(500),
   // PDF-счёт, сгенерированный на клиенте (pdfmake), в base64 — без префикса data:
-  invoicePdfBase64: z.string().max(12_000_000).optional(),
+  invoicePdfBase64: z.string().max(12_000_000).nullish(),
 });
 
 const CARRIER_LABEL = {
