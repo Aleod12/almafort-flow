@@ -64,12 +64,20 @@ function LazyMap() {
 
 export function SiteFooter() {
   const [modal, setModal] = useState(false);
+  // Антиспам: адрес собирается только в браузере — в исходном коде страницы его нет.
+  const [mail, setMail] = useState("");
+  useEffect(() => setMail(email), []);
 
   useEffect(() => {
     if (!modal) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setModal(false);
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
   }, [modal]);
 
   return (
@@ -97,10 +105,10 @@ export function SiteFooter() {
           </p>
 
           <a
-            href={`mailto:${email}`}
+            href={mail ? `mailto:${mail}` : undefined}
             className="mt-6 inline-block text-base text-white hover:underline hover:underline-offset-4"
           >
-            {email}
+            {mail || "отдел продаж — почта"}
           </a>
 
           <p className="mt-3 flex items-start gap-2 text-sm leading-[1.6] text-[#9CA3AF]">

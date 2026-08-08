@@ -61,7 +61,7 @@ export function ProductionSection() {
               onClick={() => {
                 document.getElementById("quiz")?.scrollIntoView({ behavior: "smooth" });
               }}
-              className="group flex min-w-[300px] shrink-0 cursor-pointer snap-start flex-col rounded-lg bg-card p-8 shadow-[0_4px_6px_oklch(0_0_0/0.02)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_24px_oklch(0_0_0/0.06)] md:min-w-0 lg:p-10"
+              className="group flex min-w-[300px] shrink-0 cursor-pointer snap-start flex-col rounded-lg bg-card p-8 shadow-[0_4px_6px_oklch(0_0_0/0.02)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_24px_oklch(0_0_0/0.06)] [will-change:transform] md:min-w-0 lg:p-10"
             >
               <span className="relative inline-flex size-8 items-center justify-center">
                 <c.icon className="size-8 text-foreground" strokeWidth={1.5} />
