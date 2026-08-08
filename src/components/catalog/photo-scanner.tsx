@@ -162,7 +162,47 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
         <X className="size-5" strokeWidth={2} />
       </button>
 
-      {!result && (
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => void pickFile(e.target.files?.[0])}
+      />
+
+      {!result && camError && (
+        <div className="flex h-full w-full flex-col items-center justify-center gap-5 px-6 text-center">
+          <span className="grid size-16 place-items-center rounded-full bg-white/10 text-white">
+            <CameraOff className="size-8" strokeWidth={1.5} />
+          </span>
+          <p className="max-w-[46ch] text-sm leading-[1.6] text-white/85">
+            {camError}. Для умного распознавания деталей воспользуйтесь смартфоном или загрузите
+            фотографию вручную.
+          </p>
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={busy}
+            className="flex cursor-pointer items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.02] disabled:opacity-60"
+          >
+            {busy ? (
+              <Loader2 className="size-4 animate-spin" strokeWidth={2} />
+            ) : (
+              <ImageUp className="size-4" strokeWidth={1.75} />
+            )}
+            {busy ? "Анализируем фото…" : "Загрузить фото с диска"}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="cursor-pointer text-xs text-white/60 underline underline-offset-4 hover:text-white"
+          >
+            Закрыть сканер
+          </button>
+        </div>
+      )}
+
+      {!result && !camError && (
         <>
           <video
             ref={videoRef}
@@ -195,22 +235,33 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
 
           <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 p-8">
             <p className="max-w-[42ch] text-center text-xs leading-[1.5] text-white/75">
-              {camError ??
-                "Поместите деталь в центр. Для тёмных деталей используйте светлый фон."}
+              Поместите деталь в центр. Для тёмных деталей используйте светлый фон.
             </p>
 
-            <button
-              type="button"
-              onClick={capture}
-              disabled={busy || !!camError}
-              className="flex cursor-pointer items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground shadow-[0_0_0_0_oklch(0.58_0.22_27/0.6)] transition-transform hover:scale-[1.02] disabled:opacity-50 motion-safe:animate-[pulse_2s_ease-in-out_infinite]"
-            >
-              {busy && <Loader2 className="size-4 animate-spin" strokeWidth={2} />}
-              {busy ? "Анализируем кадр…" : "Распознать деталь"}
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={capture}
+                disabled={busy}
+                className="flex cursor-pointer items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground shadow-[0_0_0_0_oklch(0.58_0.22_27/0.6)] transition-transform hover:scale-[1.02] disabled:opacity-50 motion-safe:animate-[pulse_2s_ease-in-out_infinite]"
+              >
+                {busy && <Loader2 className="size-4 animate-spin" strokeWidth={2} />}
+                {busy ? "Анализируем кадр…" : "Распознать деталь"}
+              </button>
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={busy}
+                className="flex cursor-pointer items-center gap-2 rounded-full border border-white/30 px-6 py-4 text-sm font-semibold text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+              >
+                <ImageUp className="size-4" strokeWidth={1.75} />
+                Фото с диска
+              </button>
+            </div>
           </div>
         </>
       )}
+
 
       {result && (
         <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-card p-6 motion-safe:animate-[slide-in-bottom_0.28s_ease-out]">
