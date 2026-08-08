@@ -93,6 +93,8 @@ function Index() {
 
         </section>
       </main>
+      <ProductionSection />
+
     </div>
   );
 }
