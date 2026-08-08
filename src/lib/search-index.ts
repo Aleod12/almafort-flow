@@ -169,29 +169,37 @@ export function searchCatalog(query: string, limit = 8): SearchHit[] {
     }
   }
 
-  // подстраховка на опечатку в первых буквах — проверяем весь корпус, он лёгкий
-  const pool = candidates.size ? [...candidates] : DOCS.map((_, i) => i);
-
-  const scored: SearchHit[] = [];
-  for (const i of pool) {
-    const doc = DOCS[i]!;
-    let best = 0;
-    for (let k = 0; k < variants.length; k++) {
-      best = Math.max(best, scoreDoc(doc, allTokens[k]!, normalize(variants[k]!)));
+  const runPool = (pool: number[]): SearchHit[] => {
+    const scored: SearchHit[] = [];
+    for (const i of pool) {
+      const doc = DOCS[i]!;
+      let best = 0;
+      for (let k = 0; k < variants.length; k++) {
+        best = Math.max(best, scoreDoc(doc, allTokens[k]!, normalize(variants[k]!)));
+      }
+      if (best <= 0) continue;
+      scored.push({
+        id: doc.p.id,
+        sku: doc.p.sku,
+        title: doc.p.name,
+        category: doc.p.category,
+        dimensions: doc.p.dims,
+        price: doc.p.price,
+        stock_quantity: doc.p.stock.qty,
+        score: Math.round(best),
+      });
     }
-    if (best <= 0) continue;
-    scored.push({
-      id: doc.p.id,
-      sku: doc.p.sku,
-      title: doc.p.name,
-      category: doc.p.category,
-      dimensions: doc.p.dims,
-      price: doc.p.price,
-      stock_quantity: doc.p.stock.qty,
-      score: Math.round(best),
-    });
-  }
+    scored.sort((a, b) => b.score - a.score || a.sku.localeCompare(b.sku));
+    return scored;
+  };
 
-  scored.sort((a, b) => b.score - a.score || a.sku.localeCompare(b.sku));
+  const all = DOCS.map((_, i) => i);
+  let scored = runPool(candidates.size ? [...candidates] : all);
+  // Опечатка в первых буквах («каплачок») ломает edge-ngram — добираем полным
+  // сканом корпуса, он лёгкий и укладывается в единицы мс.
+  if (candidates.size && (!scored.length || (scored[0]?.score ?? 0) < 40)) {
+    scored = runPool(all);
+  }
   return scored.slice(0, limit);
+
 }
