@@ -156,6 +156,12 @@
     border-color: var(--color-border);
   }
 
+  html,
+  body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
@@ -170,7 +176,21 @@
   a, button {
     transition: all 0.2s ease-in-out;
   }
+  /* Длинные технические названия («Реверс-инжиниринг…») не рвут сетку */
+  h1, h2, h3, h4, p, li, td, th, label, span, a {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
 }
+
+/* Единственный элемент с правом на горизонтальный скролл — таблица каталога */
+@utility table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
 
 @utility no-scrollbar {
   -ms-overflow-style: none;
