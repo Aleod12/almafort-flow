@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/site-header";
+import { SpecDropzone } from "@/components/spec-dropzone";
 import { SearchPanel } from "@/components/catalog/search-panel";
 import { CatalogMatrix } from "@/components/catalog/catalog-matrix";
 import { ProductSheet } from "@/components/catalog/product-sheet";
@@ -33,6 +35,7 @@ function CatalogPage() {
   const [query, setQuery] = useState("");
   const [scanning, setScanning] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
+  const [upload, setUpload] = useState(false);
   const [cart, setCart] = useState<{ lines: number; total: number }>({ lines: 0, total: 0 });
 
   const add = (p: Product, qty: number) => {
@@ -62,12 +65,30 @@ function CatalogPage() {
           onScanChange={setScanning}
         />
 
+        <div className="mt-6 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setUpload((v) => !v)}
+            className="flex items-center gap-2 rounded-sm border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition-colors duration-200 hover:border-primary hover:text-primary"
+          >
+            <FileSpreadsheet className="size-4" strokeWidth={1.75} />
+            Загрузить спецификацию Excel
+          </button>
+        </div>
+
+        {upload && (
+          <div className="mx-auto mt-4 w-full lg:w-[70%]">
+            <SpecDropzone />
+          </div>
+        )}
+
         <section
           className={`mt-10 transition-all duration-300 ${scanning ? "blur-sm" : ""}`}
           aria-label="Матрица каталога"
         >
           <CatalogMatrix query={query} onOpenProduct={setProduct} onAdd={add} />
         </section>
+
       </main>
 
       {cart.lines > 0 && (
