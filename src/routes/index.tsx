@@ -3,6 +3,8 @@ import { ArrowRight, Boxes, FileCheck2, Timer, Truck } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SpecDropzone } from "@/components/spec-dropzone";
 import { PlatformTerminal } from "@/components/platform-terminal";
+import { ProductionSection } from "@/components/services/production-section";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -93,6 +95,8 @@ function Index() {
 
         </section>
       </main>
+      <ProductionSection />
+
     </div>
   );
 }
