@@ -240,21 +240,21 @@ export function CatalogMatrix({ query, onOpenProduct, onAdd }: Props) {
 
   return (
     <div className="table-container">
-      <div className="catalog-grid-parent">
-        {/* Шапка — display: contents, ячейки sticky по отдельности */}
-        <div className="catalog-row">
-          {headers.map((h, i) => (
-            <div
-              key={i}
-              className={`catalog-cell sticky top-[72px] z-20 whitespace-nowrap border-b-2 border-[oklch(0.91_0.004_247.9)] bg-card text-xs font-semibold uppercase leading-tight tracking-wider text-muted-foreground ${
-                i >= 5 && i <= 7 ? "justify-end" : ""
-              } ${i === 2 ? "max-md:left-0 z-[21]" : ""}`}
-            >
-              {h}
-            </div>
-          ))}
-        </div>
+      {/* Шапка: тот же шаблон колонок, sticky относительно страницы */}
+      <div className="catalog-grid-header sticky top-[72px] z-20 border-b-2 border-[oklch(0.91_0.004_247.9)] bg-card">
+        {headers.map((h, i) => (
+          <div
+            key={i}
+            className={`catalog-cell whitespace-nowrap text-xs font-semibold uppercase leading-tight tracking-wider text-muted-foreground ${
+              i >= 5 && i <= 7 ? "justify-end" : ""
+            }`}
+          >
+            {h}
+          </div>
+        ))}
+      </div>
 
+      <div className="catalog-grid-parent">
         {rows.map((p) => (
           <Row key={p.id} p={p} onOpenProduct={onOpenProduct} onAdd={onAdd} />
         ))}
@@ -264,6 +264,7 @@ export function CatalogMatrix({ query, onOpenProduct, onAdd }: Props) {
           </div>
         )}
       </div>
+
 
     </div>
   );
