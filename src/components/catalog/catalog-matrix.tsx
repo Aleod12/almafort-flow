@@ -154,7 +154,10 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
         </span>
       </div>
       <div className={`${CELL} text-sm text-muted-foreground`}>
-        <span className="w-full overflow-hidden text-ellipsis whitespace-nowrap" title={p.dims}>
+        <span
+          className="w-full whitespace-normal break-words leading-[1.2]"
+          title={p.dims}
+        >
           {p.dims}
         </span>
       </div>
