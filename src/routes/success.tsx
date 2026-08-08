@@ -1,9 +1,10 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/site-header";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
-import { readLastOrder } from "@/lib/last-order";
+import { readLastOrder, type LastOrder } from "@/lib/last-order";
 
 export const Route = createFileRoute("/success")({
   head: () => ({
@@ -27,7 +28,9 @@ export const Route = createFileRoute("/success")({
 });
 
 function SuccessPage() {
-  const order = readLastOrder();
+  // sessionStorage читаем после гидрации, чтобы SSR и клиент совпали.
+  const [order, setOrder] = useState<LastOrder | null>(null);
+  useEffect(() => setOrder(readLastOrder()), []);
 
   const downloadCopy = async () => {
     if (!order) return;

@@ -35,6 +35,8 @@ export type InvoiceInput = {
   city: string;
   /** Стоимость доставки из расчёта ТК; если не передана — локальный фолбэк. */
   delivery?: number;
+  /** download — отдать файл пользователю, base64 — вернуть строку для выгрузки в S3/CRM. */
+  output?: "download" | "base64";
 };
 
 export async function generateInvoicePdf({
@@ -42,7 +44,8 @@ export async function generateInvoicePdf({
   carrier,
   city,
   delivery: deliveryOverride,
-}: InvoiceInput) {
+  output = "download",
+}: InvoiceInput): Promise<string | void> {
   const pdfMakeModule = await import("pdfmake/build/pdfmake");
   const fontsModule = await import("pdfmake/build/vfs_fonts");
   const pdfMake = ((pdfMakeModule as unknown as { default?: unknown }).default ??
@@ -162,7 +165,7 @@ export async function generateInvoicePdf({
                 alignment: "right",
               },
               {
-                text: `Итого к оплате: ${money(total)} руб. Без НДС`,
+                text: `Итого к оплате: ${money(total)} руб.`,
                 alignment: "right",
                 bold: true,
                 fontSize: 12,
@@ -199,9 +202,16 @@ export async function generateInvoicePdf({
 
   const doc = (
     pdfMake as unknown as {
-      createPdf: (d: unknown) => { download: (name: string) => void };
+      createPdf: (d: unknown) => {
+        download: (name: string) => void;
+        getBase64: (cb: (data: string) => void) => void;
+      };
     }
   ).createPdf(docDefinition);
+
+  if (output === "base64") {
+    return await new Promise<string>((resolve) => doc.getBase64((data) => resolve(data)));
+  }
   doc.download(`Schet_Almafort_${stamp}.pdf`);
 }
 
