@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Check, FileDown, Loader2, Search, Trash2, X } from "lucide-react";
+import { AlertTriangle, FileDown, Loader2, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { PRODUCTS, type Product } from "@/data/catalog";
+import { PRODUCTS } from "@/data/catalog";
 import { scoreMatch } from "@/lib/fuzzy-search";
 import { useDebounce } from "@/hooks/use-debounce";
 import { CityInput } from "@/components/cart/city-input";
+import { formatPrice } from "@/lib/pricing";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { saveLastOrder } from "@/lib/last-order";
 import { ConsentCheckbox } from "@/components/consent-checkbox";
@@ -16,6 +17,7 @@ import {
   linePrice,
   useCart,
   type Carrier,
+  type PendingRow,
 } from "@/store/cart-store";
 
 const money = (n: number) =>
@@ -31,8 +33,7 @@ const TIER_LABEL = ["базовая", "от 1 000 шт", "от 5 000 шт"];
 
 export function CartPanel() {
   const lines = useCart((s) => s.lines);
-  const analogs = useCart((s) => s.analogs);
-  const unmapped = useCart((s) => s.unmapped);
+  const pending = useCart((s) => s.pending);
   const carrier = useCart((s) => s.carrier);
   const city = useCart((s) => s.city);
   const setCarrier = useCart((s) => s.setCarrier);
@@ -40,10 +41,8 @@ export function CartPanel() {
   const setDestination = useCart((s) => s.setDestination);
   const setQuantity = useCart((s) => s.setQuantity);
   const removeLine = useCart((s) => s.removeLine);
-  const confirmAnalog = useCart((s) => s.confirmAnalog);
-  const rejectAnalog = useCart((s) => s.rejectAnalog);
-  const resolveUnmapped = useCart((s) => s.resolveUnmapped);
-  const removeUnmapped = useCart((s) => s.removeUnmapped);
+  const resolvePending = useCart((s) => s.resolvePending);
+  const removePending = useCart((s) => s.removePending);
   const clear = useCart((s) => s.clear);
   const navigate = useNavigate();
   const quotes = useCart((s) => s.quotes);
@@ -198,60 +197,24 @@ export function CartPanel() {
 
   return (
     <div className="space-y-8">
-      {/* Аналоги */}
-      {analogs.length > 0 && (
-        <section className="rounded-lg border border-[#F5C518]/60 bg-[#FFFBEB] p-6">
+      {/* Строки спецификации, требующие решения человека */}
+      {pending.length > 0 && (
+        <section className="space-y-3">
           <h3 className="text-base font-bold text-foreground">
-            Найдены аналоги — требуется подтверждение ({analogs.length})
+            Строки из вашего файла, требующие внимания ({pending.length})
           </h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Мы не отгружаем замены без вашего согласия. Сверьте строку из вашей сметы с нашей
-            номенклатурой.
+          <p className="text-sm text-muted-foreground">
+            Ни одна строка сметы не потеряна. Жёлтые — выберите модель из списка, красные — можно
+            отправить в производство на заказ.
           </p>
-          <ul className="mt-5 space-y-3">
-            {analogs.map((a) => (
-              <li
-                key={a.id}
-                className="grid gap-3 rounded-md bg-card p-4 shadow-[0_2px_6px_oklch(0_0_0/0.04)] md:grid-cols-[1fr_1fr_auto] md:items-center"
-              >
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Ваша строка
-                  </p>
-                  <p className="text-sm font-medium text-foreground">{a.originalName}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {a.quantity.toLocaleString("ru-RU")} шт
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Наш аналог · совпадение {Math.round(a.matchConfidence * 100)}%
-                  </p>
-                  <p className="text-sm font-semibold text-foreground">
-                    {a.suggestedSku} — {a.suggestedName}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => confirmAnalog(a.id)}
-                    className="flex cursor-pointer items-center gap-2 rounded-sm bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-                  >
-                    <Check className="size-4" strokeWidth={2} />
-                    Подтвердить замену
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => rejectAnalog(a.id)}
-                    aria-label="Отклонить аналог"
-                    className="grid size-9 cursor-pointer place-items-center rounded-sm border border-[#D1D5DB] text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-                  >
-                    <X className="size-4" strokeWidth={2} />
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {pending.map((row) => (
+            <PendingRowCard
+              key={row.id}
+              row={row}
+              onResolve={(sku) => resolvePending(row.id, sku)}
+              onRemove={() => removePending(row.id)}
+            />
+          ))}
         </section>
       )}
 
@@ -335,26 +298,6 @@ export function CartPanel() {
           );
         })}
       </section>
-
-      {/* Не распознано */}
-      {unmapped.length > 0 && (
-        <section className="rounded-lg border border-primary/30 bg-card p-6">
-          <h3 className="text-base font-bold text-primary">
-            Не распознано ({unmapped.length})
-          </h3>
-          <ul className="mt-4 space-y-3">
-            {unmapped.map((u) => (
-              <UnmappedRow
-                key={u.id}
-                text={u.originalString}
-                qty={u.quantity}
-                onPick={(p) => resolveUnmapped(u.id, p)}
-                onRemove={() => removeUnmapped(u.id)}
-              />
-            ))}
-          </ul>
-        </section>
-      )}
 
       {/* Логистика и итог */}
       <section className="grid gap-6 rounded-lg border border-border bg-card p-6 lg:grid-cols-[1fr_320px]">
@@ -530,53 +473,106 @@ export function CartPanel() {
   );
 }
 
-function UnmappedRow({
-  text,
-  qty,
-  onPick,
+function PendingRowCard({
+  row,
+  onResolve,
   onRemove,
 }: {
-  text: string;
-  qty: number;
-  onPick: (p: Product) => void;
+  row: PendingRow;
+  onResolve: (sku: string) => void;
   onRemove: () => void;
 }) {
   const [q, setQ] = useState("");
+  const ambiguous = row.status === "AMBIGUOUS";
   const results = useMemo(() => {
     if (q.trim().length < 2) return [];
     return PRODUCTS.map((p) => ({ p, s: scoreMatch(`${p.name} ${p.sku} ${p.dims}`, q) }))
       .filter((r) => r.s > 0)
       .sort((a, b) => b.s - a.s)
-      .slice(0, 4)
+      .slice(0, 5)
       .map((r) => r.p);
   }, [q]);
 
   return (
-    <li className="rounded-md border border-border p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <span className="mr-2 rounded-sm bg-primary/10 px-2 py-0.5 text-[11px] font-semibold uppercase text-primary">
-            Не распознано
-          </span>
-          <span className="text-sm text-foreground">{text}</span>
-          <span className="ml-2 text-xs text-muted-foreground">
-            {qty.toLocaleString("ru-RU")} шт
-          </span>
+    <div
+      className={`rounded-md border p-5 transition-colors duration-300 ${
+        ambiguous
+          ? "border-[#F5C518]/70 bg-[#FFFBEB]"
+          : "border-primary/40 bg-[oklch(0.973_0.02_27.5)]"
+      }`}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground">{row.originalString}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            из вашей сметы · {row.quantity.toLocaleString("ru-RU")} шт
+          </p>
         </div>
         <button
           type="button"
           onClick={onRemove}
-          className="cursor-pointer text-xs text-muted-foreground underline underline-offset-4 hover:text-primary"
+          className="cursor-pointer rounded-sm px-2 py-1 text-xs text-muted-foreground underline underline-offset-4 transition-colors hover:text-primary"
         >
-          Убрать строку
+          Удалить строку
         </button>
       </div>
-      <div className="relative mt-3 flex items-center gap-2 rounded-sm border border-[#D1D5DB] px-3">
+
+      {ambiguous ? (
+        <div className="mt-4">
+          <p className="flex items-center gap-2 text-sm font-medium text-[oklch(0.55_0.13_75)]">
+            <AlertTriangle className="size-4 shrink-0" strokeWidth={2} />
+            Требуется уточнение. Найдено несколько совпадений
+          </p>
+          <label className="mt-3 block">
+            <span className="sr-only">Выберите модель</span>
+            <select
+              defaultValue=""
+              onChange={(e) => e.target.value && onResolve(e.target.value)}
+              className="h-11 w-full cursor-pointer rounded-sm border border-[#D1D5DB] bg-card px-3 text-sm text-foreground outline-none transition-colors hover:border-foreground focus:border-foreground"
+            >
+              <option value="" disabled>
+                Выберите модель…
+              </option>
+              {row.candidates.map((c) => (
+                <option key={c.sku} value={c.sku}>
+                  {c.name}
+                  {c.dims ? ` · ${c.dims}` : ""}
+                  {c.is_service ? " · по договоренности" : ` · ${formatPrice(c.price)}`}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      ) : (
+        <div className="mt-4">
+          <p className="text-sm font-medium text-primary">
+            Позиция не найдена в стандартном каталоге ALMAFORT
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => onResolve("SRV-INJ")}
+              className="cursor-pointer rounded-sm bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-[0_2px_8px_oklch(0.573_0.221_27.5/0.25)] transition-colors hover:bg-[#B91C1C]"
+            >
+              Запросить изготовление на заказ (Литьё / 3D-печать)
+            </button>
+            <button
+              type="button"
+              onClick={onRemove}
+              className="cursor-pointer rounded-sm border border-[#D1D5DB] px-4 py-2.5 text-xs font-semibold text-foreground transition-colors hover:border-primary hover:text-primary"
+            >
+              Удалить строку
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="relative mt-3 flex items-center gap-2 rounded-sm border border-[#D1D5DB] bg-card px-3">
         <Search className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.75} />
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Подобрать вручную по названию или артикулу"
+          placeholder="Или подберите вручную по названию либо артикулу"
           className="h-10 w-full bg-transparent text-sm outline-none"
         />
       </div>
@@ -586,7 +582,7 @@ function UnmappedRow({
             <li key={p.sku}>
               <button
                 type="button"
-                onClick={() => onPick(p)}
+                onClick={() => onResolve(p.sku)}
                 className="w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#F3F4F6]"
               >
                 <span className="font-semibold">{p.sku}</span> — {p.name}
@@ -595,6 +591,6 @@ function UnmappedRow({
           ))}
         </ul>
       )}
-    </li>
+    </div>
   );
 }
