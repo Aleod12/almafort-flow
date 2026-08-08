@@ -118,15 +118,22 @@ export function SiteFooter() {
           </a>
 
           <div className="mt-6 space-y-1 text-sm leading-[1.6] text-[#9CA3AF]">
-            <p className="font-semibold text-white">{COMPANY.legalName}</p>
-            <p className="flex items-start gap-2">
+            <p className="font-semibold text-white">Производство и склад</p>
+            <p className="flex items-start gap-2 text-white">
               <MapPin className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} />
               {COMPANY.addressFull}
             </p>
-            <p className="tabular-nums">
-              ИНН: {COMPANY.inn} <span className="text-[#4B5563]">|</span> ОГРН: {COMPANY.ogrn}
+            <p className="pt-3 text-[12px] leading-[1.5] text-[#9CA3AF]">
+              {COMPANY.legalName}
+              <br />
+              Юридический адрес: {COMPANY.legalStreet}
+              <br />
+              <span className="tabular-nums">
+                ИНН: {COMPANY.inn} <span className="text-[#4B5563]">|</span> ОГРН: {COMPANY.ogrn}
+              </span>
             </p>
           </div>
+
 
           <button
             type="button"
