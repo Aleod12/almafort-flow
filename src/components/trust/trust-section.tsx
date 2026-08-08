@@ -174,7 +174,7 @@ export function TrustSection() {
       </section>
 
       {/* 4.2 Товарный знак */}
-      <section id="brand" className="bg-muted/40 py-20 lg:py-24">
+      <section id="brand" className="bg-surface py-20 lg:py-24">
         <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 items-center gap-12 px-5 lg:grid-cols-12 lg:gap-16 lg:px-10">
           <div className="lg:col-span-6">
             <h2 className="text-[28px] font-extrabold leading-[1.15] tracking-tight text-foreground lg:text-[42px]">
