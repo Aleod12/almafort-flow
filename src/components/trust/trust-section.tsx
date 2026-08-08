@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { Check, FileText, MapPin, Search, Truck, X, Zap } from "lucide-react";
+import { Check, MapPin, Search, Truck, X, Zap } from "lucide-react";
+import cert3dAsset from "@/assets/certificates/cert-3d-print.jpg.asset.json";
+import certReverseAsset from "@/assets/certificates/cert-reverse-eng.jpg.asset.json";
+import krepssPreviewAsset from "@/assets/certificates/krepss-sertifikat.jpg.asset.json";
+import krepssPdfAsset from "@/assets/certificates/krepss-sertifikat.pdf.asset.json";
+import trademarkAsset from "@/assets/certificates/trademark-almafort.jpg.asset.json";
 
-type Doc = { alt: string; caption?: string };
+/** src — превью (JPG). pdf — если задан, в лайтбоксе открывается встроенный просмотрщик. */
+type Doc = { alt: string; caption?: string; src: string; pdf?: string };
 
 function Lightbox({ doc, onClose }: { doc: Doc | null; onClose: () => void }) {
   useEffect(() => {
@@ -35,13 +41,21 @@ function Lightbox({ doc, onClose }: { doc: Doc | null; onClose: () => void }) {
       </button>
       <div
         onClick={(e) => e.stopPropagation()}
-        className="flex aspect-[1/1.414] h-[85vh] max-w-full flex-col items-center justify-center gap-3 rounded-md bg-placeholder p-8 text-center shadow-2xl"
+        className="flex h-[80vh] max-w-full flex-col overflow-hidden rounded-md bg-card shadow-2xl"
       >
-        <FileText className="size-10 text-placeholder-foreground" strokeWidth={1.25} />
-        <p className="text-sm font-medium text-muted-foreground">{doc.alt}</p>
-        <p className="text-xs text-placeholder-foreground">
-          Скан документа будет добавлен
-        </p>
+        {doc.pdf ? (
+          <iframe
+            src={doc.pdf}
+            title={doc.alt}
+            className="h-full w-[min(90vw,860px)] border-0 bg-card"
+          />
+        ) : (
+          <img
+            src={doc.src}
+            alt={doc.alt}
+            className="h-full w-auto max-w-[92vw] object-contain"
+          />
+        )}
       </div>
     </div>
   );
@@ -53,14 +67,14 @@ function DocThumb({ doc, onOpen }: { doc: Doc; onOpen: (d: Doc) => void }) {
       <button
         type="button"
         onClick={() => onOpen(doc)}
-        className="group relative block w-full cursor-zoom-in overflow-hidden rounded-lg bg-placeholder shadow-[0_4px_12px_oklch(0_0_0/0.05)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_oklch(0_0_0/0.12)] [will-change:transform]"
+        className="group relative block w-full cursor-zoom-in overflow-hidden rounded-lg bg-card shadow-[0_4px_12px_oklch(0_0_0/0.05)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_oklch(0_0_0/0.12)] [will-change:transform]"
       >
-        <span className="flex aspect-[1/1.414] w-full flex-col items-center justify-center gap-3 p-6 text-center">
-          <FileText className="size-9 text-placeholder-foreground" strokeWidth={1.25} />
-          <span className="text-xs leading-[1.5] text-placeholder-foreground">
-            {doc.alt}
-          </span>
-        </span>
+        <img
+          src={doc.src}
+          alt={doc.alt}
+          loading="lazy"
+          className="block aspect-[1/1.1] w-full bg-card object-contain p-2"
+        />
         <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-foreground/0 opacity-0 transition-all duration-300 group-hover:bg-foreground/10 group-hover:opacity-100">
           <span className="rounded-full bg-background p-3 shadow-lg">
             <Search className="size-5 text-foreground" strokeWidth={1.75} />
@@ -75,6 +89,7 @@ function DocThumb({ doc, onOpen }: { doc: Doc; onOpen: (d: Doc) => void }) {
     </figure>
   );
 }
+
 
 
 const DELIVERY = [
@@ -129,17 +144,27 @@ export function TrustSection() {
 
   const trademarkDoc: Doc = {
     alt: "Свидетельство Роспатента на товарный знак ALMAFORT",
+    src: trademarkAsset.url,
   };
   const expertDocs: Doc[] = [
     {
-      alt: "Сертификат по промышленной 3D-печати",
-      caption: "АО «Центр аддитивных технологий»",
+      alt: "Сертификат соответствия КРЕПСС РОСС RU.33163.OC01.00631",
+      caption: "Сертификат соответствия КРЕПСС (до 2029 г.)",
+      src: krepssPreviewAsset.url,
+      pdf: krepssPdfAsset.url,
     },
     {
-      alt: "Сертификат по реверс-инжинирингу",
-      caption: "АО «Центр аддитивных технологий»",
+      alt: "Удостоверение АО «ЦАТ»: 3D-печать пластиком",
+      caption: "Квалификация: 3D-печать (Центр аддитивных технологий)",
+      src: cert3dAsset.url,
+    },
+    {
+      alt: "Удостоверение АО «ЦАТ»: реверсивный инжиниринг",
+      caption: "Квалификация: Реверс-инжиниринг",
+      src: certReverseAsset.url,
     },
   ];
+
 
   return (
     <>
@@ -222,11 +247,14 @@ export function TrustSection() {
         <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 items-start gap-12 px-5 lg:grid-cols-12 lg:gap-16 lg:px-10">
           <div className="lg:col-span-5">
             <div className="grid grid-cols-2 gap-6">
-              {expertDocs.map((d) => (
-                <DocThumb key={d.alt} doc={d} onOpen={open} />
+              {expertDocs.map((d, i) => (
+                <div key={d.alt} className={i === 0 ? "col-span-2" : undefined}>
+                  <DocThumb doc={d} onOpen={open} />
+                </div>
               ))}
             </div>
           </div>
+
 
           <div className="text-left lg:col-span-7">
             <h2 className="text-left text-[28px] font-extrabold leading-[1.15] tracking-tight text-foreground lg:text-[42px]">
