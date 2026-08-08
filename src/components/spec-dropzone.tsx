@@ -1,5 +1,5 @@
 import { useRef, useState, type DragEvent } from "react";
-import { Download, Table2, Upload } from "lucide-react";
+import { Download, FileSpreadsheet, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 
 export function SpecDropzone() {
@@ -44,17 +44,16 @@ export function SpecDropzone() {
         onDrop={onDrop}
         onMouseEnter={() => setActive(true)}
         onMouseLeave={() => setActive(false)}
-        className={`hidden cursor-pointer flex-col items-center justify-center gap-3 rounded-md px-8 py-12 text-center transition-all duration-200 ease-in-out sm:flex ${
-          active
-            ? "border border-solid border-primary bg-accent"
-            : "border border-dashed bg-surface"
-        }`}
-        style={{ borderColor: active ? "var(--primary)" : "var(--dashed)" }}
+        className="hidden cursor-pointer flex-col items-center justify-center gap-4 rounded-lg px-8 py-14 text-center transition-all duration-200 ease-in-out sm:flex"
+        style={{
+          border: active ? "2px solid var(--primary)" : "2px dashed var(--dashed)",
+          backgroundColor: active ? "var(--surface-hover)" : "var(--surface)",
+        }}
       >
         {active ? (
-          <Upload className="size-8 text-primary" strokeWidth={1.5} />
+          <UploadCloud className="size-12 text-primary" strokeWidth={1.5} />
         ) : (
-          <Table2 className="size-8 text-muted-foreground" strokeWidth={1.5} />
+          <FileSpreadsheet className="size-12 text-muted-foreground" strokeWidth={1.5} />
         )}
         <p className="text-base font-medium text-foreground">
           Перетащите вашу спецификацию сюда (.xls, .csv)
