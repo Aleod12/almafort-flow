@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CatalogRouteImport } from './routes/catalog'
+import { Route as SuccessRouteImport } from './routes/success'
 import { Route as ApiShippingCalcRouteImport } from './routes/api/shipping-calc'
 import { Route as ApiCheckoutSubmitRouteImport } from './routes/api/checkout/submit'
 import { Route as ApiDadataCityRouteImport } from './routes/api/dadata/city'
@@ -31,6 +32,11 @@ const CartRoute = CartRouteImport.update({
 const CatalogRoute = CatalogRouteImport.update({
   id: '/catalog',
   path: '/catalog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuccessRoute = SuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiShippingCalcRoute = ApiShippingCalcRouteImport.update({
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
+  '/success': typeof SuccessRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
+  '/success': typeof SuccessRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
+  '/success': typeof SuccessRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cart'
     | '/catalog'
+    | '/success'
     | '/api/shipping-calc'
     | '/api/checkout/submit'
     | '/api/dadata/city'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cart'
     | '/catalog'
+    | '/success'
     | '/api/shipping-calc'
     | '/api/checkout/submit'
     | '/api/dadata/city'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cart'
     | '/catalog'
+    | '/success'
     | '/api/shipping-calc'
     | '/api/checkout/submit'
     | '/api/dadata/city'
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CartRoute: typeof CartRoute
   CatalogRoute: typeof CatalogRoute
+  SuccessRoute: typeof SuccessRoute
   ApiShippingCalcRoute: typeof ApiShippingCalcRoute
   ApiCheckoutSubmitRoute: typeof ApiCheckoutSubmitRoute
   ApiDadataCityRoute: typeof ApiDadataCityRoute
@@ -155,6 +168,13 @@ declare module '@tanstack/react-router' {
       path: '/catalog'
       fullPath: '/catalog'
       preLoaderRoute: typeof CatalogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/success': {
+      id: '/success'
+      path: '/success'
+      fullPath: '/success'
+      preLoaderRoute: typeof SuccessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/shipping-calc': {
@@ -199,6 +219,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CartRoute: CartRoute,
   CatalogRoute: CatalogRoute,
+  SuccessRoute: SuccessRoute,
   ApiShippingCalcRoute: ApiShippingCalcRoute,
   ApiCheckoutSubmitRoute: ApiCheckoutSubmitRoute,
   ApiDadataCityRoute: ApiDadataCityRoute,
