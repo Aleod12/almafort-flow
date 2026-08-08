@@ -112,7 +112,8 @@ export function CartPanel() {
       (payloadKey !== debouncedKey || !quoteFor(carrier)));
   const [consent, setConsent] = useState(false);
   const [triedSubmit, setTriedSubmit] = useState(false);
-  const ctaDisabled = !lines.length || pendingQuote || !consent;
+  const cartReady = Boolean(lines.length) && !pendingQuote;
+  const ctaDisabled = !cartReady || !consent;
 
   const [form, setForm] = useState({ name: "", phone: "", email: "", company: "", comment: "" });
   const [submitting, setSubmitting] = useState(false);
@@ -491,7 +492,7 @@ export function CartPanel() {
           <button
             type="button"
             onClick={download}
-            disabled={ctaDisabled}
+            disabled={!cartReady}
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-sm border border-[#D1D5DB] px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
           >
             <FileDown className="size-4" strokeWidth={2} />
