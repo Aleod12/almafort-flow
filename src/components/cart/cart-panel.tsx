@@ -403,7 +403,7 @@ export function CartPanel() {
                       <span className="block text-sm font-semibold">{c.label}</span>
                       <span className="mt-1 block text-xs tabular-nums text-muted-foreground">
                         {c.id === "pickup"
-                          ? "0 ₽ · Красноярск / Дивногорск"
+                          ? "0 ₽ · склад производства"
                           : q
                             ? `${money(q.price)} ₽ · ${q.days} дн. · ${q.toDoor ? "до двери" : "до терминала"}`
                             : "укажите город"}
