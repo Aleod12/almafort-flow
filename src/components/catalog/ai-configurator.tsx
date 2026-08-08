@@ -1,45 +1,72 @@
-import { useState } from "react";
-import { Loader2, Sparkles, ShieldCheck, Calculator, FileText } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Loader2, Sparkles, Calculator, FileText, ShieldCheck, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/store/cart-store";
+import { PRODUCTS, isOnRequest, tierOf } from "@/data/catalog";
+import { unitPriceOf, lineTotal, formatMoney } from "@/lib/pricing";
+import { ProductThumb } from "@/components/catalog/product-thumb";
 
-type Solution = {
-  recommended_sku: string;
-  reasoning: string;
-  load_calculation: string;
-  required_qty: number;
-  accessories: string[];
+type SolutionItem = {
+  sku: string;
+  name: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  tier: 0 | 1 | 2;
+  base_price: number;
+  on_request: boolean;
+  image_url: string | null;
+  dims: string;
 };
 
 type ApiResult = {
-  solution: Solution;
+  solution: {
+    recommended_items: SolutionItem[];
+    engineering_logic: string;
+    safety_margin_factor: number | null;
+    is_service: boolean;
+    total: number;
+  };
   sources: Array<{ id: string; title: string }>;
-  product: {
-    sku: string;
-    name: string;
-    dims: string;
-    material: string;
-    load: string;
-    price: number;
-    stock: number;
-  } | null;
-  accessories: Array<{ sku: string; name: string; price: number }>;
 };
 
 const EXAMPLES = [
-  "Закрепить блок промышленного кондиционера весом 150 кг на сэндвич-панель 120 мм, исключив мостик холода",
-  "Опереть трубопровод Ø108 мм на кровлю без пробивки гидроизоляции, нагрузка 200 кг на точку",
-  "Закрыть торцы профильной трубы 80х80 в ограждении цеха, 400 точек",
+  "Закрепить блок промышленного кондиционера весом 150 кг на сэндвич-панель",
+  "Нужны регулируемые опоры для торговых стеллажей: 50 стеллажей по 250 кг, по 4 опоры",
+  "Закрыть торцы профильной трубы 80х80 в ограждении цеха, 1200 точек",
+  "Опереть трубопровод Ø108 мм на кровлю без пробивки гидроизоляции",
 ];
 
-const money = (n: number) =>
-  n.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const TIER_LABEL: Record<1 | 2, string> = { 1: "Опт 1", 2: "Опт 2" };
 
 export function AiConfigurator() {
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ApiResult | null>(null);
+  const [qty, setQty] = useState<Record<string, number>>({});
   const addLine = useCart((s) => s.addLine);
+
+  /** Пересчёт спецификации на лету: цена всегда берётся из каталога, не из ответа ИИ. */
+  const rows = useMemo(() => {
+    const items = result?.solution.recommended_items ?? [];
+    return items.map((item) => {
+      const p = PRODUCTS.find((x) => x.sku === item.sku);
+      const q = Math.max(1, Math.floor(qty[item.sku] ?? item.quantity));
+      if (!p) return { ...item, quantity: q };
+      const onRequest = isOnRequest(p);
+      return {
+        ...item,
+        quantity: q,
+        on_request: onRequest,
+        unit_price: onRequest ? 0 : unitPriceOf(p, q),
+        total_price: onRequest ? 0 : lineTotal(p, q),
+        tier: onRequest ? (0 as const) : tierOf(q, p),
+      };
+    });
+  }, [result, qty]);
+
+  const total = rows.reduce((s, r) => s + r.total_price, 0);
+  const isService = Boolean(result?.solution.is_service);
 
   const solve = async (text: string) => {
     if (text.trim().length < 10) {
@@ -48,6 +75,7 @@ export function AiConfigurator() {
     }
     setBusy(true);
     setResult(null);
+    setQty({});
     try {
       const res = await fetch("/api/configurator/solve", {
         method: "POST",
@@ -64,20 +92,21 @@ export function AiConfigurator() {
     }
   };
 
-  const addNode = () => {
-    if (!result?.product) return;
-    addLine(result.product.sku, result.solution.required_qty);
-    for (const acc of result.accessories) addLine(acc.sku, result.solution.required_qty);
-    toast.success(
-      `Узел добавлен: ${result.product.sku} × ${result.solution.required_qty}` +
-        (result.accessories.length ? ` + ${result.accessories.length} комплектующих` : ""),
-    );
+  const transferToCart = () => {
+    const payable = rows.filter((r) => !r.on_request);
+    if (payable.length === 0) return;
+    for (const r of payable) addLine(r.sku, r.quantity);
+    toast.success(`Спецификация в корзине: ${payable.length} поз. на ${formatMoney(total)} ₽`);
+  };
+
+  const scrollToQuiz = () => {
+    document.getElementById("quiz")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
     <section
       id="configurator"
-      aria-label="ИИ-конфигуратор монтажных узлов"
+      aria-label="ИИ-конфигуратор инженерных узлов и смет"
       className="mt-16 scroll-mt-28 rounded-lg bg-[#F3F4F6] p-8 lg:p-10"
     >
       <div className="flex items-center gap-3">
@@ -86,11 +115,10 @@ export function AiConfigurator() {
         </span>
         <div>
           <h2 className="text-xl font-extrabold tracking-tight text-foreground lg:text-2xl">
-            ИИ-конфигуратор узла
+            ИИ-конфигуратор узла и сметы
           </h2>
           <p className="text-sm text-muted-foreground">
-            Опишите задачу словами — подберём артикул по протоколам испытаний ALMAFORT и посчитаем
-            запас прочности.
+            Опишите задачу словами — подберём артикулы, посчитаем запас прочности и оптовую цену.
           </p>
         </div>
       </div>
@@ -100,7 +128,7 @@ export function AiConfigurator() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           rows={3}
-          placeholder="Например: закрепить кондиционер 150 кг на сэндвич-панель 120 мм без мостика холода"
+          placeholder="Например: закрепить кондиционер 150 кг на сэндвич-панель"
           className="flex-1 resize-none rounded-sm border border-[#D1D5DB] bg-card p-4 text-sm leading-[1.5] text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
         <button
@@ -139,81 +167,110 @@ export function AiConfigurator() {
         </div>
       )}
 
-      {result?.product && (
+      {result && rows.length > 0 && (
         <article className="mt-8 overflow-hidden rounded-lg bg-card shadow-[0_16px_40px_oklch(0_0_0/0.08)]">
-          <div className="flex flex-col gap-6 border-b border-border p-8 lg:flex-row lg:items-center">
-            <span className="grid size-24 shrink-0 place-items-center rounded-sm bg-surface text-sm font-bold text-muted-foreground">
-              {result.product.sku}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-primary">
-                Оптимальное решение
+          {/* Инженерное обоснование */}
+          <div className="bg-[#F8F9FA] p-8">
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              <ShieldCheck className="size-4" strokeWidth={1.75} /> Инженерное обоснование
+            </p>
+            <p className="mt-3 whitespace-pre-line font-mono text-[13px] leading-[1.7] tabular-nums text-foreground">
+              {result.solution.engineering_logic}
+            </p>
+            {result.solution.safety_margin_factor !== null && (
+              <p className="mt-4 inline-flex items-center gap-2 rounded-sm bg-[#E8F5E9] px-3 py-1.5 text-xs font-bold tabular-nums text-[#1B5E20]">
+                Запас прочности: {result.solution.safety_margin_factor}×
               </p>
-              <h3 className="mt-1 text-lg font-bold text-foreground lg:text-xl">
-                {result.product.name}
-              </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {result.product.dims} · {result.product.material} · {result.product.load}
-              </p>
-              <p className="mt-2 text-sm font-bold tabular-nums text-foreground">
-                {money(result.product.price)} ₽ / шт ·{" "}
-                <span className="font-semibold text-muted-foreground">
-                  требуется {result.solution.required_qty} шт
-                </span>
-              </p>
-            </div>
+            )}
           </div>
 
-          <div className="grid gap-6 p-8 lg:grid-cols-2">
-            <div>
-              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                <ShieldCheck className="size-4" strokeWidth={1.75} /> Обоснование
-              </p>
-              <p className="mt-2 text-sm leading-[1.6] text-foreground">
-                {result.solution.reasoning}
-              </p>
-            </div>
-            <div>
-              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                <Calculator className="size-4" strokeWidth={1.75} /> Инженерный расчёт
-              </p>
-              <p className="mt-2 whitespace-pre-line text-sm leading-[1.6] text-foreground">
-                {result.solution.load_calculation}
-              </p>
-            </div>
-          </div>
+          {/* Спецификация */}
+          <div className="border-t border-border p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              Спецификация
+            </p>
+            <ul className="mt-4 divide-y divide-border">
+              {rows.map((r) => (
+                <li
+                  key={r.sku}
+                  className="grid grid-cols-[56px_minmax(0,1fr)] items-center gap-4 py-4 lg:grid-cols-[56px_minmax(0,1fr)_110px_150px_130px]"
+                >
+                  <ProductThumb src={r.image_url} alt={r.name} />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">{r.name}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {r.sku} · {r.dims}
+                    </p>
+                  </div>
+                  <div className="col-start-2 lg:col-start-3">
+                    <input
+                      type="number"
+                      min={1}
+                      inputMode="numeric"
+                      aria-label={`Количество ${r.sku}`}
+                      value={r.quantity}
+                      onChange={(e) => {
+                        const v = Math.max(1, Math.floor(Number(e.target.value) || 1));
+                        setQty((prev) => ({ ...prev, [r.sku]: v }));
+                      }}
+                      className="w-full rounded-sm border border-[#D1D5DB] bg-card px-3 py-2 text-sm tabular-nums text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                  <div className="col-start-2 lg:col-start-4 lg:text-right">
+                    {r.on_request ? (
+                      <span className="text-sm font-semibold text-muted-foreground">
+                        По договорённости
+                      </span>
+                    ) : (
+                      <>
+                        <span className="text-sm tabular-nums text-foreground">
+                          {formatMoney(r.unit_price)} ₽/шт
+                        </span>
+                        {r.tier > 0 && (
+                          <span className="ml-2 inline-block rounded-sm bg-[#E8F5E9] px-2 py-0.5 text-[11px] font-bold text-[#1B5E20]">
+                            {TIER_LABEL[r.tier as 1 | 2]}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </div>
+                  <div className="col-start-2 text-sm font-bold tabular-nums text-foreground lg:col-start-5 lg:text-right">
+                    {r.on_request ? "—" : `${formatMoney(r.total_price)} ₽`}
+                  </div>
+                </li>
+              ))}
+            </ul>
 
-          {result.accessories.length > 0 && (
-            <div className="border-t border-border px-8 pb-6 pt-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                Комплектующие узла
+            {!isService && (
+              <p className="mt-4 text-right text-sm font-bold tabular-nums text-foreground">
+                Итого: {formatMoney(total)} ₽
               </p>
-              <ul className="mt-3 flex flex-wrap gap-2">
-                {result.accessories.map((a) => (
-                  <li
-                    key={a.sku}
-                    className="rounded-sm bg-surface px-3 py-2 text-xs text-foreground"
-                  >
-                    <span className="font-semibold">{a.sku}</span> · {a.name} ·{" "}
-                    <span className="tabular-nums">{money(a.price)} ₽</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+            )}
+          </div>
 
           <div className="flex flex-col gap-4 border-t border-border p-8 lg:flex-row lg:items-center lg:justify-between">
             <p className="flex items-center gap-2 text-xs text-muted-foreground">
               <FileText className="size-4 shrink-0" strokeWidth={1.75} />
-              Источники: {result.sources.map((s) => s.title).join("; ")}
+              Источники: {result.sources.map((s) => s.title).join("; ") || "каталог ALMAFORT"}
             </p>
-            <button
-              type="button"
-              onClick={addNode}
-              className="cursor-pointer rounded-sm bg-primary px-8 py-4 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
-            >
-              Добавить весь узел в корзину
-            </button>
+            {isService ? (
+              <button
+                type="button"
+                onClick={scrollToQuiz}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-8 py-4 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                <Wrench className="size-4" strokeWidth={2} />
+                Прикрепить ТЗ и запросить расчёт
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={transferToCart}
+                className="cursor-pointer rounded-sm bg-primary px-8 py-4 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                Перенести спецификацию в корзину
+              </button>
+            )}
           </div>
         </article>
       )}
