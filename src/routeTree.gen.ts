@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as SitemapCategoriesDotxmlRouteImport } from './routes/sitemap-categories[.]xml'
-import { Route as SitemapProductsPageDotxmlRouteImport } from './routes/sitemap-products-$page[.]xml'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SuccessRouteImport } from './routes/success'
 import { Route as ApiCartRouteImport } from './routes/api/cart'
@@ -21,6 +20,7 @@ import { Route as ApiSearchRouteImport } from './routes/api/search'
 import { Route as ApiShippingCalcRouteImport } from './routes/api/shipping-calc'
 import { Route as CatalogIndexRouteImport } from './routes/catalog.index'
 import { Route as CatalogSplatRouteImport } from './routes/catalog.$'
+import { Route as SitemapProductsPageRouteImport } from './routes/sitemap-products.$page'
 import { Route as ApiCheckoutSubmitRouteImport } from './routes/api/checkout/submit'
 import { Route as ApiConfiguratorSolveRouteImport } from './routes/api/configurator/solve'
 import { Route as ApiDadataCityRouteImport } from './routes/api/dadata/city'
@@ -48,12 +48,6 @@ const SitemapCategoriesDotxmlRoute = SitemapCategoriesDotxmlRouteImport.update({
   path: '/sitemap-categories.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SitemapProductsPageDotxmlRoute =
-  SitemapProductsPageDotxmlRouteImport.update({
-    id: '/sitemap-products-$page.xml',
-    path: '/sitemap-products-$page.xml',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -88,6 +82,11 @@ const CatalogSplatRoute = CatalogSplatRouteImport.update({
   id: '/$',
   path: '/$',
   getParentRoute: () => CatalogRoute,
+} as any)
+const SitemapProductsPageRoute = SitemapProductsPageRouteImport.update({
+  id: '/sitemap-products/$page',
+  path: '/sitemap-products/$page',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCheckoutSubmitRoute = ApiCheckoutSubmitRouteImport.update({
   id: '/api/checkout/submit',
@@ -125,13 +124,13 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRouteWithChildren
   '/sitemap-categories.xml': typeof SitemapCategoriesDotxmlRoute
-  '/sitemap-products-$page.xml': typeof SitemapProductsPageDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
   '/api/cart': typeof ApiCartRoute
   '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/catalog/$': typeof CatalogSplatRoute
+  '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/catalog/': typeof CatalogIndexRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
@@ -144,13 +143,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
   '/sitemap-categories.xml': typeof SitemapCategoriesDotxmlRoute
-  '/sitemap-products-$page.xml': typeof SitemapProductsPageDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
   '/api/cart': typeof ApiCartRoute
   '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/catalog/$': typeof CatalogSplatRoute
+  '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/catalog': typeof CatalogIndexRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
@@ -165,13 +164,13 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRouteWithChildren
   '/sitemap-categories.xml': typeof SitemapCategoriesDotxmlRoute
-  '/sitemap-products-$page.xml': typeof SitemapProductsPageDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
   '/api/cart': typeof ApiCartRoute
   '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/catalog/$': typeof CatalogSplatRoute
+  '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/catalog/': typeof CatalogIndexRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
@@ -187,13 +186,13 @@ export interface FileRouteTypes {
     | '/cart'
     | '/catalog'
     | '/sitemap-categories.xml'
-    | '/sitemap-products-$page.xml'
     | '/sitemap.xml'
     | '/success'
     | '/api/cart'
     | '/api/search'
     | '/api/shipping-calc'
     | '/catalog/$'
+    | '/sitemap-products/$page'
     | '/catalog/'
     | '/api/checkout/submit'
     | '/api/configurator/solve'
@@ -206,13 +205,13 @@ export interface FileRouteTypes {
     | '/'
     | '/cart'
     | '/sitemap-categories.xml'
-    | '/sitemap-products-$page.xml'
     | '/sitemap.xml'
     | '/success'
     | '/api/cart'
     | '/api/search'
     | '/api/shipping-calc'
     | '/catalog/$'
+    | '/sitemap-products/$page'
     | '/catalog'
     | '/api/checkout/submit'
     | '/api/configurator/solve'
@@ -226,13 +225,13 @@ export interface FileRouteTypes {
     | '/cart'
     | '/catalog'
     | '/sitemap-categories.xml'
-    | '/sitemap-products-$page.xml'
     | '/sitemap.xml'
     | '/success'
     | '/api/cart'
     | '/api/search'
     | '/api/shipping-calc'
     | '/catalog/$'
+    | '/sitemap-products/$page'
     | '/catalog/'
     | '/api/checkout/submit'
     | '/api/configurator/solve'
@@ -247,12 +246,12 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CatalogRoute: typeof CatalogRouteWithChildren
   SitemapCategoriesDotxmlRoute: typeof SitemapCategoriesDotxmlRoute
-  SitemapProductsPageDotxmlRoute: typeof SitemapProductsPageDotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SuccessRoute: typeof SuccessRoute
   ApiCartRoute: typeof ApiCartRoute
   ApiSearchRoute: typeof ApiSearchRoute
   ApiShippingCalcRoute: typeof ApiShippingCalcRoute
+  SitemapProductsPageRoute: typeof SitemapProductsPageRoute
   ApiCheckoutSubmitRoute: typeof ApiCheckoutSubmitRoute
   ApiConfiguratorSolveRoute: typeof ApiConfiguratorSolveRoute
   ApiDadataCityRoute: typeof ApiDadataCityRoute
@@ -289,13 +288,6 @@ declare module '@tanstack/react-router' {
       path: '/sitemap-categories.xml'
       fullPath: '/sitemap-categories.xml'
       preLoaderRoute: typeof SitemapCategoriesDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap-products-$page.xml': {
-      id: '/sitemap-products-$page.xml'
-      path: '/sitemap-products-$page.xml'
-      fullPath: '/sitemap-products-$page.xml'
-      preLoaderRoute: typeof SitemapProductsPageDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -346,6 +338,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/catalog/$'
       preLoaderRoute: typeof CatalogSplatRouteImport
       parentRoute: typeof CatalogRoute
+    }
+    '/sitemap-products/$page': {
+      id: '/sitemap-products/$page'
+      path: '/sitemap-products/$page'
+      fullPath: '/sitemap-products/$page'
+      preLoaderRoute: typeof SitemapProductsPageRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/checkout/submit': {
       id: '/api/checkout/submit'
@@ -410,12 +409,12 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CatalogRoute: CatalogRouteWithChildren,
   SitemapCategoriesDotxmlRoute: SitemapCategoriesDotxmlRoute,
-  SitemapProductsPageDotxmlRoute: SitemapProductsPageDotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SuccessRoute: SuccessRoute,
   ApiCartRoute: ApiCartRoute,
   ApiSearchRoute: ApiSearchRoute,
   ApiShippingCalcRoute: ApiShippingCalcRoute,
+  SitemapProductsPageRoute: SitemapProductsPageRoute,
   ApiCheckoutSubmitRoute: ApiCheckoutSubmitRoute,
   ApiConfiguratorSolveRoute: ApiConfiguratorSolveRoute,
   ApiDadataCityRoute: ApiDadataCityRoute,
@@ -426,3 +425,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

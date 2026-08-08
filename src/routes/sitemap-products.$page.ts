@@ -5,11 +5,11 @@ import { xmlUrlset } from "@/lib/sitemap";
 
 const LIMIT = 50000;
 
-export const Route = createFileRoute("/sitemap-products-{$page}.xml")({
+export const Route = createFileRoute("/sitemap-products/$page")({
   server: {
     handlers: {
       GET: async ({ params }) => {
-        const page = Math.max(1, parseInt((params as Record<string, string>)["page"] ?? "1", 10) || 1);
+        const page = Math.max(1, parseInt(String(params.page).replace(/\.xml$/, ""), 10) || 1);
         const all = allFacetPaths(LIMIT * 10);
         const slice = all.slice((page - 1) * LIMIT, page * LIMIT);
         if (slice.length === 0) return new Response("Not found", { status: 404 });

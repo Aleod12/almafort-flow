@@ -11,7 +11,7 @@ export const Route = createFileRoute("/sitemap.xml")({
         const total = allFacetPaths(LIMIT).length + 1;
         const shards = ["/sitemap-categories.xml"];
         const pages = Math.max(1, Math.ceil(total / LIMIT));
-        for (let i = 1; i <= pages; i++) shards.push(`/sitemap-products-${i}.xml`);
+        for (let i = 1; i <= pages; i++) shards.push(`/sitemap-products/${i}.xml`);
 
         const xml = [
           `<?xml version="1.0" encoding="UTF-8"?>`,
