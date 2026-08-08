@@ -28,7 +28,9 @@ export const Route = createFileRoute("/catalog/")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:url", content: "https://almafort.ru/catalog" },
     ],
+    links: [{ rel: "canonical", href: "https://almafort.ru/catalog" }],
   }),
   component: CatalogPage,
 });
