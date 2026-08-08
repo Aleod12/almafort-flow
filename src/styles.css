@@ -206,3 +206,13 @@
   box-shadow: 0 0 18px 4px oklch(0.573 0.221 27.5 / 0.6);
   animation: scan-sweep 1.1s ease-in-out infinite alternate;
 }
+
+/* Выезд bottom sheet результатов ИИ-распознавания */
+@keyframes slide-in-bottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
