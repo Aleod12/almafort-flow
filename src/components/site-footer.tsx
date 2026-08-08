@@ -30,7 +30,7 @@ function LazyMap() {
   }, [visible]);
 
   return (
-    <div ref={ref} className="relative h-[340px] w-full overflow-hidden bg-[#1B1B1F] lg:h-full">
+    <div ref={ref} className="relative h-[240px] max-h-[240px] w-full overflow-hidden bg-[#1B1B1F]">
       {visible ? (
         <iframe
           title="ALMAFORT на карте — Дивногорск, ул. Чкалова, 59"
