@@ -191,6 +191,29 @@
   overscroll-behavior-x: contain;
 }
 
+/* Единая монолитная сетка каталога: шапка и строки подчиняются одному родителю */
+@utility catalog-grid-parent {
+  display: grid;
+  grid-template-columns:
+    40px 60px minmax(220px, 3fr) 120px 130px 110px 110px 110px 110px 150px;
+  width: 100%;
+  min-width: 1080px;
+}
+
+@utility catalog-row {
+  display: contents;
+}
+
+@utility catalog-cell {
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: 12px 8px;
+}
+
+
+
 
 @utility no-scrollbar {
   -ms-overflow-style: none;
