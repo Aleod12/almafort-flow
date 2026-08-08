@@ -155,8 +155,9 @@ export function TrustSection() {
             {DELIVERY.map((d) => (
               <article
                 key={d.title}
-                className="rounded-lg border border-transparent bg-surface p-8 transition-colors hover:border-border"
+                className="rounded-lg border border-transparent bg-[#F8F9FA] p-8 text-left transition-colors hover:border-border"
               >
+
                 <d.icon className="size-9 text-primary" strokeWidth={1.5} />
                 <h3 className="mt-5 text-lg font-bold leading-snug text-foreground">
                   {d.title}
