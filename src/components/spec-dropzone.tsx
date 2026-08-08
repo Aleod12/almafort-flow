@@ -47,7 +47,7 @@ export function SpecDropzone() {
         className={`hidden cursor-pointer flex-col items-center justify-center gap-3 rounded-md px-8 py-12 text-center transition-all duration-200 ease-in-out sm:flex ${
           active
             ? "border border-solid border-primary bg-accent"
-            : "border border-dashed border-dashed-foreground bg-surface"
+            : "border border-dashed bg-surface"
         }`}
         style={{ borderColor: active ? "var(--primary)" : "var(--dashed)" }}
       >
