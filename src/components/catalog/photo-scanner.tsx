@@ -12,7 +12,15 @@ type Match = {
   lead: string | null;
 };
 
-type Result = { verdict: { type: string; shape: string; confidence: number }; matches: Match[] };
+type Verdict = {
+  type: string;
+  shape: string;
+  color: string;
+  has_threads: boolean;
+  confidence: number;
+};
+
+type Result = { verdict: Verdict; matches: Match[] };
 
 const money = (n: number) =>
   n.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -113,6 +121,13 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
             muted
             className="h-full w-full object-cover opacity-90"
           />
+          {/* Тёмная маска с прозрачным окном видоискателя */}
+          <div
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[58vw] max-h-[420px] w-[58vw] max-w-[420px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-sm shadow-[0_0_0_100vmax_oklch(0_0_0/0.62)]"
+            aria-hidden
+          >
+            {busy && <span className="scan-beam" />}
+          </div>
           {/* Прицел */}
           <svg
             viewBox="0 0 100 100"
@@ -130,9 +145,11 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
           </svg>
 
           <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 p-8">
-            <p className="text-center text-xs text-white/70">
-              {camError ?? "Поместите деталь в рамку. Для чёрных деталей — светлый фон."}
+            <p className="max-w-[42ch] text-center text-xs leading-[1.5] text-white/75">
+              {camError ??
+                "Поместите деталь в центр. Для тёмных деталей используйте светлый фон."}
             </p>
+
             <button
               type="button"
               onClick={capture}
@@ -151,6 +168,8 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-[#D1D5DB]" />
           <h3 className="text-lg font-bold text-foreground">
             Распознана {result.verdict.type} {result.verdict.shape}
+            {result.verdict.color ? `, ${result.verdict.color}` : ""}
+            {result.verdict.has_threads ? ", с резьбой" : ""}
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
             Уверенность {Math.round(result.verdict.confidence * 100)}%. Наиболее точные совпадения
