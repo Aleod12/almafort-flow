@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { Check, MapPin, Search, Truck, X, Zap } from "lucide-react";
-import certTrademark from "@/assets/cert-trademark.jpg";
-import cert3d from "@/assets/cert-3dprint.jpg";
-import certReverse from "@/assets/cert-reverse.jpg";
+import { Check, FileText, MapPin, Search, Truck, X, Zap } from "lucide-react";
 
-type Doc = { src: string; alt: string; caption?: string };
+type Doc = { alt: string; caption?: string };
 
 function Lightbox({ doc, onClose }: { doc: Doc | null; onClose: () => void }) {
   useEffect(() => {
@@ -31,12 +28,16 @@ function Lightbox({ doc, onClose }: { doc: Doc | null; onClose: () => void }) {
       >
         <X className="size-6" />
       </button>
-      <img
-        src={doc.src}
-        alt={doc.alt}
+      <div
         onClick={(e) => e.stopPropagation()}
-        className="max-h-[90vh] w-auto max-w-full rounded-md bg-background object-contain shadow-2xl"
-      />
+        className="flex aspect-[1/1.414] h-[85vh] max-w-full flex-col items-center justify-center gap-3 rounded-md bg-placeholder p-8 text-center shadow-2xl"
+      >
+        <FileText className="size-10 text-placeholder-foreground" strokeWidth={1.25} />
+        <p className="text-sm font-medium text-muted-foreground">{doc.alt}</p>
+        <p className="text-xs text-placeholder-foreground">
+          Скан документа будет добавлен
+        </p>
+      </div>
     </div>
   );
 }
@@ -47,17 +48,15 @@ function DocThumb({ doc, onOpen }: { doc: Doc; onOpen: (d: Doc) => void }) {
       <button
         type="button"
         onClick={() => onOpen(doc)}
-        className="group relative block w-full overflow-hidden rounded-lg bg-background shadow-[0_10px_30px_oklch(0_0_0/0.08)] transition-shadow hover:shadow-[0_20px_40px_oklch(0_0_0/0.12)]"
+        className="group relative block w-full cursor-zoom-in overflow-hidden rounded-lg bg-placeholder shadow-[0_10px_30px_oklch(0_0_0/0.08)] transition-shadow hover:shadow-[0_20px_40px_oklch(0_0_0/0.12)]"
       >
-        <img
-          src={doc.src}
-          alt={doc.alt}
-          loading="lazy"
-          width={1024}
-          height={1408}
-          className="block w-full object-contain"
-        />
-        <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-foreground/0 opacity-0 transition-all duration-300 group-hover:bg-foreground/20 group-hover:opacity-100">
+        <span className="flex aspect-[1/1.414] w-full flex-col items-center justify-center gap-3 p-6 text-center">
+          <FileText className="size-9 text-placeholder-foreground" strokeWidth={1.25} />
+          <span className="text-xs leading-[1.5] text-placeholder-foreground">
+            {doc.alt}
+          </span>
+        </span>
+        <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-foreground/0 opacity-0 transition-all duration-300 group-hover:bg-foreground/10 group-hover:opacity-100">
           <span className="rounded-full bg-background p-3 shadow-lg">
             <Search className="size-5 text-foreground" strokeWidth={1.75} />
           </span>
@@ -71,6 +70,7 @@ function DocThumb({ doc, onOpen }: { doc: Doc; onOpen: (d: Doc) => void }) {
     </figure>
   );
 }
+
 
 const DELIVERY = [
   {
@@ -123,17 +123,14 @@ export function TrustSection() {
   const close = useCallback(() => setDoc(null), []);
 
   const trademarkDoc: Doc = {
-    src: certTrademark,
     alt: "Свидетельство Роспатента на товарный знак ALMAFORT",
   };
   const expertDocs: Doc[] = [
     {
-      src: cert3d,
       alt: "Сертификат по промышленной 3D-печати",
       caption: "АО «Центр аддитивных технологий»",
     },
     {
-      src: certReverse,
       alt: "Сертификат по реверс-инжинирингу",
       caption: "АО «Центр аддитивных технологий»",
     },
@@ -158,9 +155,9 @@ export function TrustSection() {
             {DELIVERY.map((d) => (
               <article
                 key={d.title}
-                className="rounded-lg border border-transparent bg-muted/40 p-8 transition-colors hover:border-border"
+                className="rounded-lg border border-transparent bg-surface p-8 transition-colors hover:border-border"
               >
-                <d.icon className="size-7 text-primary" strokeWidth={1.5} />
+                <d.icon className="size-9 text-primary" strokeWidth={1.5} />
                 <h3 className="mt-5 text-lg font-bold leading-snug text-foreground">
                   {d.title}
                 </h3>
@@ -177,7 +174,7 @@ export function TrustSection() {
       </section>
 
       {/* 4.2 Товарный знак */}
-      <section id="brand" className="bg-muted/40 py-20 lg:py-24">
+      <section id="brand" className="bg-surface py-20 lg:py-24">
         <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 items-center gap-12 px-5 lg:grid-cols-12 lg:gap-16 lg:px-10">
           <div className="lg:col-span-6">
             <h2 className="text-[28px] font-extrabold leading-[1.15] tracking-tight text-foreground lg:text-[42px]">
@@ -188,7 +185,7 @@ export function TrustSection() {
               официально зарегистрированным товарным знаком в РФ. Что это дает нашим
               B2B-партнерам?
             </p>
-            <ul className="mt-8 space-y-5">
+            <ul className="mt-8 space-y-6">
               {BRAND_POINTS.map((p) => (
                 <li key={p.title} className="flex gap-3">
                   <Check className="mt-0.5 size-5 shrink-0 text-primary" strokeWidth={2.25} />
@@ -216,19 +213,17 @@ export function TrustSection() {
 
       {/* 4.3 Инженерная экспертиза */}
       <section id="expertise" className="bg-background py-20 lg:py-24">
-        <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 items-center gap-12 px-5 lg:grid-cols-12 lg:gap-16 lg:px-10">
+        <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 items-start gap-12 px-5 lg:grid-cols-12 lg:gap-16 lg:px-10">
           <div className="lg:col-span-5">
-            <div className="no-scrollbar -mx-5 flex snap-x gap-6 overflow-x-auto px-5 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0">
+            <div className="grid grid-cols-2 gap-6">
               {expertDocs.map((d) => (
-                <div key={d.alt} className="min-w-[80%] shrink-0 snap-center sm:min-w-0">
-                  <DocThumb doc={d} onOpen={open} />
-                </div>
+                <DocThumb key={d.alt} doc={d} onOpen={open} />
               ))}
             </div>
           </div>
 
-          <div className="lg:col-span-7">
-            <h2 className="text-[28px] font-extrabold leading-[1.15] tracking-tight text-foreground lg:text-[42px]">
+          <div className="text-left lg:col-span-7">
+            <h2 className="text-left text-[28px] font-extrabold leading-[1.15] tracking-tight text-foreground lg:text-[42px]">
               Кто отвечает за точность деталей?
             </h2>
             <p className="mt-5 max-w-[64ch] text-base leading-[1.6] text-muted-foreground">
@@ -245,7 +240,10 @@ export function TrustSection() {
 
             <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
               {COMPETENCIES.map((c) => (
-                <div key={c.title} className="border-l-2 border-primary pl-4">
+                <div
+                  key={c.title}
+                  className="rounded-r-md border-l-[3px] border-primary bg-surface p-6"
+                >
                   <p className="text-sm font-bold text-foreground">{c.title}</p>
                   <p className="mt-2 text-sm leading-[1.6] text-muted-foreground">
                     {c.text}
@@ -254,6 +252,7 @@ export function TrustSection() {
               ))}
             </div>
           </div>
+
         </div>
       </section>
 

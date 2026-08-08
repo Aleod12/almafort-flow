@@ -27,7 +27,7 @@ const CARDS = [
 
 export function ProductionSection() {
   return (
-    <section id="services" className="bg-muted/40 py-20 lg:py-24">
+    <section id="services" className="bg-surface py-20 lg:py-24">
       <div className="mx-auto w-full max-w-[1440px] px-5 lg:px-10">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-14">
           <div className="lg:col-span-8">
@@ -58,9 +58,12 @@ export function ProductionSection() {
           {CARDS.map((c) => (
             <article
               key={c.title}
-              className="group flex min-w-[300px] shrink-0 snap-start flex-col rounded-lg bg-background p-10 transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_40px_oklch(0_0_0/0.08)] md:min-w-0"
+              className="group flex min-w-[300px] shrink-0 snap-start flex-col rounded-lg bg-card p-8 shadow-[0_4px_6px_oklch(0_0_0/0.02)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_24px_oklch(0_0_0/0.06)] md:min-w-0 lg:p-10"
             >
-              <c.icon className="size-8 text-foreground" strokeWidth={1.5} />
+              <span className="relative inline-flex size-8 items-center justify-center">
+                <c.icon className="size-8 text-foreground" strokeWidth={1.5} />
+                <span className="absolute -right-1 -top-1 size-2 rounded-full bg-primary" />
+              </span>
               <h3 className="mt-6 text-xl font-bold text-foreground">{c.title}</h3>
               <p className="mt-3 text-sm leading-[1.6] text-muted-foreground">{c.text}</p>
               <a
@@ -76,6 +79,7 @@ export function ProductionSection() {
             </article>
           ))}
         </div>
+
 
         <div id="quiz">
           <EngineeringQuiz />

@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Check, FileUp, Loader2, X } from "lucide-react";
-import productionFloor from "@/assets/production-floor.jpg";
 
 const BASES = ["Чертеж / 3D-модель", "Физический образец", "Только идея/ТЗ"] as const;
 
@@ -127,10 +126,10 @@ export function EngineeringQuiz() {
                       onClick={() =>
                         setValue("base", b, { shouldValidate: true, shouldDirty: true })
                       }
-                      className={`rounded-md border-2 px-4 py-5 text-left text-sm font-medium transition-colors ${
+                      className={`cursor-pointer rounded-md border-2 px-4 py-5 text-center text-sm font-medium transition-colors ${
                         active
-                          ? "border-primary bg-[color-mix(in_oklab,var(--primary)_5%,transparent)] text-foreground"
-                          : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                          ? "border-primary bg-[color-mix(in_oklab,var(--primary)_6%,transparent)] text-foreground"
+                          : "border-border text-muted-foreground hover:bg-surface-hover hover:text-foreground"
                       }`}
                       aria-pressed={active}
                     >
@@ -181,7 +180,7 @@ export function EngineeringQuiz() {
                 }}
                 onClick={() => inputRef.current?.click()}
                 className={`mt-4 flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed px-6 py-10 text-center transition-colors ${
-                  dragging ? "border-primary bg-[color-mix(in_oklab,var(--primary)_4%,transparent)]" : "border-border bg-muted/40"
+                  dragging ? "border-primary bg-[color-mix(in_oklab,var(--primary)_4%,transparent)]" : "border-[var(--dashed)] bg-surface"
                 }`}
               >
                 <FileUp className="size-6 text-muted-foreground" strokeWidth={1.5} />
@@ -267,12 +266,12 @@ export function EngineeringQuiz() {
             <button
               type="submit"
               disabled={!canSubmit && status !== "success"}
-              className={`mt-8 flex h-14 w-full items-center justify-center rounded-md text-base font-semibold text-primary-foreground transition-colors ${
+              className={`mt-8 flex h-14 w-full items-center justify-center rounded-md text-base font-semibold transition-colors ${
                 status === "success"
-                  ? "bg-[oklch(0.696_0.17_162.5)]"
+                  ? "bg-[oklch(0.696_0.17_162.5)] text-primary-foreground"
                   : canSubmit
-                    ? "bg-primary hover:brightness-95"
-                    : "cursor-not-allowed bg-muted text-muted-foreground"
+                    ? "bg-primary text-primary-foreground hover:brightness-95"
+                    : "cursor-not-allowed bg-disabled text-disabled-foreground"
               }`}
             >
               {status === "loading" ? (
@@ -288,22 +287,15 @@ export function EngineeringQuiz() {
           </div>
         </form>
 
-        <div className="relative min-h-[320px] lg:col-span-5">
-          <img
-            src={productionFloor}
-            alt="Термопластавтомат в цеху ALMAFORT"
-            loading="lazy"
-            width={1024}
-            height={1280}
-            className="absolute inset-0 size-full object-cover"
-          />
-          <div className="absolute inset-x-6 bottom-6 rounded-md bg-background/80 p-6 backdrop-blur-md lg:inset-x-8 lg:bottom-8">
+        <div className="relative min-h-[320px] bg-placeholder lg:col-span-5 lg:rounded-r-lg">
+          <div className="absolute inset-x-6 bottom-6 rounded-md bg-background/85 p-6 backdrop-blur-lg lg:inset-x-8 lg:bottom-8">
             <p className="text-sm leading-[1.6] text-foreground">
               Инженерный отдел проанализирует допуски, геометрию и пришлет детальную смету
               на оснастку и серийное литье в течение 48 часов.
             </p>
           </div>
         </div>
+
       </div>
     </div>
   );
