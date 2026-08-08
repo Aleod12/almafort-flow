@@ -120,7 +120,7 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
           onChange={(e) => setQty(Math.max(0, Number(e.target.value)))}
           placeholder="0"
           aria-label={`Количество ${p.sku}`}
-          className="w-full rounded-sm border border-border bg-card px-2 py-1.5 text-right text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus:border-foreground"
+          className="w-full rounded-sm border border-[#D1D5DB] bg-card px-2 py-1.5 text-right text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus:border-foreground"
         />
       </div>
       <div className="px-3 py-3">
@@ -128,13 +128,14 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
           type="button"
           onClick={add}
           aria-label="Добавить в корзину"
-          className={`group flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-sm px-3 py-2 text-xs font-semibold tabular-nums transition-all duration-200 ${
+          className={`group flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-sm px-3 py-2 text-xs font-semibold tabular-nums transition-all duration-200 ${
             state === "done"
               ? "border border-[oklch(0.62_0.16_150)] bg-[oklch(0.95_0.05_150)] text-[oklch(0.45_0.14_150)]"
               : hasSum
-                ? "bg-[oklch(0.96_0.002_247.9)] text-foreground hover:bg-primary hover:text-primary-foreground"
-                : "border border-border text-muted-foreground hover:border-primary hover:bg-primary hover:text-primary-foreground"
+                ? "bg-[#F3F4F6] text-foreground hover:bg-primary hover:text-primary-foreground"
+                : "border border-[#D1D5DB] bg-[#F3F4F6] text-muted-foreground hover:border-primary hover:bg-primary hover:text-primary-foreground"
           }`}
+
         >
           {state === "loading" ? (
             <Loader2 className="size-4 animate-spin" strokeWidth={1.75} />
