@@ -252,8 +252,9 @@ export function TrustSection() {
                   <DocThumb doc={d} onOpen={open} />
                 </div>
               ))}
-
+            </div>
           </div>
+
 
           <div className="text-left lg:col-span-7">
             <h2 className="text-left text-[28px] font-extrabold leading-[1.15] tracking-tight text-foreground lg:text-[42px]">
