@@ -1,0 +1,87 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
+import { SiteHeader } from "@/components/site-header";
+import { SearchPanel } from "@/components/catalog/search-panel";
+import { CatalogMatrix } from "@/components/catalog/catalog-matrix";
+import { ProductSheet } from "@/components/catalog/product-sheet";
+import { unitPrice, type Product } from "@/data/catalog";
+
+export const Route = createFileRoute("/catalog")({
+  head: () => ({
+    meta: [
+      { title: "Каталог ALMAFORT — прайс-матрица пластиковых комплектующих" },
+      {
+        name: "description",
+        content:
+          "B2B-терминал ALMAFORT: поиск по артикулу и фото, матрица оптовых цен, наличие на складе, чертежи DWG и STEP, расчёт доставки.",
+      },
+      { property: "og:title", content: "Каталог ALMAFORT — прайс-матрица для снабженцев" },
+      {
+        property: "og:description",
+        content:
+          "Умный поиск, оптовые тиры цен, остатки склада и инженерная документация в одном интерфейсе.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: CatalogPage,
+});
+
+function CatalogPage() {
+  const [query, setQuery] = useState("");
+  const [scanning, setScanning] = useState(false);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [cart, setCart] = useState<{ lines: number; total: number }>({ lines: 0, total: 0 });
+
+  const add = (p: Product, qty: number) => {
+    setCart((c) => ({ lines: c.lines + 1, total: c.total + unitPrice(p, qty) * qty }));
+    toast.success(`${p.sku} · ${qty.toLocaleString("ru-RU")} шт добавлено`);
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
+
+      <main className="mx-auto max-w-[1440px] px-5 pb-24 pt-10 lg:px-10">
+        <header className="mb-8 text-center">
+          <h1 className="text-3xl font-extrabold leading-[1.08] tracking-tight text-foreground lg:text-[44px]">
+            Каталог серийной продукции
+          </h1>
+          <p className="mx-auto mt-3 max-w-[60ch] text-sm leading-[1.5] text-muted-foreground lg:text-base">
+            Прайс-матрица с остатками склада, тремя уровнями оптовых цен и инженерной
+            документацией. Цена пересчитывается прямо в строке при вводе количества.
+          </p>
+        </header>
+
+        <SearchPanel
+          query={query}
+          onQuery={setQuery}
+          onPick={setProduct}
+          onScanChange={setScanning}
+        />
+
+        <section
+          className={`mt-10 transition-all duration-300 ${scanning ? "blur-sm" : ""}`}
+          aria-label="Матрица каталога"
+        >
+          <CatalogMatrix query={query} onOpenProduct={setProduct} onAdd={add} />
+        </section>
+      </main>
+
+      {cart.lines > 0 && (
+        <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full border border-border bg-card px-6 py-3 text-sm shadow-[0_16px_40px_oklch(0_0_0/0.12)]">
+          <span className="text-muted-foreground">Позиций в заказе: </span>
+          <span className="font-semibold text-foreground">{cart.lines}</span>
+          <span className="mx-3 text-border">|</span>
+          <span className="font-bold tabular-nums text-primary">
+            {cart.total.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} ₽
+          </span>
+        </div>
+      )}
+
+      <ProductSheet product={product} onClose={() => setProduct(null)} />
+    </div>
+  );
+}
