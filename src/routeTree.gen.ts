@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CartRouteImport } from './routes/cart'
+import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as SuccessRouteImport } from './routes/success'
 import { Route as ApiCartRouteImport } from './routes/api/cart'
 import { Route as ApiSearchRouteImport } from './routes/api/search'
@@ -31,6 +32,11 @@ const IndexRoute = IndexRouteImport.update({
 const CartRoute = CartRouteImport.update({
   id: '/cart',
   path: '/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CatalogRoute = CatalogRouteImport.update({
+  id: '/catalog',
+  path: '/catalog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SuccessRoute = SuccessRouteImport.update({
@@ -54,9 +60,9 @@ const ApiShippingCalcRoute = ApiShippingCalcRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const CatalogIndexRoute = CatalogIndexRouteImport.update({
-  id: '/catalog/',
-  path: '/catalog/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => CatalogRoute,
 } as any)
 const ApiCheckoutSubmitRoute = ApiCheckoutSubmitRouteImport.update({
   id: '/api/checkout/submit',
@@ -92,6 +98,7 @@ const ApiPublicCadSplatRoute = ApiPublicCadSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
+  '/catalog': typeof CatalogRouteWithChildren
   '/success': typeof SuccessRoute
   '/api/cart': typeof ApiCartRoute
   '/api/search': typeof ApiSearchRoute
@@ -123,6 +130,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
+  '/catalog': typeof CatalogRouteWithChildren
   '/success': typeof SuccessRoute
   '/api/cart': typeof ApiCartRoute
   '/api/search': typeof ApiSearchRoute
@@ -140,6 +148,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/cart'
+    | '/catalog'
     | '/success'
     | '/api/cart'
     | '/api/search'
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/cart'
+    | '/catalog'
     | '/success'
     | '/api/cart'
     | '/api/search'
@@ -186,11 +196,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CartRoute: typeof CartRoute
+  CatalogRoute: typeof CatalogRouteWithChildren
   SuccessRoute: typeof SuccessRoute
   ApiCartRoute: typeof ApiCartRoute
   ApiSearchRoute: typeof ApiSearchRoute
   ApiShippingCalcRoute: typeof ApiShippingCalcRoute
-  CatalogIndexRoute: typeof CatalogIndexRoute
   ApiCheckoutSubmitRoute: typeof ApiCheckoutSubmitRoute
   ApiConfiguratorSolveRoute: typeof ApiConfiguratorSolveRoute
   ApiDadataCityRoute: typeof ApiDadataCityRoute
@@ -213,6 +223,13 @@ declare module '@tanstack/react-router' {
       path: '/cart'
       fullPath: '/cart'
       preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/catalog': {
+      id: '/catalog'
+      path: '/catalog'
+      fullPath: '/catalog'
+      preLoaderRoute: typeof CatalogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/success': {
@@ -245,10 +262,10 @@ declare module '@tanstack/react-router' {
     }
     '/catalog/': {
       id: '/catalog/'
-      path: '/catalog'
+      path: '/'
       fullPath: '/catalog/'
       preLoaderRoute: typeof CatalogIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof CatalogRoute
     }
     '/api/checkout/submit': {
       id: '/api/checkout/submit'
@@ -295,14 +312,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface CatalogRouteChildren {
+  CatalogIndexRoute: typeof CatalogIndexRoute
+}
+
+const CatalogRouteChildren: CatalogRouteChildren = {
+  CatalogIndexRoute: CatalogIndexRoute,
+}
+
+const CatalogRouteWithChildren =
+  CatalogRoute._addFileChildren(CatalogRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CartRoute: CartRoute,
+  CatalogRoute: CatalogRouteWithChildren,
   SuccessRoute: SuccessRoute,
   ApiCartRoute: ApiCartRoute,
   ApiSearchRoute: ApiSearchRoute,
   ApiShippingCalcRoute: ApiShippingCalcRoute,
-  CatalogIndexRoute: CatalogIndexRoute,
   ApiCheckoutSubmitRoute: ApiCheckoutSubmitRoute,
   ApiConfiguratorSolveRoute: ApiConfiguratorSolveRoute,
   ApiDadataCityRoute: ApiDadataCityRoute,
