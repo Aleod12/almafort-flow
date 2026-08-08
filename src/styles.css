@@ -216,3 +216,35 @@
     transform: translateY(0);
   }
 }
+
+/* --- Навигация и мобильная адаптация --------------------------------- */
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* Якоря не уезжают под липкую шапку */
+:target,
+section[id] {
+  scroll-margin-top: 96px;
+}
+
+/* Длинные слова («Реверс-инжиниринг») переносятся, а не ломают вьюпорт */
+h1,
+h2,
+h3,
+h4,
+p,
+li,
+dt,
+dd,
+label,
+summary,
+blockquote {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}

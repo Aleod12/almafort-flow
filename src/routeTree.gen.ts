@@ -12,15 +12,18 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CatalogRouteImport } from './routes/catalog'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SitemapCategoriesDotxmlRouteImport } from './routes/sitemap-categories[.]xml'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SuccessRouteImport } from './routes/success'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ApiCartRouteImport } from './routes/api/cart'
 import { Route as ApiSearchRouteImport } from './routes/api/search'
 import { Route as ApiShippingCalcRouteImport } from './routes/api/shipping-calc'
 import { Route as CatalogIndexRouteImport } from './routes/catalog.index'
 import { Route as CatalogSplatRouteImport } from './routes/catalog.$'
 import { Route as SitemapProductsPageRouteImport } from './routes/sitemap-products.$page'
+import { Route as ApiAdminCatalogSyncRouteImport } from './routes/api/admin/catalog-sync'
 import { Route as ApiCheckoutSubmitRouteImport } from './routes/api/checkout/submit'
 import { Route as ApiConfiguratorSolveRouteImport } from './routes/api/configurator/solve'
 import { Route as ApiDadataCityRouteImport } from './routes/api/dadata/city'
@@ -45,6 +48,11 @@ const CatalogRoute = CatalogRouteImport.update({
   path: '/catalog',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapCategoriesDotxmlRoute = SitemapCategoriesDotxmlRouteImport.update({
   id: '/sitemap-categories.xml',
   path: '/sitemap-categories.xml',
@@ -58,6 +66,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SuccessRoute = SuccessRouteImport.update({
   id: '/success',
   path: '/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCartRoute = ApiCartRouteImport.update({
@@ -88,6 +101,11 @@ const CatalogSplatRoute = CatalogSplatRouteImport.update({
 const SitemapProductsPageRoute = SitemapProductsPageRouteImport.update({
   id: '/sitemap-products/$page',
   path: '/sitemap-products/$page',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminCatalogSyncRoute = ApiAdminCatalogSyncRouteImport.update({
+  id: '/api/admin/catalog-sync',
+  path: '/api/admin/catalog-sync',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCheckoutSubmitRoute = ApiCheckoutSubmitRouteImport.update({
@@ -135,15 +153,18 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/sitemap-categories.xml': typeof SitemapCategoriesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
+  '/terms': typeof TermsRoute
   '/api/cart': typeof ApiCartRoute
   '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/catalog/$': typeof CatalogSplatRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/catalog/': typeof CatalogIndexRoute
+  '/api/admin/catalog-sync': typeof ApiAdminCatalogSyncRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
@@ -156,15 +177,18 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap-categories.xml': typeof SitemapCategoriesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
+  '/terms': typeof TermsRoute
   '/api/cart': typeof ApiCartRoute
   '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/catalog/$': typeof CatalogSplatRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/catalog': typeof CatalogIndexRoute
+  '/api/admin/catalog-sync': typeof ApiAdminCatalogSyncRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
@@ -179,15 +203,18 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/sitemap-categories.xml': typeof SitemapCategoriesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
+  '/terms': typeof TermsRoute
   '/api/cart': typeof ApiCartRoute
   '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/catalog/$': typeof CatalogSplatRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/catalog/': typeof CatalogIndexRoute
+  '/api/admin/catalog-sync': typeof ApiAdminCatalogSyncRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
@@ -203,15 +230,18 @@ export interface FileRouteTypes {
     | '/'
     | '/cart'
     | '/catalog'
+    | '/privacy'
     | '/sitemap-categories.xml'
     | '/sitemap.xml'
     | '/success'
+    | '/terms'
     | '/api/cart'
     | '/api/search'
     | '/api/shipping-calc'
     | '/catalog/$'
     | '/sitemap-products/$page'
     | '/catalog/'
+    | '/api/admin/catalog-sync'
     | '/api/checkout/submit'
     | '/api/configurator/solve'
     | '/api/dadata/city'
@@ -224,15 +254,18 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/cart'
+    | '/privacy'
     | '/sitemap-categories.xml'
     | '/sitemap.xml'
     | '/success'
+    | '/terms'
     | '/api/cart'
     | '/api/search'
     | '/api/shipping-calc'
     | '/catalog/$'
     | '/sitemap-products/$page'
     | '/catalog'
+    | '/api/admin/catalog-sync'
     | '/api/checkout/submit'
     | '/api/configurator/solve'
     | '/api/dadata/city'
@@ -246,15 +279,18 @@ export interface FileRouteTypes {
     | '/'
     | '/cart'
     | '/catalog'
+    | '/privacy'
     | '/sitemap-categories.xml'
     | '/sitemap.xml'
     | '/success'
+    | '/terms'
     | '/api/cart'
     | '/api/search'
     | '/api/shipping-calc'
     | '/catalog/$'
     | '/sitemap-products/$page'
     | '/catalog/'
+    | '/api/admin/catalog-sync'
     | '/api/checkout/submit'
     | '/api/configurator/solve'
     | '/api/dadata/city'
@@ -269,13 +305,16 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CartRoute: typeof CartRoute
   CatalogRoute: typeof CatalogRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
   SitemapCategoriesDotxmlRoute: typeof SitemapCategoriesDotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SuccessRoute: typeof SuccessRoute
+  TermsRoute: typeof TermsRoute
   ApiCartRoute: typeof ApiCartRoute
   ApiSearchRoute: typeof ApiSearchRoute
   ApiShippingCalcRoute: typeof ApiShippingCalcRoute
   SitemapProductsPageRoute: typeof SitemapProductsPageRoute
+  ApiAdminCatalogSyncRoute: typeof ApiAdminCatalogSyncRoute
   ApiCheckoutSubmitRoute: typeof ApiCheckoutSubmitRoute
   ApiConfiguratorSolveRoute: typeof ApiConfiguratorSolveRoute
   ApiDadataCityRoute: typeof ApiDadataCityRoute
@@ -309,6 +348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CatalogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap-categories.xml': {
       id: '/sitemap-categories.xml'
       path: '/sitemap-categories.xml'
@@ -328,6 +374,13 @@ declare module '@tanstack/react-router' {
       path: '/success'
       fullPath: '/success'
       preLoaderRoute: typeof SuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/cart': {
@@ -370,6 +423,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap-products/$page'
       fullPath: '/sitemap-products/$page'
       preLoaderRoute: typeof SitemapProductsPageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/catalog-sync': {
+      id: '/api/admin/catalog-sync'
+      path: '/api/admin/catalog-sync'
+      fullPath: '/api/admin/catalog-sync'
+      preLoaderRoute: typeof ApiAdminCatalogSyncRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/checkout/submit': {
@@ -448,13 +508,16 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CartRoute: CartRoute,
   CatalogRoute: CatalogRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
   SitemapCategoriesDotxmlRoute: SitemapCategoriesDotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SuccessRoute: SuccessRoute,
+  TermsRoute: TermsRoute,
   ApiCartRoute: ApiCartRoute,
   ApiSearchRoute: ApiSearchRoute,
   ApiShippingCalcRoute: ApiShippingCalcRoute,
   SitemapProductsPageRoute: SitemapProductsPageRoute,
+  ApiAdminCatalogSyncRoute: ApiAdminCatalogSyncRoute,
   ApiCheckoutSubmitRoute: ApiCheckoutSubmitRoute,
   ApiConfiguratorSolveRoute: ApiConfiguratorSolveRoute,
   ApiDadataCityRoute: ApiDadataCityRoute,

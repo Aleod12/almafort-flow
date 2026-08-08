@@ -18,6 +18,14 @@ const ORG_JSONLD = {
     "Производство пластиковых комплектующих: серийное литьё, промышленная 3D-печать, реверс-инжиниринг.",
   url: "https://almafort.ru/",
   telephone: "+7 (902) 922-97-34",
+  email: "almafort@yandex.ru",
+  legalName: "ИП Сазонов Евгений Олегович",
+  taxID: "244600218744",
+  vatID: "244600218744",
+  identifier: [
+    { "@type": "PropertyValue", name: "ИНН", value: "244600218744" },
+    { "@type": "PropertyValue", name: "ОГРН", value: "307246405700033" },
+  ],
   geo: { "@type": "GeoCoordinates", latitude: 55.96165, longitude: 92.333 },
   founder: { "@type": "Person", name: "Сазонов Евгений Олегович" },
   employee: {
@@ -27,7 +35,8 @@ const ORG_JSONLD = {
   },
   address: {
     "@type": "PostalAddress",
-    streetAddress: "Нижний проезд, 15/1",
+    streetAddress: "ул. Чкалова, д. 59, кв. 202",
+    postalCode: "660910",
     addressLocality: "Дивногорск",
     addressRegion: "Красноярский край",
     addressCountry: "RU",

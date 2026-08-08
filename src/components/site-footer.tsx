@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { MapPin, Send, MessageCircle, X } from "lucide-react";
+import { COMPANY, companyEmail } from "@/lib/company";
 
 const LAT = 55.96165;
 const LON = 92.333;
 
 
 /** Обфускация e-mail: адрес не встречается в исходном HTML целиком. */
-const EMAIL_USER = ["sa", "les"].join("");
-const EMAIL_HOST = ["almafort", "ru"].join(".");
-const email = `${EMAIL_USER}@${EMAIL_HOST}`;
+const email = companyEmail();
 
 function LazyMap() {
   const ref = useRef<HTMLDivElement>(null);
@@ -34,7 +33,7 @@ function LazyMap() {
     <div ref={ref} className="relative h-[340px] w-full overflow-hidden bg-[#1B1B1F] lg:h-full">
       {visible ? (
         <iframe
-          title="ALMAFORT на карте — Дивногорск, Нижний проезд, 15/1"
+          title="ALMAFORT на карте — Дивногорск, ул. Чкалова, 59"
           loading="lazy"
           src={`https://yandex.ru/map-widget/v1/?ll=${LON}%2C${LAT}&z=16&l=map`}
           className="h-full w-full border-0 opacity-90 [filter:invert(1)_hue-rotate(180deg)_saturate(0.6)_brightness(0.95)]"
@@ -83,7 +82,7 @@ export function SiteFooter() {
   return (
     <footer id="contacts" className="bg-[#121214] text-white">
       <div className="mx-auto grid max-w-[1440px] grid-cols-1 lg:grid-cols-12">
-        <div className="px-[max(5vw,20px)] py-16 lg:col-span-4 lg:py-20 lg:pl-10 lg:pr-12">
+        <div className="px-4 py-16 sm:px-[max(5vw,20px)] lg:col-span-4 lg:py-20 lg:pl-10 lg:pr-12">
           <div className="flex items-center gap-2">
             <span className="text-[26px] font-extrabold uppercase tracking-tight text-white">
               Alma<span className="text-[#E52421]">fort</span>
@@ -92,10 +91,10 @@ export function SiteFooter() {
           </div>
 
           <a
-            href="tel:+79029229734"
-            className="mt-8 block text-[28px] font-extrabold tracking-tight text-white tabular-nums lg:text-[32px]"
+            href={COMPANY.phoneHref}
+            className="mt-8 block text-[26px] font-extrabold tracking-tight text-white tabular-nums lg:text-[32px]"
           >
-            +7 (902) 922-97-34
+            {COMPANY.phone}
           </a>
 
           <p className="mt-4 text-sm leading-[1.7] text-[#9CA3AF]">
@@ -111,10 +110,23 @@ export function SiteFooter() {
             {mail || "отдел продаж — почта"}
           </a>
 
-          <p className="mt-3 flex items-start gap-2 text-sm leading-[1.6] text-[#9CA3AF]">
-            <MapPin className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} />
-            г. Дивногорск, Нижний проезд, 15/1
-          </p>
+          <a
+            href={COMPANY.siteUrl}
+            className="mt-2 block text-sm text-[#9CA3AF] hover:text-white"
+          >
+            {COMPANY.site}
+          </a>
+
+          <div className="mt-6 space-y-1 text-sm leading-[1.6] text-[#9CA3AF]">
+            <p className="font-semibold text-white">{COMPANY.legalName}</p>
+            <p className="flex items-start gap-2">
+              <MapPin className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} />
+              {COMPANY.addressFull}
+            </p>
+            <p className="tabular-nums">
+              ИНН: {COMPANY.inn} <span className="text-[#4B5563]">|</span> ОГРН: {COMPANY.ogrn}
+            </p>
+          </div>
 
           <button
             type="button"
@@ -125,6 +137,7 @@ export function SiteFooter() {
           </button>
         </div>
 
+
         <div className="lg:col-span-8">
           <LazyMap />
         </div>
@@ -132,7 +145,7 @@ export function SiteFooter() {
 
       <div className="border-t border-[#2A2A2E]">
         <div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-[max(5vw,20px)] py-5 text-[12px] leading-[1.6] text-[#9CA3AF] sm:flex-row sm:items-center sm:justify-between lg:px-10">
-          <p>© 2006–2026 ALMAFORT. Официально зарегистрированный товарный знак (№ 1192250).</p>
+          <p>© 2006–2026 ALMAFORT · ИП Сазонов Е. О..  Официально зарегистрированный товарный знак (№ 1192250).</p>
           <div className="flex gap-6">
             <a href="/privacy" className="underline underline-offset-2 transition-colors hover:text-white">
               Политика конфиденциальности
