@@ -93,7 +93,7 @@ function PolicyModal({ onClose }: { onClose: () => void }) {
             type="button"
             onClick={onClose}
             aria-label="Закрыть"
-            className="-mr-1 -mt-1 rounded-md p-1 text-muted-foreground hover:text-foreground"
+            className="-mr-1 -mt-1 cursor-pointer rounded-full p-1.5 text-muted-foreground transition-all duration-200 ease-in-out hover:bg-[#E5E7EB] hover:text-foreground active:scale-90"
           >
             <X className="size-4" />
           </button>
@@ -120,7 +120,7 @@ function PolicyModal({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md bg-foreground px-5 py-2.5 text-sm font-semibold text-background"
+            className="cursor-pointer rounded-md bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-[background-color,transform] duration-200 hover:bg-[#374151] active:scale-[0.97]"
           >
             Понятно
           </button>
