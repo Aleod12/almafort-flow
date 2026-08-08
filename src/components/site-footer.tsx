@@ -33,9 +33,11 @@ function LazyMap() {
     <div ref={ref} className="relative h-[240px] max-h-[240px] w-full overflow-hidden bg-[#1B1B1F]">
       {visible ? (
         <iframe
-          title="ALMAFORT на карте — Дивногорск, ул. Чкалова, 59"
+          title="ALMAFORT — производство и склад: Дивногорск, Нижний проезд, 15/1"
           loading="lazy"
-          src={`https://yandex.ru/map-widget/v1/?ll=${LON}%2C${LAT}&z=16&l=map`}
+          src={`https://yandex.ru/map-widget/v1/?ll=${LON}%2C${LAT}&z=17&l=map&text=${encodeURIComponent(
+            "Дивногорск, Нижний проезд, 15/1",
+          )}`}
           className="h-full w-full border-0 opacity-90 [filter:invert(1)_hue-rotate(180deg)_saturate(0.6)_brightness(0.95)]"
         />
 
