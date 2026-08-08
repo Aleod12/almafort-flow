@@ -106,7 +106,7 @@ export function SiteHeader() {
             ))}
           </nav>
           <p className="mt-4 text-xs text-muted-foreground">
-            Пн-Пт 08:00–19:00 (МСК+4) · г. Дивногорск, ул. Чкалова, 59
+            Пн-Пт 08:00–19:00 (МСК+4) · г. Дивногорск, Нижний проезд, 15/1
           </p>
         </div>
       )}
