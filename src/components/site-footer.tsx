@@ -35,9 +35,10 @@ function LazyMap() {
         <iframe
           title="ALMAFORT на карте — Дивногорск, Нижний проезд, 15/1"
           loading="lazy"
-          src={`https://yandex.ru/map-widget/v1/?ll=${LON}%2C${LAT}&z=16&pt=${LON},${LAT},pm2rdm`}
+          src={`https://yandex.ru/map-widget/v1/?ll=${LON}%2C${LAT}&z=16&l=map&pt=${LON},${LAT},pm2rdm`}
           className="h-full w-full border-0 opacity-90 [filter:invert(1)_hue-rotate(180deg)_saturate(0.6)_brightness(0.95)]"
         />
+
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-[#1B1B1F] text-sm text-[#4B5563]">
           Карта загрузится при прокрутке
@@ -79,7 +80,7 @@ export function SiteFooter() {
   return (
     <footer id="contacts" className="bg-[#121214] text-white">
       <div className="mx-auto grid max-w-[1440px] grid-cols-1 lg:grid-cols-12">
-        <div className="px-5 py-16 lg:col-span-4 lg:px-10 lg:py-20">
+        <div className="px-[max(5vw,20px)] py-16 lg:col-span-4 lg:py-20 lg:pl-10 lg:pr-12">
           <div className="flex items-center gap-2">
             <span className="text-[26px] font-extrabold uppercase tracking-tight text-white">
               Alma<span className="text-[#E52421]">fort</span>
@@ -115,7 +116,7 @@ export function SiteFooter() {
           <button
             type="button"
             onClick={() => setModal(true)}
-            className="mt-8 inline-flex items-center justify-center rounded-[4px] border border-white px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#121214]"
+            className="mt-8 inline-flex items-center justify-center rounded-[4px] border border-white px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#FFFFFF] hover:text-[#121214]"
           >
             Написать в WhatsApp / Telegram
           </button>
@@ -127,16 +128,17 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-[#2A2A2E]">
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-5 py-5 text-[12px] text-[#4B5563] sm:flex-row sm:items-center sm:justify-between lg:px-10">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-[max(5vw,20px)] py-5 text-[12px] leading-[1.6] text-[#9CA3AF] sm:flex-row sm:items-center sm:justify-between lg:px-10">
           <p>© 2006–2026 ALMAFORT. Официально зарегистрированный товарный знак (№ 1192250).</p>
           <div className="flex gap-6">
-            <a href="/privacy" className="transition-colors hover:text-[#9CA3AF]">
+            <a href="/privacy" className="underline underline-offset-2 transition-colors hover:text-white">
               Политика конфиденциальности
             </a>
-            <a href="/terms" className="transition-colors hover:text-[#9CA3AF]">
+            <a href="/terms" className="underline underline-offset-2 transition-colors hover:text-white">
               Пользовательское соглашение
             </a>
           </div>
+
         </div>
       </div>
 
