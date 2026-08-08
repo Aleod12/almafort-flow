@@ -42,22 +42,24 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="hidden lg:flex lg:shrink-0 lg:items-center lg:gap-5">
-          <span className="flex items-center gap-2 whitespace-nowrap text-[13px] leading-none text-muted-foreground">
+        <div className="hidden lg:flex lg:shrink-0 lg:items-center lg:gap-4 xl:gap-5">
+          <span className="hidden items-center gap-2 whitespace-nowrap text-[13px] leading-none text-muted-foreground xl:flex">
             <Clock className="size-4 shrink-0" strokeWidth={1.5} />
             Пн-Пт 08:00–19:00 (МСК+4)
           </span>
-          <span className="hidden items-center gap-2 whitespace-nowrap text-[13px] leading-none text-muted-foreground xl:flex">
+          <span className="hidden items-center gap-2 whitespace-nowrap text-[13px] leading-none text-muted-foreground 2xl:flex">
             <MapPin className="size-4 shrink-0" strokeWidth={1.5} />
             Нижний проезд, 15/1
           </span>
           <a
             href="tel:+79029229734"
-            className="flex items-center gap-2 whitespace-nowrap text-[14px] font-semibold leading-none text-foreground hover:text-primary"
+            className="flex shrink-0 items-center gap-2 whitespace-nowrap text-[14px] font-semibold leading-none text-foreground hover:text-primary"
+            style={{ whiteSpace: "nowrap" }}
           >
             <Phone className="size-4 shrink-0" strokeWidth={1.5} />
-            +7 (902) 922-97-34
+            +7&nbsp;(902)&nbsp;922-97-34
           </a>
+
           <a
             href="#account"
             aria-label="Личный кабинет"
