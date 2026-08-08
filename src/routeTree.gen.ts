@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as SuccessRouteImport } from './routes/success'
+import { Route as ApiCartRouteImport } from './routes/api/cart'
 import { Route as ApiSearchRouteImport } from './routes/api/search'
 import { Route as ApiShippingCalcRouteImport } from './routes/api/shipping-calc'
 import { Route as ApiCheckoutSubmitRouteImport } from './routes/api/checkout/submit'
@@ -38,6 +39,11 @@ const CatalogRoute = CatalogRouteImport.update({
 const SuccessRoute = SuccessRouteImport.update({
   id: '/success',
   path: '/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCartRoute = ApiCartRouteImport.update({
+  id: '/api/cart',
+  path: '/api/cart',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSearchRoute = ApiSearchRouteImport.update({
@@ -76,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
   '/success': typeof SuccessRoute
+  '/api/cart': typeof ApiCartRoute
   '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
   '/success': typeof SuccessRoute
+  '/api/cart': typeof ApiCartRoute
   '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
   '/success': typeof SuccessRoute
+  '/api/cart': typeof ApiCartRoute
   '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/catalog'
     | '/success'
+    | '/api/cart'
     | '/api/search'
     | '/api/shipping-calc'
     | '/api/checkout/submit'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/catalog'
     | '/success'
+    | '/api/cart'
     | '/api/search'
     | '/api/shipping-calc'
     | '/api/checkout/submit'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/catalog'
     | '/success'
+    | '/api/cart'
     | '/api/search'
     | '/api/shipping-calc'
     | '/api/checkout/submit'
@@ -152,6 +164,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CatalogRoute: typeof CatalogRoute
   SuccessRoute: typeof SuccessRoute
+  ApiCartRoute: typeof ApiCartRoute
   ApiSearchRoute: typeof ApiSearchRoute
   ApiShippingCalcRoute: typeof ApiShippingCalcRoute
   ApiCheckoutSubmitRoute: typeof ApiCheckoutSubmitRoute
@@ -188,6 +201,13 @@ declare module '@tanstack/react-router' {
       path: '/success'
       fullPath: '/success'
       preLoaderRoute: typeof SuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cart': {
+      id: '/api/cart'
+      path: '/api/cart'
+      fullPath: '/api/cart'
+      preLoaderRoute: typeof ApiCartRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/search': {
@@ -240,6 +260,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CatalogRoute: CatalogRoute,
   SuccessRoute: SuccessRoute,
+  ApiCartRoute: ApiCartRoute,
   ApiSearchRoute: ApiSearchRoute,
   ApiShippingCalcRoute: ApiShippingCalcRoute,
   ApiCheckoutSubmitRoute: ApiCheckoutSubmitRoute,
