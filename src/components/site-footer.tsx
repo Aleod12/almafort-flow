@@ -1,0 +1,193 @@
+import { useEffect, useRef, useState } from "react";
+import { MapPin, Send, MessageCircle, X } from "lucide-react";
+
+const LAT = 55.9578;
+const LON = 92.3711;
+
+/** Обфускация e-mail: адрес не встречается в исходном HTML целиком. */
+const EMAIL_USER = ["sa", "les"].join("");
+const EMAIL_HOST = ["almafort", "ru"].join(".");
+const email = `${EMAIL_USER}@${EMAIL_HOST}`;
+
+function LazyMap() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || visible) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setVisible(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "350px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [visible]);
+
+  return (
+    <div ref={ref} className="relative h-[340px] w-full overflow-hidden bg-[#1B1B1F] lg:h-full">
+      {visible ? (
+        <iframe
+          title="ALMAFORT на карте — Дивногорск, Нижний проезд, 15/1"
+          loading="lazy"
+          src={`https://yandex.ru/map-widget/v1/?ll=${LON}%2C${LAT}&z=16&pt=${LON},${LAT},pm2rdm`}
+          className="h-full w-full border-0 opacity-90 [filter:invert(1)_hue-rotate(180deg)_saturate(0.6)_brightness(0.95)]"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-[#1B1B1F] text-sm text-[#4B5563]">
+          Карта загрузится при прокрутке
+        </div>
+      )}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full">
+        <svg width="34" height="46" viewBox="0 0 34 46" fill="none" aria-hidden="true">
+          <path
+            d="M17 0C7.6 0 0 7.6 0 17c0 12 17 29 17 29s17-17 17-29C34 7.6 26.4 0 17 0z"
+            fill="#E52421"
+          />
+          <text
+            x="17"
+            y="22"
+            textAnchor="middle"
+            fontSize="10"
+            fontWeight="800"
+            fill="#FFFFFF"
+            fontFamily="Inter, sans-serif"
+          >
+            AF
+          </text>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+export function SiteFooter() {
+  const [modal, setModal] = useState(false);
+
+  useEffect(() => {
+    if (!modal) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setModal(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [modal]);
+
+  return (
+    <footer id="contacts" className="bg-[#121214] text-white">
+      <div className="mx-auto grid max-w-[1440px] grid-cols-1 lg:grid-cols-12">
+        <div className="px-5 py-16 lg:col-span-4 lg:px-10 lg:py-20">
+          <div className="flex items-center gap-2">
+            <span className="text-[26px] font-extrabold uppercase tracking-tight text-white">
+              Alma<span className="text-[#E52421]">fort</span>
+            </span>
+            <span className="mt-1 block size-2 rounded-[2px] bg-[#E52421]" />
+          </div>
+
+          <a
+            href="tel:+79029229734"
+            className="mt-8 block text-[28px] font-extrabold tracking-tight text-white tabular-nums lg:text-[32px]"
+          >
+            +7 (902) 922-97-34
+          </a>
+
+          <p className="mt-4 text-sm leading-[1.7] text-[#9CA3AF]">
+            Пн–Пт 08:00–19:00 (МСК+4)
+            <br />
+            Сб–Вс: выходной
+          </p>
+
+          <a
+            href={`mailto:${email}`}
+            className="mt-6 inline-block text-base text-white hover:underline hover:underline-offset-4"
+          >
+            {email}
+          </a>
+
+          <p className="mt-3 flex items-start gap-2 text-sm leading-[1.6] text-[#9CA3AF]">
+            <MapPin className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} />
+            г. Дивногорск, Нижний проезд, 15/1
+          </p>
+
+          <button
+            type="button"
+            onClick={() => setModal(true)}
+            className="mt-8 inline-flex items-center justify-center rounded-[4px] border border-white px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#121214]"
+          >
+            Написать в WhatsApp / Telegram
+          </button>
+        </div>
+
+        <div className="lg:col-span-8">
+          <LazyMap />
+        </div>
+      </div>
+
+      <div className="border-t border-[#2A2A2E]">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-5 py-5 text-[12px] text-[#4B5563] sm:flex-row sm:items-center sm:justify-between lg:px-10">
+          <p>© 2006–2026 ALMAFORT. Официально зарегистрированный товарный знак (№ 1192250).</p>
+          <div className="flex gap-6">
+            <a href="/privacy" className="transition-colors hover:text-[#9CA3AF]">
+              Политика конфиденциальности
+            </a>
+            <a href="/terms" className="transition-colors hover:text-[#9CA3AF]">
+              Пользовательское соглашение
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {modal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-5"
+          onClick={() => setModal(false)}
+          role="presentation"
+        >
+          <div
+            className="relative w-full max-w-[380px] rounded-[6px] bg-[#1B1B1F] p-8"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Выбор мессенджера"
+          >
+            <button
+              type="button"
+              aria-label="Закрыть"
+              onClick={() => setModal(false)}
+              className="absolute right-4 top-4 text-[#9CA3AF] hover:text-white"
+            >
+              <X className="size-5" strokeWidth={1.75} />
+            </button>
+            <p className="text-lg font-bold text-white">Выберите мессенджер</p>
+            <p className="mt-2 text-sm text-[#9CA3AF]">
+              Ответим в рабочие часы: Пн–Пт 08:00–19:00 (МСК+4).
+            </p>
+            <div className="mt-6 grid gap-3">
+              <a
+                href="https://api.whatsapp.com/send?phone=79029229734"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 rounded-[4px] border border-white/20 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#121214]"
+              >
+                <MessageCircle className="size-5" strokeWidth={1.75} />
+                WhatsApp
+              </a>
+              <a
+                href="https://t.me/+79029229734"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 rounded-[4px] border border-white/20 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#121214]"
+              >
+                <Send className="size-5" strokeWidth={1.75} />
+                Telegram
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+    </footer>
+  );
+}
