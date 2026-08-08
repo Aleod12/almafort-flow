@@ -29,12 +29,12 @@ export function SpecUpload({ compact = false }: { compact?: boolean }) {
         const json = await res.json();
         if (!res.ok) throw new Error(json?.error ?? "Ошибка разбора файла");
         applyParse(json);
-        const found = json.exactMatches.length;
-        const analogs = json.suggestedAnalogs.length;
-        toast.success(`Распознано ${found + analogs} из ${json.rowsScanned} строк`, {
-          description: analogs
-            ? `${found} точных совпадений, ${analogs} аналогов требуют подтверждения.`
-            : `${found} позиций добавлено в корзину.`,
+        const { matched = 0, ambiguous = 0, notFound = 0, rowsScanned = 0 } = json;
+        toast.success(`Обработано ${rowsScanned} строк: ${matched} распознано`, {
+          description:
+            ambiguous || notFound
+              ? `${ambiguous} требуют уточнения, ${notFound} не найдено — разрешите их в корзине.`
+              : "Все позиции добавлены в корзину.",
           action: {
             label: "Открыть корзину",
             onClick: () => {
@@ -42,6 +42,7 @@ export function SpecUpload({ compact = false }: { compact?: boolean }) {
             },
           },
         });
+
 
       } catch (e) {
         setParsing(false);

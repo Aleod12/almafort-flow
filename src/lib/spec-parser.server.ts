@@ -1,44 +1,39 @@
-// Server-only: чтение «грязных» Excel/CSV спецификаций и матчинг с номенклатурой ALMAFORT.
+// Server-only: чтение «грязных» Excel/CSV спецификаций (Smart Import Engine v5.0).
+// Ни одна строка клиента не теряется: каждая возвращается со статусом.
 import * as XLSX from "xlsx";
-import { PRODUCTS, unitPrice, type Product } from "@/data/catalog";
-import { normalize, scoreMatch } from "@/lib/fuzzy-search";
+import { normalize } from "@/lib/fuzzy-search";
+import { extractQuantity, matchRow, type Candidate, type RowStatus } from "@/lib/spec-matcher";
 
-export type ExactMatch = {
-  sku: string;
-  name: string;
+export type ParsedRow = {
+  id: string;
+  sheet: string;
+  originalString: string;
   quantity: number;
-  price: number;
-  originalName: string;
+  status: RowStatus;
+  score: number;
+  sku: string | null;
+  name: string | null;
+  candidates: Candidate[];
 };
-
-export type SuggestedAnalog = {
-  originalName: string;
-  quantity: number;
-  suggestedSku: string;
-  suggestedName: string;
-  price: number;
-  matchConfidence: number;
-};
-
-export type Unmapped = { originalString: string; quantity: number };
 
 export type ParseResult = {
   sheets: string[];
   rowsScanned: number;
-  exactMatches: ExactMatch[];
-  suggestedAnalogs: SuggestedAnalog[];
-  unmapped: Unmapped[];
+  matched: number;
+  ambiguous: number;
+  notFound: number;
+  rows: ParsedRow[];
 };
 
 const SKU_KEYS = ["артикул", "sku", "код", "кодтовара", "арт"];
-const NAME_KEYS = ["наименование", "название", "номенклатура", "товар", "позиция"];
+const NAME_KEYS = ["наименование", "название", "номенклатура", "товар", "позиция", "материал"];
 const QTY_KEYS = ["количество", "колво", "кол", "шт", "qty", "quantity", "объем"];
-
 const HEADER_TRIGGERS = [...SKU_KEYS, ...NAME_KEYS, ...QTY_KEYS];
+
+const MAX_ROWS = 2000;
 
 const cellText = (v: unknown) => (v === null || v === undefined ? "" : String(v).trim());
 
-/** Ищем строку заголовков по ключевым триггерам, всё выше (логотипы, реквизиты) отсекаем. */
 function findHeaderRow(rows: unknown[][]): number {
   const limit = Math.min(rows.length, 40);
   for (let i = 0; i < limit; i++) {
@@ -63,72 +58,32 @@ function mapColumns(header: unknown[]) {
   return { sku, name, qty };
 }
 
-function parseQty(raw: unknown): number {
-  const s = cellText(raw).replace(/\s|\u00a0/g, "").replace(",", ".");
-  const n = Number.parseFloat(s.replace(/[^\d.]/g, ""));
-  return Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
-}
-
-/** Из «Заглушка пласт. черн. 100х100мм» вытаскиваем 100x100 */
-export function extractDims(s: string): string | null {
-  const m = s
-    .toLowerCase()
-    .replace(/[хx×*]/g, "x")
-    .match(/(\d{1,4})\s*x\s*(\d{1,4})(?:\s*x\s*(\d{1,4}))?/);
-  if (!m) return null;
-  return [m[1], m[2], m[3]].filter(Boolean).join("x");
-}
-
-const skuIndex = new Map<string, Product>();
-for (const p of PRODUCTS) skuIndex.set(normalize(p.sku), p);
-
-function matchBySku(raw: string): Product | null {
-  const key = normalize(raw);
-  if (!key) return null;
-  return skuIndex.get(key) ?? null;
-}
-
-function matchByDims(name: string): { product: Product; confidence: number } | null {
-  const dims = extractDims(name);
-  if (!dims) return null;
-  for (const p of PRODUCTS) {
-    const pd = extractDims(p.dims) ?? extractDims(p.name);
-    if (pd && pd === dims) {
-      const sameKind = scoreMatch(p.name, name.split(/[\s,.]/)[0] ?? "") > 0;
-      return { product: p, confidence: sameKind ? 0.92 : 0.78 };
-    }
+/**
+ * Файл без шапки («заглушка | 30 штук») — не повод падать: берём первую
+ * колонку с буквами как наименование, следующую непустую — как количество.
+ */
+function guessColumns(rows: unknown[][]) {
+  let name = -1;
+  let qty = -1;
+  const width = rows.reduce((m, r) => Math.max(m, r?.length ?? 0), 0);
+  for (let c = 0; c < width; c++) {
+    const values = rows.map((r) => cellText(r?.[c])).filter(Boolean);
+    if (!values.length) continue;
+    const letters = values.filter((v) => /[a-zа-яё]{3}/i.test(v)).length / values.length;
+    const numeric = values.filter((v) => /\d/.test(v)).length / values.length;
+    if (name < 0 && letters >= 0.5) name = c;
+    else if (qty < 0 && numeric >= 0.5) qty = c;
   }
-  return null;
+  return { sku: -1, name, qty };
 }
 
-function matchFuzzy(name: string): { product: Product; confidence: number } | null {
-  const tokens = name
-    .toLowerCase()
-    .split(/[^a-zа-яё0-9]+/i)
-    .filter((t) => t.length >= 3);
-  if (!tokens.length) return null;
-
-  let best: { product: Product; score: number } | null = null;
-  for (const p of PRODUCTS) {
-    const haystack = `${p.name} ${p.dims} ${p.category} ${p.material}`;
-    let score = 0;
-    for (const t of tokens) score += scoreMatch(haystack, t);
-    score = score / tokens.length;
-    if (!best || score > best.score) best = { product: p, score };
-  }
-  if (!best || best.score < 45) return null;
-  return { product: best.product, confidence: Math.min(0.95, best.score / 100) };
-}
+let seq = 0;
+const nextId = () => `r${Date.now().toString(36)}${(seq++).toString(36)}`;
 
 export function parseSpecBuffer(buffer: ArrayBuffer): ParseResult {
   const wb = XLSX.read(buffer, { type: "array" });
+  const out: ParsedRow[] = [];
 
-  const exactMatches: ExactMatch[] = [];
-  const suggestedAnalogs: SuggestedAnalog[] = [];
-  const unmapped: Unmapped[] = [];
-  let rowsScanned = 0;
-
-  // Проходим по всем листам — снабженцы делят заказ по разделам.
   for (const sheetName of wb.SheetNames) {
     const sheet = wb.Sheets[sheetName];
     if (!sheet) continue;
@@ -137,64 +92,46 @@ export function parseSpecBuffer(buffer: ArrayBuffer): ParseResult {
       blankrows: false,
       defval: "",
     });
+    if (!rows.length) continue;
+
     const headerIdx = findHeaderRow(rows);
-    if (headerIdx < 0) continue;
-
-    const cols = mapColumns(rows[headerIdx] ?? []);
+    const cols = headerIdx >= 0 ? mapColumns(rows[headerIdx] ?? []) : guessColumns(rows);
     if (cols.name < 0 && cols.sku < 0) continue;
+    const start = headerIdx >= 0 ? headerIdx + 1 : 0;
 
-    for (let i = headerIdx + 1; i < rows.length; i++) {
+    for (let i = start; i < rows.length && out.length < MAX_ROWS; i++) {
       const row = rows[i] ?? [];
       const skuRaw = cols.sku >= 0 ? cellText(row[cols.sku]) : "";
       const nameRaw = cols.name >= 0 ? cellText(row[cols.name]) : "";
-      const label = nameRaw || skuRaw;
+      const label = [nameRaw, skuRaw].filter(Boolean).join(" ").trim();
       if (!label) continue;
-      // отсекаем «Итого», подзаголовки разделов и пустые строки
-      if (/^(итого|всего|раздел|подраздел)\b/i.test(label)) continue;
+      if (/^(итого|всего|раздел|подраздел|№|n\/n)\b/i.test(label)) continue;
+      // строка-заголовок раздела: буквы без цифр и без количества
+      const qtyCell = cols.qty >= 0 ? row[cols.qty] : "";
+      if (!cellText(qtyCell) && !/\d/.test(label) && label.length < 4) continue;
 
-      const quantity = cols.qty >= 0 ? parseQty(row[cols.qty]) : 0;
-      if (!quantity) {
-        if (nameRaw && !skuRaw && !/\d/.test(nameRaw)) continue; // заголовок раздела
-      }
-      rowsScanned++;
-      const qty = quantity || 1;
-
-      // 1. Точное совпадение по артикулу
-      const exact = matchBySku(skuRaw) ?? matchBySku(label);
-      if (exact) {
-        exactMatches.push({
-          sku: exact.sku,
-          name: exact.name,
-          quantity: qty,
-          price: unitPrice(exact, qty),
-          originalName: label,
-        });
-        continue;
-      }
-
-      // 2. Нормализация + regex по габаритам, 3. Нечёткий поиск
-      const guess = matchByDims(label) ?? matchFuzzy(label);
-      if (guess) {
-        suggestedAnalogs.push({
-          originalName: label,
-          quantity: qty,
-          suggestedSku: guess.product.sku,
-          suggestedName: guess.product.name,
-          price: unitPrice(guess.product, qty),
-          matchConfidence: Number(guess.confidence.toFixed(2)),
-        });
-        continue;
-      }
-
-      unmapped.push({ originalString: label, quantity: qty });
+      const quantity = extractQuantity(qtyCell);
+      const verdict = matchRow(label, quantity);
+      out.push({
+        id: nextId(),
+        sheet: sheetName,
+        originalString: label,
+        quantity,
+        status: verdict.status,
+        score: verdict.score,
+        sku: verdict.sku,
+        name: verdict.name,
+        candidates: verdict.candidates,
+      });
     }
   }
 
   return {
     sheets: wb.SheetNames,
-    rowsScanned,
-    exactMatches,
-    suggestedAnalogs,
-    unmapped,
+    rowsScanned: out.length,
+    matched: out.filter((r) => r.status === "MATCHED").length,
+    ambiguous: out.filter((r) => r.status === "AMBIGUOUS").length,
+    notFound: out.filter((r) => r.status === "NOT_FOUND").length,
+    rows: out,
   };
 }
