@@ -155,6 +155,18 @@ export function facetDescription(f: FacetPath, items: Product[]): string {
 const YEAR_END = `${new Date().getUTCFullYear()}-12-31`;
 
 export function productJsonLd(p: Product, url: string) {
+  if (p.is_service) {
+    // Услуга: без offers с нулевой ценой — цена согласуется индивидуально.
+    return {
+      "@context": "https://schema.org/",
+      "@type": "Service",
+      name: p.name,
+      serviceType: p.category,
+      url,
+      provider: { "@type": "Organization", name: "ALMAFORT" },
+      areaServed: "RU",
+    };
+  }
   return {
     "@context": "https://schema.org/",
     "@type": "Product",

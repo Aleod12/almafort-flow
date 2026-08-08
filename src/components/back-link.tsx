@@ -23,9 +23,12 @@ export function BackLink({
     <button
       type="button"
       onClick={goBack}
-      className={`inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary ${className}`}
+      className={`group inline-flex cursor-pointer items-center gap-2 bg-transparent text-sm font-medium text-muted-foreground transition-colors duration-200 hover:text-primary ${className}`}
     >
-      <ArrowLeft className="size-4 shrink-0" strokeWidth={1.75} />
+      <ArrowLeft
+        className="size-4 shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5 group-hover:text-primary"
+        strokeWidth={1.75}
+      />
       {label}
     </button>
   );
