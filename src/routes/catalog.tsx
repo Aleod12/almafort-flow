@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/site-header";
+import { SpecDropzone } from "@/components/spec-dropzone";
 import { SearchPanel } from "@/components/catalog/search-panel";
 import { CatalogMatrix } from "@/components/catalog/catalog-matrix";
 import { ProductSheet } from "@/components/catalog/product-sheet";
@@ -33,6 +35,7 @@ function CatalogPage() {
   const [query, setQuery] = useState("");
   const [scanning, setScanning] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
+  const [upload, setUpload] = useState(false);
   const [cart, setCart] = useState<{ lines: number; total: number }>({ lines: 0, total: 0 });
 
   const add = (p: Product, qty: number) => {
