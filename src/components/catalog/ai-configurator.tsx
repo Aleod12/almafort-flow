@@ -100,7 +100,10 @@ export function AiConfigurator() {
   };
 
   const scrollToQuiz = () => {
-    document.getElementById("quiz")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const el = document.getElementById("quiz");
+    // Квиз-терминал живёт на главной: с других маршрутов уходим по якорю.
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    else window.location.assign("/#quiz");
   };
 
   return (
