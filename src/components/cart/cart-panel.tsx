@@ -127,13 +127,11 @@ export function CartPanel() {
     }
     setSubmitting(true);
     try {
-      const invoicePdfBase64 = (await generateInvoicePdf({
-        lines,
-        carrier,
-        city,
-        delivery,
-        output: "base64",
-      })) as string;
+      // PDF не должен блокировать заявку: если генерация подвисла — уходим без вложения.
+      const invoicePdfBase64 = await Promise.race([
+        generateInvoicePdf({ lines, carrier, city, delivery, output: "base64" }).catch(() => null),
+        new Promise<null>((r) => window.setTimeout(() => r(null), 8000)),
+      ]);
 
       const res = await fetch("/api/checkout/submit", {
         method: "POST",
