@@ -18,3 +18,15 @@ export function lineTotal(p: Product, qty: number) {
 
 export const formatMoney = (v: number) =>
   v.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/** Единый валютный форматтер платформы: «4,00 ₽» с неразрывным пробелом. */
+export const formatPrice = (v: number | null | undefined) =>
+  v === null || v === undefined || Number.isNaN(v)
+    ? "По договоренности"
+    : new Intl.NumberFormat("ru-RU", {
+        style: "currency",
+        currency: "RUB",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(v);
+
