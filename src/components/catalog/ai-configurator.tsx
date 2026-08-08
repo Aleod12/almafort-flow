@@ -269,10 +269,11 @@ export function AiConfigurator() {
               <button
                 type="button"
                 onClick={transferToCart}
-                className="cursor-pointer rounded-sm bg-primary px-8 py-4 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
+                className="cursor-pointer rounded-sm bg-primary px-8 py-4 text-sm font-bold text-primary-foreground shadow-[0_6px_18px_-6px_oklch(0.573_0.221_27.5/0.55)] transition-all duration-200 hover:scale-[1.02] hover:bg-[#B91C1C] hover:shadow-[0_10px_24px_-8px_oklch(0.573_0.221_27.5/0.7)] active:scale-[0.98]"
               >
-                Перенести спецификацию в корзину
+                Добавить смету в корзину
               </button>
+
             )}
           </div>
         </article>
