@@ -56,8 +56,11 @@ export async function identifyPart(imageDataUrl: string): Promise<VisionVerdict>
   return {
     type: String(parsed.type ?? "деталь").toLowerCase(),
     shape: String(parsed.shape ?? "").toLowerCase(),
+    color: String(parsed.color ?? "").toLowerCase(),
+    has_threads: Boolean(parsed.has_threads),
     confidence: Math.min(1, Math.max(0, Number(parsed.confidence) || 0.5)),
   };
+
 }
 
 const TYPE_KEYS: Array<[RegExp, string]> = [
