@@ -12,3 +12,11 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /cart
+Disallow: /checkout
+Disallow: /success
+Disallow: /api/
+Disallow: /search*
+Clean-param: utm_source&utm_medium&utm_campaign&sort&page
+
+Sitemap: https://almafort.ru/sitemap.xml
