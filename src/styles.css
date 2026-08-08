@@ -183,3 +183,17 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-levitate { animation: none; }
 }
+
+@keyframes scan-sweep {
+  0% { transform: translateY(-8px); }
+  100% { transform: translateY(256px); }
+}
+
+.scan-beam {
+  position: absolute;
+  inset-inline: 0;
+  height: 3px;
+  background: oklch(1 0 0);
+  box-shadow: 0 0 18px 4px oklch(0.573 0.221 27.5 / 0.6);
+  animation: scan-sweep 1.1s ease-in-out infinite alternate;
+}
