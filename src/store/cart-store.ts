@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { PRODUCTS, tierOf, unitPrice, type Product } from "@/data/catalog";
+import { PRODUCTS, tierOf, unitPrice } from "@/data/catalog";
 import type { Candidate } from "@/lib/spec-matcher";
 import {
   FALLBACK_VOLUME_M3,
