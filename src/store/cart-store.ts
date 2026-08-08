@@ -56,7 +56,7 @@ export function cartTotals(lines: CartLine[]) {
 }
 
 export function deliveryCost(carrier: Carrier, weight: number) {
-  if (carrier === "pickup") return 0;
+  if (carrier === "pickup" || weight <= 0) return 0;
   const base = carrier === "cdek" ? 690 : 1250;
   return Math.round(base + weight * (carrier === "cdek" ? 32 : 18));
 }
