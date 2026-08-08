@@ -5,6 +5,8 @@ import { SpecDropzone } from "@/components/spec-dropzone";
 import { PlatformTerminal } from "@/components/platform-terminal";
 import { ProductionSection } from "@/components/services/production-section";
 import { TrustSection } from "@/components/trust/trust-section";
+import { FaqSection } from "@/components/faq-section";
+import { SiteFooter } from "@/components/site-footer";
 
 const ORG_JSONLD = {
   "@context": "https://schema.org",
