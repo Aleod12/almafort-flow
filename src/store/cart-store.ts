@@ -48,7 +48,7 @@ export function linePrice(sku: string, qty: number) {
   const p = productBySku(sku);
   if (!p) return { base: 0, unit: 0, tier: 0 as 0 | 1 | 2, sum: 0 };
   const unit = unitPrice(p, qty);
-  return { base: p.price, unit, tier: tierOf(qty), sum: unit * qty };
+  return { base: p.price, unit, tier: tierOf(qty, p), sum: unit * qty };
 }
 
 /** Агрегация партии на лету: сумма, вес и объём с защитой от нулевых ТТХ. */

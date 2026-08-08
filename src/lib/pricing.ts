@@ -6,7 +6,7 @@ export const toRubles = (kop: number) => kop / 100;
 
 /** Цена за единицу с учётом тира партии. */
 export function unitPriceOf(p: Product, qty: number) {
-  const t = tierOf(qty);
+  const t = tierOf(qty, p);
   const rub = t === 2 ? p.price5000 : t === 1 ? p.price1000 : p.price;
   return toRubles(toKopecks(rub));
 }

@@ -29,7 +29,7 @@ export const Route = createFileRoute("/api/cart")({
           sku: product.sku,
           name: product.name,
           quantity: quantityInt,
-          tier: tierOf(quantityInt),
+          tier: tierOf(quantityInt, product),
           unitPrice: unitPriceOf(product, quantityInt),
           sum: lineTotal(product, quantityInt),
         });

@@ -85,8 +85,8 @@ export function matchProducts(v: VisionVerdict, limit = 3): Product[] {
     if (round && /кругл|Ø/i.test(`${p.name} ${p.dims}`)) score += 5;
     if (rect && /прямоугольн/i.test(p.name)) score += 5;
     // Резьба на детали сужает выбор до резьбовых групп каталога.
-    if (v.has_threads && /Колпачки защитные|Крепёж сэндвич-панелей/.test(p.category)) score += 4;
-    if (!v.has_threads && /Колпачки защитные/.test(p.category)) score -= 2;
+    if (v.has_threads && /Мебельный крепеж|сэндвич-панелей/.test(p.category)) score += 4;
+    if (!v.has_threads && /Заглушки/.test(p.category)) score -= 2;
     if (p.stock.qty > 0) score += 1;
     return { p, score };
   })

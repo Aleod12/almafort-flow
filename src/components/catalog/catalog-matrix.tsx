@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Box, Check, Loader2, MessageSquareQuote, ShoppingCart } from "lucide-react";
+import { Check, Loader2, MessageSquareQuote, ShoppingCart } from "lucide-react";
 import { PRODUCTS, tierOf, type Product } from "@/data/catalog";
 import { formatMoney as money, lineTotal } from "@/lib/pricing";
 import { searchCatalog } from "@/lib/search-index";
 import { toast } from "sonner";
 import { QuoteRequestModal } from "@/components/catalog/quote-request-modal";
+import { ProductThumb } from "@/components/catalog/product-thumb";
 
 type Props = {
   query: string;
@@ -49,9 +50,12 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
   const [state, setState] = useState<"idle" | "loading" | "done">("idle");
   const [inCart, setInCart] = useState(0);
   const [quote, setQuote] = useState(false);
-  const tier = tierOf(qty);
+  const tier = tierOf(qty, p);
   // Пустая/нулевая цена из фида: цифры не рендерим, показываем бейдж и уводим в запрос.
   const onRequest = !Number.isFinite(p.price) || p.price <= 0;
+
+  const threshold = (level: 0 | 1 | 2) =>
+    level === 0 ? "от 1 шт" : `от ${(level === 1 ? p.tier1Qty : p.tier2Qty).toLocaleString("ru-RU")} шт`;
 
   const priceCell = (value: number, level: 0 | 1 | 2) => {
     if (onRequest)
@@ -66,6 +70,7 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
     const struck = qty > 0 && level < tier;
     return (
       <div
+        title={threshold(level)}
         className={`px-3 py-3 text-right text-sm tabular-nums transition-all duration-200 ${
           active
             ? "bg-[#E8F5E9] font-bold text-foreground"
@@ -126,8 +131,8 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
         <Checkbox label={`Выбрать ${p.sku}`} />
       </div>
       <div className="px-2 py-3">
-        <span className="grid size-10 place-items-center rounded-[6px] bg-[oklch(0.96_0.002_247.9)]">
-          <Box className="size-5 text-[oklch(0.75_0.01_264)]" strokeWidth={1.5} />
+        <span className="block w-10">
+          <ProductThumb src={p.image_url} alt={p.name} />
         </span>
       </div>
       <div className="sticky left-0 z-[5] min-w-0 bg-card px-3 py-3 shadow-[6px_0_8px_-6px_oklch(0_0_0/0.18)] md:static md:shadow-none">
@@ -213,8 +218,8 @@ export function CatalogMatrix({ query, onOpenProduct, onAdd }: Props) {
     "Габариты",
     "Наличие",
     "Базовая",
-    "Опт 1 (>1000)",
-    "Опт 2 (>5000)",
+    "Опт 1",
+    "Опт 2",
     "Кол-во",
     "",
   ];
