@@ -25,6 +25,7 @@ import { Route as ApiCheckoutSubmitRouteImport } from './routes/api/checkout/sub
 import { Route as ApiConfiguratorSolveRouteImport } from './routes/api/configurator/solve'
 import { Route as ApiDadataCityRouteImport } from './routes/api/dadata/city'
 import { Route as ApiParserUploadRouteImport } from './routes/api/parser/upload'
+import { Route as ApiQuizSubmitRouteImport } from './routes/api/quiz/submit'
 import { Route as ApiUploadPresignedUrlRouteImport } from './routes/api/upload/presigned-url'
 import { Route as ApiVisionIdentifyRouteImport } from './routes/api/vision/identify'
 import { Route as ApiPublicCadSplatRouteImport } from './routes/api/public/cad/$'
@@ -109,6 +110,11 @@ const ApiParserUploadRoute = ApiParserUploadRouteImport.update({
   path: '/api/parser/upload',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiQuizSubmitRoute = ApiQuizSubmitRouteImport.update({
+  id: '/api/quiz/submit',
+  path: '/api/quiz/submit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiUploadPresignedUrlRoute = ApiUploadPresignedUrlRouteImport.update({
   id: '/api/upload/presigned-url',
   path: '/api/upload/presigned-url',
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
+  '/api/quiz/submit': typeof ApiQuizSubmitRoute
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
   '/api/vision/identify': typeof ApiVisionIdentifyRoute
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
@@ -162,6 +169,7 @@ export interface FileRoutesByTo {
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
+  '/api/quiz/submit': typeof ApiQuizSubmitRoute
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
   '/api/vision/identify': typeof ApiVisionIdentifyRoute
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
@@ -184,6 +192,7 @@ export interface FileRoutesById {
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
+  '/api/quiz/submit': typeof ApiQuizSubmitRoute
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
   '/api/vision/identify': typeof ApiVisionIdentifyRoute
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
@@ -207,6 +216,7 @@ export interface FileRouteTypes {
     | '/api/configurator/solve'
     | '/api/dadata/city'
     | '/api/parser/upload'
+    | '/api/quiz/submit'
     | '/api/upload/presigned-url'
     | '/api/vision/identify'
     | '/api/public/cad/$'
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/api/configurator/solve'
     | '/api/dadata/city'
     | '/api/parser/upload'
+    | '/api/quiz/submit'
     | '/api/upload/presigned-url'
     | '/api/vision/identify'
     | '/api/public/cad/$'
@@ -248,6 +259,7 @@ export interface FileRouteTypes {
     | '/api/configurator/solve'
     | '/api/dadata/city'
     | '/api/parser/upload'
+    | '/api/quiz/submit'
     | '/api/upload/presigned-url'
     | '/api/vision/identify'
     | '/api/public/cad/$'
@@ -268,6 +280,7 @@ export interface RootRouteChildren {
   ApiConfiguratorSolveRoute: typeof ApiConfiguratorSolveRoute
   ApiDadataCityRoute: typeof ApiDadataCityRoute
   ApiParserUploadRoute: typeof ApiParserUploadRoute
+  ApiQuizSubmitRoute: typeof ApiQuizSubmitRoute
   ApiUploadPresignedUrlRoute: typeof ApiUploadPresignedUrlRoute
   ApiVisionIdentifyRoute: typeof ApiVisionIdentifyRoute
   ApiPublicCadSplatRoute: typeof ApiPublicCadSplatRoute
@@ -387,6 +400,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiParserUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/quiz/submit': {
+      id: '/api/quiz/submit'
+      path: '/api/quiz/submit'
+      fullPath: '/api/quiz/submit'
+      preLoaderRoute: typeof ApiQuizSubmitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/upload/presigned-url': {
       id: '/api/upload/presigned-url'
       path: '/api/upload/presigned-url'
@@ -439,6 +459,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiConfiguratorSolveRoute: ApiConfiguratorSolveRoute,
   ApiDadataCityRoute: ApiDadataCityRoute,
   ApiParserUploadRoute: ApiParserUploadRoute,
+  ApiQuizSubmitRoute: ApiQuizSubmitRoute,
   ApiUploadPresignedUrlRoute: ApiUploadPresignedUrlRoute,
   ApiVisionIdentifyRoute: ApiVisionIdentifyRoute,
   ApiPublicCadSplatRoute: ApiPublicCadSplatRoute,
