@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, Loader2, MessageSquareQuote, ShoppingCart } from "lucide-react";
-import { PRODUCTS, tierOf, type Product } from "@/data/catalog";
+import { PRODUCTS, isOnRequest, tierOf, type Product } from "@/data/catalog";
 import { formatMoney as money, lineTotal } from "@/lib/pricing";
 import { searchCatalog } from "@/lib/search-index";
 import { toast } from "sonner";
@@ -52,7 +52,7 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
   const [quote, setQuote] = useState(false);
   const tier = tierOf(qty, p);
   // Пустая/нулевая цена из фида: цифры не рендерим, показываем бейдж и уводим в запрос.
-  const onRequest = !Number.isFinite(p.price) || p.price <= 0;
+  const onRequest = isOnRequest(p);
 
   const threshold = (level: 0 | 1 | 2) =>
     level === 0 ? "от 1 шт" : `от ${(level === 1 ? p.tier1Qty : p.tier2Qty).toLocaleString("ru-RU")} шт`;
@@ -62,7 +62,7 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
       return (
         <div className="px-3 py-3 text-right">
           <span className="inline-block whitespace-nowrap rounded-sm bg-[#F3F4F6] px-2 py-1 text-[11px] font-semibold text-muted-foreground">
-            Цена по запросу
+            По договоренности
           </span>
         </div>
       );
@@ -225,10 +225,10 @@ export function CatalogMatrix({ query, onOpenProduct, onAdd }: Props) {
   ];
 
   return (
-    <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
+    <div className="table-container">
       <div className="min-w-[1080px]">
         <div
-          className={`sticky top-[72px] z-10 grid ${GRID} items-center border-b-2 border-[oklch(0.91_0.004_247.9)] bg-card`}
+          className={`sticky top-[72px] z-20 grid ${GRID} items-center border-b-2 border-[oklch(0.91_0.004_247.9)] bg-card`}
         >
           {headers.map((h, i) => (
             <div
