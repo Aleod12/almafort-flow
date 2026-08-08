@@ -138,6 +138,7 @@ export function applyFeed(rows: FeedRow[], opts: { hideMissing?: boolean } = {})
         sku,
         name: row.name || sku,
         parent: "Прочее",
+        is_service: false,
         category: row.category || "Прочее",
         dims: row.dims || "—",
         color: null,

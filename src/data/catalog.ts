@@ -29,6 +29,8 @@ export type Product = {
   weight: number; // kg, вес единицы
   volume: number; // m3, объём единицы в упаковке
   stock: Stock;
+  /** Услуга: без склада, цена только по договорённости. */
+  is_service: boolean;
   price: number;
   price1000: number;
   price5000: number;
@@ -144,6 +146,10 @@ const raw: Row[] = [
   ["SRV-FDM", "Промышленная 3D-печать FDM", "Профессиональные услуги", "Услуги производства", "поле 400×400×450 мм", null, 0, 0, 0, 0],
 ];
 
+/** Услуги: категория без склада и фиксированной цены. */
+export const SERVICE_PARENT = "Профессиональные услуги";
+export const isService = (p: { parent: string }) => p.parent === SERVICE_PARENT;
+
 /** Позиция без фиксированной цены: рендерим бейдж «По договоренности». */
 export const isOnRequest = (p: { price: number }) =>
   !Number.isFinite(p.price) || p.price <= 0;
@@ -167,7 +173,8 @@ export const PRODUCTS: Product[] = raw.map(
         ? { qty }
         : price > 0
           ? { qty: 0, lead: "Под заказ 3 дня" }
-          : { qty: 0, lead: "Срок по ТЗ" },
+          : { qty: 0, lead: "Под заказ" },
+    is_service: parent === "Профессиональные услуги",
     price,
     price1000: discount(price, TIER1_DISCOUNT),
     price5000: discount(price, TIER2_DISCOUNT),
