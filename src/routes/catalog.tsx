@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { FileSpreadsheet } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { ParsingSkeleton, SpecUpload } from "@/components/cart/spec-upload";
 import { useCart, cartTotals } from "@/store/cart-store";
