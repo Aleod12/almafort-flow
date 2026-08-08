@@ -50,15 +50,17 @@ export function CartPanel() {
 
   const { goods, weight, volume } = useMemo(() => cartTotals(lines), [lines]);
 
-  // Дебаунс 500 мс: и на ввод города, и на изменение габаритов партии.
-  const debouncedCity = useDebounce(city, 500);
-  const debouncedWeight = useDebounce(weight, 500);
-  const debouncedVolume = useDebounce(volume, 500);
+  // Единый дебаунс 500 мс: и на ввод города, и на изменение габаритов партии —
+  // один запрос к ТК вместо шквала при наборе количества.
+  const payloadKey = `${city.trim()}|${fiasId ?? ""}|${weight}|${volume}`;
+  const debouncedKey = useDebounce(payloadKey, 500);
 
   // Запрос в /api/shipping-calc: параллельно СДЭК + Деловые Линии на бэкенде.
   useEffect(() => {
-    const city0 = debouncedCity.trim();
-    if (city0.length < 2 || debouncedWeight <= 0) {
+    const [city0 = "", fias0 = "", w0 = "0", v0 = "0"] = debouncedKey.split("|");
+    const totalWeight = Number(w0);
+    const totalVolume = Number(v0);
+    if (city0.length < 2 || totalWeight <= 0) {
       setQuotes([]);
       return;
     }
@@ -71,8 +73,8 @@ export function CartPanel() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            destination: { city: city0, fias_id: fiasId },
-            parcel: { totalWeight: debouncedWeight, totalVolume: debouncedVolume },
+            destination: { city: city0, fias_id: fias0 || null },
+            parcel: { totalWeight, totalVolume },
           }),
           signal: ctrl.signal,
         });
@@ -91,22 +93,19 @@ export function CartPanel() {
       alive = false;
       ctrl.abort();
     };
-  }, [
-    debouncedCity,
-    debouncedWeight,
-    debouncedVolume,
-    fiasId,
-    setQuotes,
-    setQuoting,
-    setQuoteError,
-  ]);
+  }, [debouncedKey, setQuotes, setQuoting, setQuoteError]);
 
   const quoteFor = (c: Carrier) => quotes.find((q) => q.carrier === c);
   const delivery =
     carrier === "pickup" ? 0 : (quoteFor(carrier)?.price ?? deliveryCost(carrier, weight));
   const total = goods + delivery;
 
-  const pendingQuote = quoting || (city.trim().length >= 2 && carrier !== "pickup" && !quoteFor(carrier));
+  const pendingQuote =
+    quoting ||
+    (carrier !== "pickup" &&
+      city.trim().length >= 2 &&
+      weight > 0 &&
+      (payloadKey !== debouncedKey || !quoteFor(carrier)));
   const ctaDisabled = !lines.length || pendingQuote;
 
   const download = async () => {
