@@ -345,7 +345,7 @@ export function EngineeringQuiz() {
               id="consent-quiz"
               checked={consent}
               onChange={setConsent}
-              invalid={triedSubmit}
+              invalid={triedSubmit && !consent}
             />
 
             <button
