@@ -215,8 +215,6 @@ export async function generateInvoicePdf({
     },
   };
 
-  const n = Number((globalThis as any).__PDF_N ?? 99);
-  (docDefinition as any).content = (docDefinition as any).content.slice(0, n);
   const doc = pdfMake.createPdf(docDefinition);
 
   if (output === "base64") {
