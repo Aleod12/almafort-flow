@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as SitemapCategoriesDotxmlRouteImport } from './routes/sitemap-categories[.]xml'
+import { Route as SitemapProductsPageDotxmlRouteImport } from './routes/sitemap-products-$page[.]xml'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SuccessRouteImport } from './routes/success'
 import { Route as ApiCartRouteImport } from './routes/api/cart'
@@ -47,6 +48,12 @@ const SitemapCategoriesDotxmlRoute = SitemapCategoriesDotxmlRouteImport.update({
   path: '/sitemap-categories.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapProductsPageDotxmlRoute =
+  SitemapProductsPageDotxmlRouteImport.update({
+    id: '/sitemap-products-$page.xml',
+    path: '/sitemap-products-$page.xml',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -118,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRouteWithChildren
   '/sitemap-categories.xml': typeof SitemapCategoriesDotxmlRoute
+  '/sitemap-products-$page.xml': typeof SitemapProductsPageDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
   '/api/cart': typeof ApiCartRoute
@@ -136,6 +144,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
   '/sitemap-categories.xml': typeof SitemapCategoriesDotxmlRoute
+  '/sitemap-products-$page.xml': typeof SitemapProductsPageDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
   '/api/cart': typeof ApiCartRoute
@@ -156,6 +165,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRouteWithChildren
   '/sitemap-categories.xml': typeof SitemapCategoriesDotxmlRoute
+  '/sitemap-products-$page.xml': typeof SitemapProductsPageDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
   '/api/cart': typeof ApiCartRoute
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/catalog'
     | '/sitemap-categories.xml'
+    | '/sitemap-products-$page.xml'
     | '/sitemap.xml'
     | '/success'
     | '/api/cart'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cart'
     | '/sitemap-categories.xml'
+    | '/sitemap-products-$page.xml'
     | '/sitemap.xml'
     | '/success'
     | '/api/cart'
@@ -214,6 +226,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/catalog'
     | '/sitemap-categories.xml'
+    | '/sitemap-products-$page.xml'
     | '/sitemap.xml'
     | '/success'
     | '/api/cart'
@@ -234,6 +247,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CatalogRoute: typeof CatalogRouteWithChildren
   SitemapCategoriesDotxmlRoute: typeof SitemapCategoriesDotxmlRoute
+  SitemapProductsPageDotxmlRoute: typeof SitemapProductsPageDotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SuccessRoute: typeof SuccessRoute
   ApiCartRoute: typeof ApiCartRoute
@@ -275,6 +289,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap-categories.xml'
       fullPath: '/sitemap-categories.xml'
       preLoaderRoute: typeof SitemapCategoriesDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap-products-$page.xml': {
+      id: '/sitemap-products-$page.xml'
+      path: '/sitemap-products-$page.xml'
+      fullPath: '/sitemap-products-$page.xml'
+      preLoaderRoute: typeof SitemapProductsPageDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -389,6 +410,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CatalogRoute: CatalogRouteWithChildren,
   SitemapCategoriesDotxmlRoute: SitemapCategoriesDotxmlRoute,
+  SitemapProductsPageDotxmlRoute: SitemapProductsPageDotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SuccessRoute: SuccessRoute,
   ApiCartRoute: ApiCartRoute,
