@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check, FileDown, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { PRODUCTS, type Product } from "@/data/catalog";
@@ -38,9 +38,51 @@ export function CartPanel() {
   const resolveUnmapped = useCart((s) => s.resolveUnmapped);
   const removeUnmapped = useCart((s) => s.removeUnmapped);
   const clear = useCart((s) => s.clear);
+  const quotes = useCart((s) => s.quotes);
+  const quoting = useCart((s) => s.quoting);
+  const quoteError = useCart((s) => s.quoteError);
+  const setQuotes = useCart((s) => s.setQuotes);
+  const setQuoting = useCart((s) => s.setQuoting);
+  const setQuoteError = useCart((s) => s.setQuoteError);
 
   const { goods, weight } = useMemo(() => cartTotals(lines), [lines]);
-  const delivery = deliveryCost(carrier, weight);
+
+  // Запрос в сервис логистики при изменении города или веса партии.
+  useEffect(() => {
+    const city0 = city.trim();
+    if (city0.length < 2 || weight <= 0) {
+      setQuotes([]);
+      return;
+    }
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      setQuoting(true);
+      try {
+        const res = await fetch("/api/logistics/quote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ city: city0, weight }),
+          signal: ctrl.signal,
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json?.error ?? "Не удалось рассчитать доставку");
+        setQuotes(json.quotes);
+      } catch (e) {
+        if ((e as Error).name !== "AbortError")
+          setQuoteError(e instanceof Error ? e.message : "Ошибка расчёта доставки");
+      } finally {
+        setQuoting(false);
+      }
+    }, 450);
+    return () => {
+      ctrl.abort();
+      clearTimeout(t);
+    };
+  }, [city, weight, setQuotes, setQuoting, setQuoteError]);
+
+  const quoteFor = (c: Carrier) => quotes.find((q) => q.carrier === c);
+  const delivery =
+    carrier === "pickup" ? 0 : (quoteFor(carrier)?.price ?? deliveryCost(carrier, weight));
   const total = goods + delivery;
 
   const download = async () => {
@@ -49,7 +91,7 @@ export function CartPanel() {
       return;
     }
     try {
-      await generateInvoicePdf({ lines, carrier, city });
+      await generateInvoicePdf({ lines, carrier, city, delivery });
       toast.success("PDF-счёт сформирован");
     } catch {
       toast.error("Не удалось сформировать счёт");
@@ -212,31 +254,46 @@ export function CartPanel() {
       <section className="grid gap-6 rounded-lg border border-border bg-card p-6 lg:grid-cols-[1fr_320px]">
         <div>
           <p className="text-sm font-semibold text-foreground">Доставка</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {CARRIERS.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => setCarrier(c.id)}
-                className={`cursor-pointer rounded-sm border-2 px-4 py-2 text-sm font-medium transition-colors ${
-                  carrier === c.id
-                    ? "border-primary text-foreground"
-                    : "border-[#D1D5DB] text-muted-foreground hover:border-[#9CA3AF] hover:text-foreground"
-                }`}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
           <input
             value={city}
             onChange={(e) => setCity(e.target.value)}
             placeholder="Город доставки"
-            disabled={carrier === "pickup"}
-            className="mt-4 h-11 w-full max-w-[320px] rounded-sm border border-[#D1D5DB] px-3 text-sm outline-none transition-colors focus:border-foreground disabled:cursor-not-allowed disabled:bg-[#F3F4F6] disabled:text-muted-foreground"
+            className="mt-3 h-11 w-full max-w-[320px] rounded-sm border border-[#D1D5DB] px-3 text-sm outline-none transition-colors focus:border-foreground"
           />
+
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            {CARRIERS.map((c) => {
+              const q = quoteFor(c.id);
+              const active = carrier === c.id;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setCarrier(c.id)}
+                  className={`cursor-pointer rounded-sm border-2 px-4 py-3 text-left transition-colors ${
+                    active
+                      ? "border-primary text-foreground"
+                      : "border-[#D1D5DB] text-muted-foreground hover:border-[#9CA3AF] hover:text-foreground"
+                  }`}
+                >
+                  <span className="block text-sm font-semibold">{c.label}</span>
+                  <span className="mt-1 block text-xs tabular-nums text-muted-foreground">
+                    {c.id === "pickup"
+                      ? "0 ₽ · Дивногорск"
+                      : quoting
+                        ? "считаем…"
+                        : q
+                          ? `${money(q.price)} ₽ · ${q.days} дн.`
+                          : "укажите город"}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
           <p className="mt-3 text-xs text-muted-foreground">
             Расчётный вес партии: {weight.toFixed(1)} кг
+            {quoteError ? ` · ${quoteError}` : ""}
           </p>
         </div>
 
