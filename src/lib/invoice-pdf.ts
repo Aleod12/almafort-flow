@@ -204,7 +204,7 @@ export async function generateInvoicePdf({
               { text: "Сазонов Е. О.", bold: true, margin: [0, 26, 0, 0] },
             ],
           },
-          { width: 220, svg: decodeSvg(STAMP_BASE64) },
+          // { width: 220, svg: decodeSvg(STAMP_BASE64) },
         ],
       },
     ],
