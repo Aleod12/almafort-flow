@@ -113,7 +113,7 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
           <Box className="size-5 text-[oklch(0.75_0.01_264)]" strokeWidth={1.5} />
         </span>
       </div>
-      <div className="min-w-0 px-3 py-3">
+      <div className="sticky left-0 z-[5] min-w-0 bg-card px-3 py-3 shadow-[6px_0_8px_-6px_oklch(0_0_0/0.18)] md:static md:shadow-none">
         <button
           type="button"
           onClick={() => onOpenProduct(p)}
@@ -132,10 +132,13 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
       {priceCell(p.price5000, 2)}
       <div className="px-3 py-3">
         <input
-          type="number"
-          min={0}
+          type="text"
+          inputMode="numeric"
           value={qty || ""}
-          onChange={(e) => setQty(Math.max(0, Number(e.target.value)))}
+          onChange={(e) => {
+            const digits = e.target.value.replace(/[^0-9]/g, "").slice(0, 7);
+            setQty(digits ? Number.parseInt(digits, 10) : 0);
+          }}
           placeholder="0"
           aria-label={`Количество ${p.sku}`}
           className="w-full rounded-sm border border-[#D1D5DB] bg-card px-2 py-1.5 text-right text-sm tabular-nums text-foreground outline-none transition-colors duration-150 focus:border-foreground"
@@ -194,7 +197,7 @@ export function CatalogMatrix({ query, onOpenProduct, onAdd }: Props) {
   ];
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
       <div className="min-w-[1080px]">
         <div
           className={`sticky top-[72px] z-10 grid ${GRID} items-center border-b-2 border-[oklch(0.91_0.004_247.9)] bg-card`}

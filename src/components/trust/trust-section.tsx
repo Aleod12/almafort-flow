@@ -8,7 +8,12 @@ function Lightbox({ doc, onClose }: { doc: Doc | null; onClose: () => void }) {
     if (!doc) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
   }, [doc, onClose]);
 
   if (!doc) return null;
@@ -48,7 +53,7 @@ function DocThumb({ doc, onOpen }: { doc: Doc; onOpen: (d: Doc) => void }) {
       <button
         type="button"
         onClick={() => onOpen(doc)}
-        className="group relative block w-full cursor-zoom-in overflow-hidden rounded-lg bg-placeholder shadow-[0_4px_12px_oklch(0_0_0/0.05)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_oklch(0_0_0/0.12)]"
+        className="group relative block w-full cursor-zoom-in overflow-hidden rounded-lg bg-placeholder shadow-[0_4px_12px_oklch(0_0_0/0.05)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_oklch(0_0_0/0.12)] [will-change:transform]"
       >
         <span className="flex aspect-[1/1.414] w-full flex-col items-center justify-center gap-3 p-6 text-center">
           <FileText className="size-9 text-placeholder-foreground" strokeWidth={1.25} />
