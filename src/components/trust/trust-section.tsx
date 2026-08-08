@@ -185,7 +185,7 @@ export function TrustSection() {
               официально зарегистрированным товарным знаком в РФ. Что это дает нашим
               B2B-партнерам?
             </p>
-            <ul className="mt-8 space-y-5">
+            <ul className="mt-8 space-y-6">
               {BRAND_POINTS.map((p) => (
                 <li key={p.title} className="flex gap-3">
                   <Check className="mt-0.5 size-5 shrink-0 text-primary" strokeWidth={2.25} />
