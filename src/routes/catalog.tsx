@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/site-header";
-import { SpecDropzone } from "@/components/spec-dropzone";
+import { ParsingSkeleton, SpecUpload } from "@/components/cart/spec-upload";
+import { useCart, cartTotals } from "@/store/cart-store";
 import { SearchPanel } from "@/components/catalog/search-panel";
 import { CatalogMatrix } from "@/components/catalog/catalog-matrix";
 import { ProductSheet } from "@/components/catalog/product-sheet";
-import { unitPrice, type Product } from "@/data/catalog";
+import { type Product } from "@/data/catalog";
 
 export const Route = createFileRoute("/catalog")({
   head: () => ({
@@ -36,10 +36,13 @@ function CatalogPage() {
   const [scanning, setScanning] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
   const [upload, setUpload] = useState(false);
-  const [cart, setCart] = useState<{ lines: number; total: number }>({ lines: 0, total: 0 });
+  const lines = useCart((s) => s.lines);
+  const parsing = useCart((s) => s.parsing);
+  const addLine = useCart((s) => s.addLine);
+  const cart = { lines: lines.length, total: cartTotals(lines).goods };
 
   const add = (p: Product, qty: number) => {
-    setCart((c) => ({ lines: c.lines + 1, total: c.total + unitPrice(p, qty) * qty }));
+    addLine(p.sku, qty);
     toast.success(`${p.sku} · ${qty.toLocaleString("ru-RU")} шт добавлено`);
   };
 
@@ -78,7 +81,7 @@ function CatalogPage() {
 
         {upload && (
           <div className="mx-auto mt-4 w-full lg:w-[70%]">
-            <SpecDropzone />
+            {parsing ? <ParsingSkeleton /> : <SpecUpload />}
           </div>
         )}
 
@@ -99,6 +102,12 @@ function CatalogPage() {
           <span className="font-bold tabular-nums text-primary">
             {cart.total.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} ₽
           </span>
+          <a
+            href="/cart"
+            className="ml-4 cursor-pointer rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90"
+          >
+            Оформить счёт
+          </a>
         </div>
       )}
 
