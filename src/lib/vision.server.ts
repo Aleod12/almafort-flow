@@ -84,9 +84,13 @@ export function matchProducts(v: VisionVerdict, limit = 3): Product[] {
     if (square && /квадратн/i.test(p.name)) score += 5;
     if (round && /кругл|Ø/i.test(`${p.name} ${p.dims}`)) score += 5;
     if (rect && /прямоугольн/i.test(p.name)) score += 5;
+    // Резьба на детали сужает выбор до резьбовых групп каталога.
+    if (v.has_threads && /Колпачки защитные|Крепёж сэндвич-панелей/.test(p.category)) score += 4;
+    if (!v.has_threads && /Колпачки защитные/.test(p.category)) score -= 2;
     if (p.stock.qty > 0) score += 1;
     return { p, score };
   })
+
     .filter((r) => r.score > 0)
     .sort((a, b) => b.score - a.score || b.p.stock.qty - a.p.stock.qty)
     .slice(0, limit)
