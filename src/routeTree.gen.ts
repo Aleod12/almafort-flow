@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as ApiShippingCalcRouteImport } from './routes/api/shipping-calc'
+import { Route as ApiDadataCityRouteImport } from './routes/api/dadata/city'
 import { Route as ApiLogisticsQuoteRouteImport } from './routes/api/logistics/quote'
 import { Route as ApiParserUploadRouteImport } from './routes/api/parser/upload'
 
@@ -36,6 +37,11 @@ const ApiShippingCalcRoute = ApiShippingCalcRouteImport.update({
   path: '/api/shipping-calc',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDadataCityRoute = ApiDadataCityRouteImport.update({
+  id: '/api/dadata/city',
+  path: '/api/dadata/city',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiLogisticsQuoteRoute = ApiLogisticsQuoteRouteImport.update({
   id: '/api/logistics/quote',
   path: '/api/logistics/quote',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
+  '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/logistics/quote': typeof ApiLogisticsQuoteRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
+  '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/logistics/quote': typeof ApiLogisticsQuoteRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
 }
@@ -69,6 +77,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
+  '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/logistics/quote': typeof ApiLogisticsQuoteRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
 }
@@ -79,6 +88,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/catalog'
     | '/api/shipping-calc'
+    | '/api/dadata/city'
     | '/api/logistics/quote'
     | '/api/parser/upload'
   fileRoutesByTo: FileRoutesByTo
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/catalog'
     | '/api/shipping-calc'
+    | '/api/dadata/city'
     | '/api/logistics/quote'
     | '/api/parser/upload'
   id:
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/catalog'
     | '/api/shipping-calc'
+    | '/api/dadata/city'
     | '/api/logistics/quote'
     | '/api/parser/upload'
   fileRoutesById: FileRoutesById
@@ -104,6 +116,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CatalogRoute: typeof CatalogRoute
   ApiShippingCalcRoute: typeof ApiShippingCalcRoute
+  ApiDadataCityRoute: typeof ApiDadataCityRoute
   ApiLogisticsQuoteRoute: typeof ApiLogisticsQuoteRoute
   ApiParserUploadRoute: typeof ApiParserUploadRoute
 }
@@ -138,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiShippingCalcRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dadata/city': {
+      id: '/api/dadata/city'
+      path: '/api/dadata/city'
+      fullPath: '/api/dadata/city'
+      preLoaderRoute: typeof ApiDadataCityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/logistics/quote': {
       id: '/api/logistics/quote'
       path: '/api/logistics/quote'
@@ -160,6 +180,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CatalogRoute: CatalogRoute,
   ApiShippingCalcRoute: ApiShippingCalcRoute,
+  ApiDadataCityRoute: ApiDadataCityRoute,
   ApiLogisticsQuoteRoute: ApiLogisticsQuoteRoute,
   ApiParserUploadRoute: ApiParserUploadRoute,
 }
