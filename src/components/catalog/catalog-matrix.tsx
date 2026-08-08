@@ -64,7 +64,7 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
   const priceCell = (value: number, level: 0 | 1 | 2) => {
     if (onRequest)
       return (
-        <div className="px-3 py-3 text-right">
+        <div className={`${CELL} justify-end`}>
           <span className="inline-block whitespace-nowrap rounded-sm bg-[#F3F4F6] px-2 py-1 text-[11px] font-semibold text-muted-foreground">
             По договоренности
           </span>
@@ -75,9 +75,9 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
     return (
       <div
         title={threshold(level)}
-        className={`px-3 py-3 text-right text-sm tabular-nums transition-all duration-200 ${
+        className={`${CELL} justify-end whitespace-nowrap text-sm tabular-nums ${
           active
-            ? "bg-[#E8F5E9] font-bold text-foreground"
+            ? "bg-[#E8F5E9] font-bold text-foreground group-hover/row:bg-[#E8F5E9]"
             : struck
               ? "text-[#9CA3AF] line-through"
               : "text-foreground"
@@ -87,6 +87,7 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
       </div>
     );
   };
+
 
   const add = async () => {
     if (onRequest) {
