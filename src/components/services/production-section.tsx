@@ -27,7 +27,7 @@ const CARDS = [
 
 export function ProductionSection() {
   return (
-    <section id="services" className="bg-muted/40 py-20 lg:py-24">
+    <section id="services" className="bg-surface py-20 lg:py-24">
       <div className="mx-auto w-full max-w-[1440px] px-5 lg:px-10">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-14">
           <div className="lg:col-span-8">
