@@ -18,7 +18,7 @@ const ORG_JSONLD = {
   url: "https://almafort.ru/",
   telephone: "+7 (902) 922-97-34",
   email: "sales@almafort.ru",
-  geo: { "@type": "GeoCoordinates", latitude: 55.9578, longitude: 92.3711 },
+  geo: { "@type": "GeoCoordinates", latitude: 55.96165, longitude: 92.333 },
   founder: { "@type": "Person", name: "Сазонов Евгений Олегович" },
   employee: {
     "@type": "Person",
