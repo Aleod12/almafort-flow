@@ -103,7 +103,7 @@ const DIRECT_HITS: Array<[triggers: string[], sku: string]> = [
 const GROUPS: Array<{ id: string; triggers: string[]; skus: (p: Product) => boolean }> = [
   {
     id: "zaglushki",
-    triggers: ["заглушк", "чопик", "пробка", "заглушек", "накладка", "крышка", "колпачок"],
+    triggers: ["заглушк", "чопик", "пробка", "заглушек", "крышка", "колпачок"],
     skus: (p) => p.sku.startsWith("ZGV") || p.sku.startsWith("ZGD"),
   },
   {
@@ -218,6 +218,15 @@ function nameAffinity(query: string, p: Product): number {
   return hit / tokens.length;
 }
 
+/** Сколько значимых слов названия товара отсутствует в клиентской строке. */
+function extraWords(query: string, p: Product): number {
+  const stop = new Set(["мебельная", "мебельный", "для", "мм", "под", "с", "и"]);
+  const words = normalizeQuery(p.name)
+    .split(" ")
+    .filter((w) => w.length >= 4 && !/\d/.test(w) && !stop.has(w));
+  return words.filter((w) => !triggerHit(query, w)).length;
+}
+
 export function matchRow(rawName: string, quantity: number): MatchResult {
   const query = normalizeQuery(rawName);
   const empty: MatchResult = { status: "NOT_FOUND", score: 0, sku: null, name: null, candidates: [] };
@@ -260,6 +269,15 @@ export function matchRow(rawName: string, quantity: number): MatchResult {
     const strict = pool.filter((p) => paramsMatch(qp, extractParams(`${p.name} ${p.dims}`)) === "exact");
     let narrowed = strict;
     if (!narrowed.length) narrowed = pool.filter((p) => plainMatch(qp, extractParams(`${p.name} ${p.dims}`)));
+
+    // Из «ножка для мебели 50мм» выбираем базовую опору h50, а не шаровую:
+    // выигрывает товар, чьё название не содержит лишних уточнений.
+    if (narrowed.length > 1) {
+      const scored = narrowed.map((p) => ({ p, extra: extraWords(query, p) }));
+      const min = Math.min(...scored.map((x) => x.extra));
+      const winners = scored.filter((x) => x.extra === min);
+      if (winners.length === 1 && min === 0) narrowed = [winners[0]!.p];
+    }
 
     if (narrowed.length === 1) {
       const p = narrowed[0]!;
