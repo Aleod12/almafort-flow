@@ -1,5 +1,11 @@
 import { create } from "zustand";
 import { PRODUCTS, tierOf, unitPrice, type Product } from "@/data/catalog";
+import {
+  FALLBACK_VOLUME_M3,
+  FALLBACK_WEIGHT_KG,
+  type CarrierId,
+  type ShippingQuote,
+} from "@/lib/logistics";
 
 export type CartLine = {
   sku: string;
@@ -20,7 +26,7 @@ export type AnalogSuggestion = {
 
 export type UnmappedLine = { id: string; originalString: string; quantity: number };
 
-export type Carrier = "cdek" | "dl" | "pickup";
+export type Carrier = CarrierId;
 
 export type ParsePayload = {
   fileName?: string;
@@ -45,17 +51,25 @@ export function linePrice(sku: string, qty: number) {
   return { base: p.price, unit, tier: tierOf(qty), sum: unit * qty };
 }
 
+/** Агрегация партии на лету: сумма, вес и объём с защитой от нулевых ТТХ. */
 export function cartTotals(lines: CartLine[]) {
   let goods = 0;
   let weight = 0;
+  let volume = 0;
   for (const l of lines) {
+    const p = productBySku(l.sku);
     goods += linePrice(l.sku, l.quantity).sum;
-    weight += (productBySku(l.sku)?.weight ?? 0) * l.quantity;
+    weight += (p?.weight && p.weight > 0 ? p.weight : FALLBACK_WEIGHT_KG) * l.quantity;
+    volume += (p?.volume && p.volume > 0 ? p.volume : FALLBACK_VOLUME_M3) * l.quantity;
   }
-  return { goods, weight };
+  return {
+    goods,
+    weight: Number(weight.toFixed(3)),
+    volume: Number(volume.toFixed(4)),
+  };
 }
 
-export type Quote = { carrier: Exclude<Carrier, "pickup">; label: string; price: number; days: number };
+export type Quote = ShippingQuote;
 
 /** Локальный фолбэк, если сервис расчёта недоступен. */
 export function deliveryCost(carrier: Carrier, weight: number) {
@@ -72,6 +86,7 @@ type State = {
   unmapped: UnmappedLine[];
   carrier: Carrier;
   city: string;
+  fiasId: string | null;
   quotes: Quote[];
   quoting: boolean;
   quoteError: string | null;
@@ -89,6 +104,7 @@ type State = {
   removeUnmapped: (id: string) => void;
   setCarrier: (c: Carrier) => void;
   setCity: (c: string) => void;
+  setDestination: (city: string, fiasId: string | null) => void;
   clear: () => void;
 };
 
@@ -102,6 +118,7 @@ export const useCart = create<State>((set) => ({
   unmapped: [],
   carrier: "cdek",
   city: "",
+  fiasId: null,
   quotes: [],
   quoting: false,
   quoteError: null,
@@ -220,8 +237,9 @@ export const useCart = create<State>((set) => ({
   removeUnmapped: (id) => set((s) => ({ unmapped: s.unmapped.filter((x) => x.id !== id) })),
 
   setCarrier: (carrier) => set({ carrier }),
-  setCity: (city) => set({ city }),
+  setCity: (city) => set({ city, fiasId: null }),
+  setDestination: (city, fiasId) => set({ city, fiasId }),
 
   clear: () =>
-    set({ lines: [], analogs: [], unmapped: [], fileName: null, quotes: [], quoteError: null }),
+    set({ lines: [], analogs: [], unmapped: [], fileName: null, quotes: [], quoteError: null, fiasId: null }),
 }));
