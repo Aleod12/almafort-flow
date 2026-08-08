@@ -276,7 +276,8 @@ export function matchRow(rawName: string, quantity: number): MatchResult {
       const scored = narrowed.map((p) => ({ p, extra: extraWords(query, p) }));
       const min = Math.min(...scored.map((x) => x.extra));
       const winners = scored.filter((x) => x.extra === min);
-      if (winners.length === 1 && min === 0) narrowed = [winners[0]!.p];
+      const runnerUp = Math.min(...scored.filter((x) => x.extra !== min).map((x) => x.extra), 99);
+      if (winners.length === 1 && runnerUp - min >= 1) narrowed = [winners[0]!.p];
     }
 
     if (narrowed.length === 1) {
