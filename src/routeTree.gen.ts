@@ -16,6 +16,7 @@ import { Route as ApiShippingCalcRouteImport } from './routes/api/shipping-calc'
 import { Route as ApiCheckoutSubmitRouteImport } from './routes/api/checkout/submit'
 import { Route as ApiDadataCityRouteImport } from './routes/api/dadata/city'
 import { Route as ApiParserUploadRouteImport } from './routes/api/parser/upload'
+import { Route as ApiVisionIdentifyRouteImport } from './routes/api/vision/identify'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +53,11 @@ const ApiParserUploadRoute = ApiParserUploadRouteImport.update({
   path: '/api/parser/upload',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiVisionIdentifyRoute = ApiVisionIdentifyRouteImport.update({
+  id: '/api/vision/identify',
+  path: '/api/vision/identify',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
+  '/api/vision/identify': typeof ApiVisionIdentifyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
+  '/api/vision/identify': typeof ApiVisionIdentifyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
+  '/api/vision/identify': typeof ApiVisionIdentifyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/api/checkout/submit'
     | '/api/dadata/city'
     | '/api/parser/upload'
+    | '/api/vision/identify'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/api/checkout/submit'
     | '/api/dadata/city'
     | '/api/parser/upload'
+    | '/api/vision/identify'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/api/checkout/submit'
     | '/api/dadata/city'
     | '/api/parser/upload'
+    | '/api/vision/identify'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +131,7 @@ export interface RootRouteChildren {
   ApiCheckoutSubmitRoute: typeof ApiCheckoutSubmitRoute
   ApiDadataCityRoute: typeof ApiDadataCityRoute
   ApiParserUploadRoute: typeof ApiParserUploadRoute
+  ApiVisionIdentifyRoute: typeof ApiVisionIdentifyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiParserUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/vision/identify': {
+      id: '/api/vision/identify'
+      path: '/api/vision/identify'
+      fullPath: '/api/vision/identify'
+      preLoaderRoute: typeof ApiVisionIdentifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +203,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCheckoutSubmitRoute: ApiCheckoutSubmitRoute,
   ApiDadataCityRoute: ApiDadataCityRoute,
   ApiParserUploadRoute: ApiParserUploadRoute,
+  ApiVisionIdentifyRoute: ApiVisionIdentifyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
