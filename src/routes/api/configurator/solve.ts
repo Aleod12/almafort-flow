@@ -19,25 +19,7 @@ export const Route = createFileRoute("/api/configurator/solve")({
         try {
           const { solveConfiguration } = await import("@/lib/rag.server");
           const result = await solveConfiguration(query);
-          const { PRODUCTS } = await import("@/data/catalog");
-          const byId = (sku: string) => PRODUCTS.find((p) => p.sku === sku) ?? null;
-          const main = byId(result.solution.recommended_sku);
-          return Response.json({
-            ...result,
-            product: main && {
-              sku: main.sku,
-              name: main.name,
-              dims: main.dims,
-              material: main.material,
-              load: main.load,
-              price: main.price,
-              stock: main.stock.qty,
-            },
-            accessories: result.solution.accessories.flatMap((sku) => {
-              const p = byId(sku);
-              return p ? [{ sku: p.sku, name: p.name, price: p.price }] : [];
-            }),
-          });
+          return Response.json(result);
         } catch (e) {
           const message = e instanceof Error ? e.message : "Ошибка конфигуратора";
           console.error("[configurator]", message);
