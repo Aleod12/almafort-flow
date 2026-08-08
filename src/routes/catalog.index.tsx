@@ -10,6 +10,7 @@ import { CatalogMatrix } from "@/components/catalog/catalog-matrix";
 import { ProductSheet } from "@/components/catalog/product-sheet";
 import { AiConfigurator } from "@/components/catalog/ai-configurator";
 import { type Product } from "@/data/catalog";
+import { CATEGORY_FACETS } from "@/lib/seo";
 
 export const Route = createFileRoute("/catalog/")({
   head: () => ({
@@ -64,6 +65,18 @@ function CatalogPage() {
             документацией. Цена пересчитывается прямо в строке при вводе количества.
           </p>
         </header>
+
+        <nav aria-label="Разделы каталога" className="mb-8 flex flex-wrap justify-center gap-2">
+          {CATEGORY_FACETS.map((c) => (
+            <a
+              key={c.slug}
+              href={`/catalog/${c.slug}`}
+              className="rounded-sm border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-colors duration-200 hover:border-primary hover:text-primary"
+            >
+              {c.label}
+            </a>
+          ))}
+        </nav>
 
         <SearchPanel
           query={query}
