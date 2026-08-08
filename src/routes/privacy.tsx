@@ -43,7 +43,7 @@ function PrivacyPage() {
             Настоящая Политика определяет порядок обработки и защиты персональных данных
             пользователей сайта {COMPANY.site} и действует в отношении оператора —{" "}
             {COMPANY.legalName} (ИНН {COMPANY.inn}, ОГРН {COMPANY.ogrn}), адрес:{" "}
-            {COMPANY.addressFull}.
+            {COMPANY.legalAddressFull}.
           </p>
           <div>
             <h2 className="text-lg font-bold text-foreground">1. Состав данных</h2>

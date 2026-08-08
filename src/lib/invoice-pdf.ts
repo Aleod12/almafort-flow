@@ -5,7 +5,7 @@ import { linePrice, productBySku, deliveryCost, cartTotals } from "@/store/cart-
 const CARRIER_LABEL: Record<Carrier, string> = {
   cdek: "СДЭК, до терминала",
   dl: "Деловые Линии, до терминала",
-  pickup: "Самовывоз, г. Дивногорск",
+  pickup: "Самовывоз, г. Дивногорск, Нижний проезд 15/1",
 };
 
 const money = (n: number) =>
