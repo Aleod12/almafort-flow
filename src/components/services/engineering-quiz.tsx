@@ -126,11 +126,12 @@ export function EngineeringQuiz() {
                       onClick={() =>
                         setValue("base", b, { shouldValidate: true, shouldDirty: true })
                       }
-                      className={`cursor-pointer rounded-md border-2 px-4 py-5 text-center text-sm font-medium transition-colors ${
+                      className={`cursor-pointer rounded-md border-2 px-4 py-5 text-center text-sm font-medium transition-colors duration-200 ${
                         active
-                          ? "border-primary bg-[color-mix(in_oklab,var(--primary)_6%,transparent)] text-foreground"
-                          : "border-border text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+                          ? "border-primary bg-[color-mix(in_oklab,var(--primary)_6%,transparent)] font-semibold text-foreground"
+                          : "border-[#D1D5DB] text-muted-foreground hover:border-[#9CA3AF] hover:bg-[#F3F4F6] hover:text-foreground"
                       }`}
+
                       aria-pressed={active}
                     >
                       {b}
