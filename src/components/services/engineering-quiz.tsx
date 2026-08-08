@@ -3,10 +3,19 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Check, FileUp, Loader2, X } from "lucide-react";
+import { uploadToS3, validateFile } from "@/lib/direct-upload";
+import { getRecaptchaToken } from "@/lib/recaptcha";
+
+type Upload = {
+  id: string;
+  name: string;
+  size: number;
+  progress: number;
+  url: string | null;
+  error: string | null;
+};
 
 const BASES = ["Чертеж / 3D-модель", "Физический образец", "Только идея/ТЗ"] as const;
-
-const MAX_SIZE = 50 * 1024 * 1024;
 
 const schema = z.object({
   base: z.enum(BASES, { required_error: "Выберите исходную базу" }),
@@ -45,7 +54,7 @@ function formatPhone(raw: string) {
 }
 
 export function EngineeringQuiz() {
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<Upload[]>([]);
   const [dragging, setDragging] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
   const [fileError, setFileError] = useState<string | null>(null);
@@ -72,21 +81,44 @@ export function EngineeringQuiz() {
     return 3;
   }, [base, volume]);
 
+  const uploading = files.some((f) => !f.url && !f.error);
+
   const canSubmit =
     status === "idle" &&
+    !uploading &&
     Boolean(volume && Number(String(volume).replace(/\s/g, "")) > 0) &&
     /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/.test(phone ?? "");
 
   const addFiles = useCallback((incoming: FileList | null) => {
     if (!incoming) return;
-    const list = Array.from(incoming);
-    const tooBig = list.find((f) => f.size > MAX_SIZE);
-    if (tooBig) {
-      setFileError(`Файл «${tooBig.name}» больше 50 МБ`);
-      return;
+    for (const file of Array.from(incoming)) {
+      const problem = validateFile(file);
+      if (problem) {
+        setFileError(problem);
+        continue;
+      }
+      setFileError(null);
+      const id = `${file.name}-${file.size}-${Date.now()}-${Math.random()}`;
+      setFiles((prev) => [
+        ...prev,
+        { id, name: file.name, size: file.size, progress: 0, url: null, error: null },
+      ]);
+      void uploadToS3(file, (percent) =>
+        setFiles((prev) => prev.map((u) => (u.id === id ? { ...u, progress: percent } : u))),
+      )
+        .then((url) =>
+          setFiles((prev) =>
+            prev.map((u) => (u.id === id ? { ...u, url, progress: 100 } : u)),
+          ),
+        )
+        .catch((e: unknown) =>
+          setFiles((prev) =>
+            prev.map((u) =>
+              u.id === id ? { ...u, error: e instanceof Error ? e.message : "Ошибка загрузки" } : u,
+            ),
+          ),
+        );
     }
-    setFileError(null);
-    setFiles((prev) => [...prev, ...list]);
   }, []);
 
   const onSubmit = handleSubmit(async () => {
@@ -186,14 +218,14 @@ export function EngineeringQuiz() {
               >
                 <FileUp className="size-6 text-muted-foreground" strokeWidth={1.5} />
                 <p className="mt-3 text-sm font-medium text-foreground">
-                  Перетащите файлы сюда (.STL, .STEP, .PDF, .JPG)
+                  Перетащите файлы сюда (.STEP, .STL, .DWG, .PDF, .JPG)
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">До 50 МБ на файл</p>
                 <input
                   ref={inputRef}
                   type="file"
                   multiple
-                  accept=".stl,.step,.stp,.pdf,.jpg,.jpeg"
+                  accept=".stl,.step,.stp,.dwg,.pdf,.jpg,.jpeg,.png"
                   className="hidden"
                   onChange={(e) => addFiles(e.target.files)}
                 />
@@ -201,23 +233,41 @@ export function EngineeringQuiz() {
               {fileError && <p className="mt-2 text-xs text-primary">{fileError}</p>}
               {files.length > 0 && (
                 <ul className="mt-3 space-y-2">
-                  {files.map((f, i) => (
+                  {files.map((f) => (
                     <li
-                      key={`${f.name}-${i}`}
-                      className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-xs text-foreground"
+                      key={f.id}
+                      className="rounded-md bg-muted px-3 py-2 text-xs text-foreground"
                     >
-                      <span className="truncate">{f.name}</span>
-                      <button
-                        type="button"
-                        aria-label={`Удалить ${f.name}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFiles((prev) => prev.filter((_, idx) => idx !== i));
-                        }}
-                        className="ml-3 shrink-0 text-muted-foreground hover:text-foreground"
-                      >
-                        <X className="size-4" />
-                      </button>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="truncate">{f.name}</span>
+                        <span className="flex shrink-0 items-center gap-2 tabular-nums text-muted-foreground">
+                          {f.error
+                            ? "ошибка"
+                            : f.url
+                              ? `${(f.size / 1024 / 1024).toFixed(1)} МБ`
+                              : `${f.progress}%`}
+                          <button
+                            type="button"
+                            aria-label={`Удалить ${f.name}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFiles((prev) => prev.filter((x) => x.id !== f.id));
+                            }}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            <X className="size-4" />
+                          </button>
+                        </span>
+                      </div>
+                      {!f.url && !f.error && (
+                        <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-background">
+                          <div
+                            className="h-full bg-primary transition-all duration-200"
+                            style={{ width: `${f.progress}%` }}
+                          />
+                        </div>
+                      )}
+                      {f.error && <p className="mt-1 text-primary">{f.error}</p>}
                     </li>
                   ))}
                 </ul>
@@ -275,7 +325,11 @@ export function EngineeringQuiz() {
                     : "cursor-not-allowed bg-disabled text-disabled-foreground"
               }`}
             >
-              {status === "loading" ? (
+              {uploading ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="size-5 animate-spin" /> Загрузка файлов…
+                </span>
+              ) : status === "loading" ? (
                 <Loader2 className="size-5 animate-spin" />
               ) : status === "success" ? (
                 <span className="flex items-center gap-2">
