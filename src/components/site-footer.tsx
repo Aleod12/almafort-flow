@@ -35,9 +35,10 @@ function LazyMap() {
         <iframe
           title="ALMAFORT на карте — Дивногорск, Нижний проезд, 15/1"
           loading="lazy"
-          src={`https://yandex.ru/map-widget/v1/?ll=${LON}%2C${LAT}&z=16&pt=${LON},${LAT},pm2rdm`}
+          src={`https://yandex.ru/map-widget/v1/?ll=${LON}%2C${LAT}&z=16&l=map&mode=search&text=${LAT}%2C${LON}&pt=${LON},${LAT},pm2rdm`}
           className="h-full w-full border-0 opacity-90 [filter:invert(1)_hue-rotate(180deg)_saturate(0.6)_brightness(0.95)]"
         />
+
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-[#1B1B1F] text-sm text-[#4B5563]">
           Карта загрузится при прокрутке
