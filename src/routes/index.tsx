@@ -148,6 +148,8 @@ function Index() {
       </main>
       <ProductionSection />
       <TrustSection />
+      <FaqSection />
+      <SiteFooter />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSONLD) }}
