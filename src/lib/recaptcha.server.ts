@@ -41,7 +41,7 @@ export async function verifyRecaptcha(token: string | undefined): Promise<Captch
       configured: true,
       score,
       trusted: Boolean(json.success) && score >= TRUST_THRESHOLD,
-      detail: json["error-codes"]?.join(",") ?? undefined,
+      ...(json["error-codes"]?.length ? { detail: json["error-codes"].join(",") } : {}),
     };
   } catch (e) {
     console.error("reCAPTCHA verify error:", e);
