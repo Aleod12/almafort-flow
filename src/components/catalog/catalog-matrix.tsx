@@ -103,7 +103,7 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
 
   return (
     <div
-      className={`grid ${GRID} items-center border-b border-border transition-colors duration-200 hover:bg-surface`}
+      className={`grid ${GRID} scroll-mt-[150px] items-center border-b border-border transition-colors duration-200 hover:bg-surface`}
     >
       <div className="flex items-center justify-center px-2 py-3">
         <Checkbox label={`Выбрать ${p.sku}`} />
