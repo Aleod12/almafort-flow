@@ -33,6 +33,12 @@ const ORG_JSONLD = {
     addressCountry: "RU",
   },
   openingHours: "Mo-Fr 08:00-19:00",
+  openingHoursSpecification: {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    opens: "08:00",
+    closes: "19:00",
+  },
   brand: {
     "@type": "Brand",
     name: "ALMAFORT",
