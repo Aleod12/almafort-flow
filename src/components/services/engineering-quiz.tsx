@@ -121,10 +121,28 @@ export function EngineeringQuiz() {
     }
   }, []);
 
-  const onSubmit = handleSubmit(async () => {
+  const onSubmit = handleSubmit(async (values) => {
     setStatus("loading");
-    // TODO(backend): запросить pre-signed URL, залить файлы в S3, отправить вебхук в CRM
-    await new Promise((r) => setTimeout(r, 1400));
+    const token = await getRecaptchaToken("quiz_submit");
+    try {
+      await fetch("/api/quiz/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: values.name,
+          phone: values.phone,
+          email: values.email,
+          quiz_answers: {
+            "Исходная база": values.base,
+            "Планируемый тираж": `${values.volume} шт`,
+          },
+          file_urls: files.filter((f) => f.url).map((f) => f.url as string),
+          token,
+        }),
+      });
+    } catch (e) {
+      console.error("quiz submit failed", e);
+    }
     setStatus("success");
   });
 
