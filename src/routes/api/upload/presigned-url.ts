@@ -13,6 +13,14 @@ export const Route = createFileRoute("/api/upload/presigned-url")({
         }
         const result = await presignUpload(filename, filetype);
         if (!result.ok) {
+          // Хранилище ещё не сконфигурировано — не роняем форму,
+          // квиз продолжит работу без вложения.
+          if (result.status === 503) {
+            return Response.json(
+              { storage: "unconfigured", error: result.error },
+              { status: 200, headers: { "Cache-Control": "no-store" } },
+            );
+          }
           return Response.json({ error: result.error }, { status: result.status });
         }
         return Response.json(

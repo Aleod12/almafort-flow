@@ -27,7 +27,17 @@ export async function uploadToS3(
     const body = (await res.json().catch(() => null)) as { error?: string } | null;
     throw new Error(body?.error ?? `Не удалось получить ссылку загрузки [${res.status}]`);
   }
-  const { uploadUrl, fileUrl } = (await res.json()) as { uploadUrl: string; fileUrl: string };
+  const payload = (await res.json()) as {
+    uploadUrl?: string;
+    fileUrl?: string;
+    storage?: string;
+  };
+  if (payload.storage === "unconfigured" || !payload.uploadUrl) {
+    // Файл остаётся у менеджера в переписке: помечаем как локальное вложение.
+    onProgress(100);
+    return `local://${file.name}`;
+  }
+  const { uploadUrl, fileUrl } = payload as { uploadUrl: string; fileUrl: string };
 
   await new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
