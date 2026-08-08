@@ -33,9 +33,16 @@ export type InvoiceInput = {
   lines: CartLine[];
   carrier: Carrier;
   city: string;
+  /** Стоимость доставки из расчёта ТК; если не передана — локальный фолбэк. */
+  delivery?: number;
 };
 
-export async function generateInvoicePdf({ lines, carrier, city }: InvoiceInput) {
+export async function generateInvoicePdf({
+  lines,
+  carrier,
+  city,
+  delivery: deliveryOverride,
+}: InvoiceInput) {
   const pdfMakeModule = await import("pdfmake/build/pdfmake");
   const fontsModule = await import("pdfmake/build/vfs_fonts");
   const pdfMake = ((pdfMakeModule as unknown as { default?: unknown }).default ??
@@ -47,7 +54,12 @@ export async function generateInvoicePdf({ lines, carrier, city }: InvoiceInput)
   if (vfs) (pdfMake as unknown as { vfs: Record<string, string> }).vfs = vfs;
 
   const { goods, weight } = cartTotals(lines);
-  const delivery = deliveryCost(carrier, weight);
+  const delivery =
+    carrier === "pickup"
+      ? 0
+      : typeof deliveryOverride === "number"
+        ? deliveryOverride
+        : deliveryCost(carrier, weight);
   const total = goods + delivery;
 
   const date = new Date();

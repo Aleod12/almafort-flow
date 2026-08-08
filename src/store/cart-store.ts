@@ -55,6 +55,9 @@ export function cartTotals(lines: CartLine[]) {
   return { goods, weight };
 }
 
+export type Quote = { carrier: Exclude<Carrier, "pickup">; label: string; price: number; days: number };
+
+/** Локальный фолбэк, если сервис расчёта недоступен. */
 export function deliveryCost(carrier: Carrier, weight: number) {
   if (carrier === "pickup" || weight <= 0) return 0;
   const base = carrier === "cdek" ? 690 : 1250;
@@ -69,6 +72,12 @@ type State = {
   unmapped: UnmappedLine[];
   carrier: Carrier;
   city: string;
+  quotes: Quote[];
+  quoting: boolean;
+  quoteError: string | null;
+  setQuotes: (q: Quote[]) => void;
+  setQuoting: (v: boolean) => void;
+  setQuoteError: (e: string | null) => void;
   setParsing: (v: boolean) => void;
   applyParse: (payload: ParsePayload) => void;
   addLine: (sku: string, quantity: number, originalName?: string) => void;
@@ -93,6 +102,13 @@ export const useCart = create<State>((set) => ({
   unmapped: [],
   carrier: "cdek",
   city: "",
+  quotes: [],
+  quoting: false,
+  quoteError: null,
+
+  setQuotes: (quotes) => set({ quotes, quoteError: null }),
+  setQuoting: (quoting) => set({ quoting }),
+  setQuoteError: (quoteError) => set({ quoteError, quotes: [] }),
 
   setParsing: (v) => set({ parsing: v }),
 
@@ -206,5 +222,6 @@ export const useCart = create<State>((set) => ({
   setCarrier: (carrier) => set({ carrier }),
   setCity: (city) => set({ city }),
 
-  clear: () => set({ lines: [], analogs: [], unmapped: [], fileName: null }),
+  clear: () =>
+    set({ lines: [], analogs: [], unmapped: [], fileName: null, quotes: [], quoteError: null }),
 }));
