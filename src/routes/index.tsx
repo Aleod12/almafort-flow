@@ -4,6 +4,47 @@ import { SiteHeader } from "@/components/site-header";
 import { SpecDropzone } from "@/components/spec-dropzone";
 import { PlatformTerminal } from "@/components/platform-terminal";
 import { ProductionSection } from "@/components/services/production-section";
+import { TrustSection } from "@/components/trust/trust-section";
+
+const ORG_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  additionalType: "https://schema.org/Organization",
+  name: "ALMAFORT",
+  description:
+    "Производство пластиковых комплектующих: серийное литьё, промышленная 3D-печать, реверс-инжиниринг.",
+  url: "https://almafort.ru/",
+  telephone: "+7 (902) 990-00-00",
+  founder: { "@type": "Person", name: "Сазонов Евгений Олегович" },
+  employee: {
+    "@type": "Person",
+    name: "Сазонов Евгений Олегович",
+    jobTitle: "Руководитель производства, эксперт по аддитивным технологиям",
+  },
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "Нижний проезд, 15/1",
+    addressLocality: "Дивногорск",
+    addressRegion: "Красноярский край",
+    addressCountry: "RU",
+  },
+  openingHours: "Mo-Fr 08:00-19:00",
+  brand: {
+    "@type": "Brand",
+    name: "ALMAFORT",
+    identifier: {
+      "@type": "PropertyValue",
+      name: "Свидетельство на товарный знак (Роспатент)",
+      value: "1192250",
+    },
+  },
+  hasCredential: {
+    "@type": "EducationalOccupationalCredential",
+    name: "Сертификация по промышленной 3D-печати и реверс-инжинирингу",
+    recognizedBy: { "@type": "Organization", name: "АО «Центр аддитивных технологий»" },
+  },
+};
+
 
 
 export const Route = createFileRoute("/")({
