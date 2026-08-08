@@ -58,9 +58,10 @@ export function SpecDropzone() {
         <p className="text-base font-medium text-foreground">
           Перетащите вашу спецификацию сюда (.xls, .csv)
         </p>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-sm" style={{ color: "#6B7280" }}>
           Алгоритм распознает артикулы, сформирует заказ и выдаст PDF-счет
         </p>
+
       </div>
 
       {/* Mobile tap button */}
