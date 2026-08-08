@@ -142,6 +142,11 @@ export function facetH1(f: FacetPath): string {
 export function facetDescription(f: FacetPath, items: Product[]): string {
   const stock = items.reduce((s, p) => s + p.stock.qty, 0);
   const name = items[0]?.name ?? facetH1(f);
+  // Услуги не имеют склада и цены — остаток в тексте игнорируем.
+  const services = items.length > 0 && items.every((p) => p.is_service);
+  if (services) {
+    return `Профессиональные услуги ALMAFORT: ${facetH1(f)}. Литьё под давлением, реверс-инжиниринг и промышленная 3D-печать. Оставьте заявку — инженер подготовит индивидуальный расчёт.`;
+  }
   return `В наличии на складе ${stock.toLocaleString("ru-RU")} шт. ${name}. Каскадные оптовые цены, отгрузка от 1 дня (СДЭК, Деловые Линии). Запросить BIM-модель.`;
 }
 
