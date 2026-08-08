@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Box, Check, Loader2, ShoppingCart } from "lucide-react";
-import { PRODUCTS, tierOf, unitPrice, type Product } from "@/data/catalog";
+import { PRODUCTS, tierOf, type Product } from "@/data/catalog";
+import { formatMoney as money, lineTotal } from "@/lib/pricing";
 import { scoreMatch } from "@/lib/fuzzy-search";
 import { toast } from "sonner";
 
@@ -11,9 +12,6 @@ type Props = {
 };
 
 const GRID = "grid-cols-[40px_60px_3fr_1.2fr_1.2fr_1fr_1fr_1fr_120px_150px]";
-
-const money = (v: number) =>
-  v.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function StockCell({ p }: { p: Product }) {
   const color =
@@ -48,6 +46,7 @@ function Checkbox({ label }: { label: string }) {
 function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">) {
   const [qty, setQty] = useState(0);
   const [state, setState] = useState<"idle" | "loading" | "done">("idle");
+  const [inCart, setInCart] = useState(0);
   const tier = tierOf(qty);
 
   const priceCell = (value: number, level: 0 | 1 | 2) => {
@@ -68,20 +67,39 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
     );
   };
 
-  const add = () => {
+  const add = async () => {
     if (qty <= 0) {
       toast.error("Укажите количество");
       return;
     }
     setState("loading");
-    window.setTimeout(() => {
+    try {
+      const res = await fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sku: p.sku, quantity: qty }),
+      });
+      if (!res.ok) throw new Error("cart");
+      const data = (await res.json()) as { quantity: number };
+      onAdd(p, data.quantity);
+      setInCart((v) => v + data.quantity);
       setState("done");
-      onAdd(p, qty);
       window.setTimeout(() => setState("idle"), 2000);
-    }, 500);
+    } catch {
+      setState("idle");
+      toast.error("Не удалось добавить позицию — повторите");
+    }
   };
 
   const hasSum = qty > 0 && state !== "done";
+  const label =
+    state === "done"
+      ? "Добавлено"
+      : hasSum
+        ? `${money(lineTotal(p, qty))} ₽`
+        : inCart > 0
+          ? `В корзине · ${inCart.toLocaleString("ru-RU")} шт`
+          : null;
 
   return (
     <div
@@ -126,11 +144,12 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
       <div className="px-3 py-3">
         <button
           type="button"
-          onClick={add}
+          onClick={() => void add()}
+          disabled={state === "loading"}
           aria-label="Добавить в корзину"
-          className={`group flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-sm px-3 py-2 text-xs font-semibold tabular-nums transition-all duration-200 ${
+          className={`group flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-sm px-3 py-2 text-xs font-semibold tabular-nums transition-all duration-200 disabled:cursor-not-allowed ${
             state === "done"
-              ? "border border-[oklch(0.62_0.16_150)] bg-[oklch(0.95_0.05_150)] text-[oklch(0.45_0.14_150)]"
+              ? "bg-[#10B981] text-white"
               : hasSum
                 ? "bg-[#F3F4F6] text-foreground hover:bg-primary hover:text-primary-foreground"
                 : "border border-[#D1D5DB] bg-[#F3F4F6] text-muted-foreground hover:border-primary hover:bg-primary hover:text-primary-foreground"
@@ -144,7 +163,7 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
           ) : (
             <ShoppingCart className="size-4" strokeWidth={1.75} />
           )}
-          {hasSum ? `${money(unitPrice(p, qty) * qty)} ₽` : null}
+          {state === "loading" ? null : label}
         </button>
       </div>
     </div>
