@@ -68,13 +68,14 @@ export function sizeFacets(categorySlug: string, shapeSlug?: string): Facet[] {
 }
 
 export type FacetPath = {
-  category?: Facet;
-  shape?: Facet;
-  size?: Facet;
-  color?: Facet;
+  category?: Facet | undefined;
+  shape?: Facet | undefined;
+  size?: Facet | undefined;
+  color?: Facet | undefined;
   valid: boolean;
   path: string;
 };
+
 
 /** Иерархическая валидация: /catalog/{категория}/{форма}/{размер}/{цвет} */
 export function parseFacetPath(segments: string[]): FacetPath {
