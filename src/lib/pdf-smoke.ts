@@ -14,6 +14,6 @@ export async function pdfSmoke(withSvg: boolean) {
     },
   });
   const content: any[] = [{ text: "Тест" }];
-  if (withSvg) content.push({ svg: '<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><circle cx="25" cy="25" r="20" fill="none" stroke="red"/></svg>' });
+  if (withSvg) content.push({ svg: '<svg xmlns="http://www.w3.org/2000/svg" width="220" height="120"><circle cx="150" cy="60" r="52" fill="none" stroke="#1f4fd8" stroke-width="3"/><text x="150" y="52" text-anchor="middle" font-family="Helvetica" font-size="13" fill="#1f4fd8">ALMAFORT</text></svg>' });
   return (await pdfMake.createPdf({ content }).getBase64()).length;
 }
