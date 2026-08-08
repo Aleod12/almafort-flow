@@ -5,6 +5,8 @@ import { SpecDropzone } from "@/components/spec-dropzone";
 import { PlatformTerminal } from "@/components/platform-terminal";
 import { ProductionSection } from "@/components/services/production-section";
 import { TrustSection } from "@/components/trust/trust-section";
+import { FaqSection } from "@/components/faq-section";
+import { SiteFooter } from "@/components/site-footer";
 
 const ORG_JSONLD = {
   "@context": "https://schema.org",
@@ -14,7 +16,9 @@ const ORG_JSONLD = {
   description:
     "Производство пластиковых комплектующих: серийное литьё, промышленная 3D-печать, реверс-инжиниринг.",
   url: "https://almafort.ru/",
-  telephone: "+7 (902) 990-00-00",
+  telephone: "+7 (902) 922-97-34",
+  email: "sales@almafort.ru",
+  geo: { "@type": "GeoCoordinates", latitude: 55.9578, longitude: 92.3711 },
   founder: { "@type": "Person", name: "Сазонов Евгений Олегович" },
   employee: {
     "@type": "Person",
@@ -29,6 +33,12 @@ const ORG_JSONLD = {
     addressCountry: "RU",
   },
   openingHours: "Mo-Fr 08:00-19:00",
+  openingHoursSpecification: {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    opens: "08:00",
+    closes: "19:00",
+  },
   brand: {
     "@type": "Brand",
     name: "ALMAFORT",
@@ -138,6 +148,8 @@ function Index() {
       </main>
       <ProductionSection />
       <TrustSection />
+      <FaqSection />
+      <SiteFooter />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSONLD) }}
