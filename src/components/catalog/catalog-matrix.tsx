@@ -56,9 +56,9 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
       <div
         className={`px-3 py-3 text-right text-sm tabular-nums transition-all duration-200 ${
           active
-            ? "bg-[oklch(0.95_0.05_150)] font-bold text-foreground"
+            ? "bg-[#E8F5E9] font-bold text-foreground"
             : struck
-              ? "text-[oklch(0.72_0.01_264)] line-through"
+              ? "text-[#9CA3AF] line-through"
               : "text-foreground"
         }`}
       >
