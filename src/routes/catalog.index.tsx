@@ -52,10 +52,10 @@ function CatalogPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
 
-      <main className="mx-auto max-w-[1440px] px-5 pb-24 pt-10 lg:px-10">
+      <main className="flex-1 mx-auto max-w-[1440px] px-5 pb-24 pt-10 lg:px-10">
         <header className="mb-8 text-center">
           <h1 className="text-3xl font-extrabold leading-[1.08] tracking-tight text-foreground lg:text-[44px]">
             Каталог серийной продукции
