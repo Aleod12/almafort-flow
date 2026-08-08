@@ -144,17 +144,27 @@ export function TrustSection() {
 
   const trademarkDoc: Doc = {
     alt: "Свидетельство Роспатента на товарный знак ALMAFORT",
+    src: trademarkAsset.url,
   };
   const expertDocs: Doc[] = [
     {
-      alt: "Сертификат по промышленной 3D-печати",
-      caption: "АО «Центр аддитивных технологий»",
+      alt: "Сертификат соответствия КРЕПСС РОСС RU.33163.OC01.00631",
+      caption: "Сертификат соответствия КРЕПСС (до 2029 г.)",
+      src: krepssPreviewAsset.url,
+      pdf: krepssPdfAsset.url,
     },
     {
-      alt: "Сертификат по реверс-инжинирингу",
-      caption: "АО «Центр аддитивных технологий»",
+      alt: "Удостоверение АО «ЦАТ»: 3D-печать пластиком",
+      caption: "Квалификация: 3D-печать (Центр аддитивных технологий)",
+      src: cert3dAsset.url,
+    },
+    {
+      alt: "Удостоверение АО «ЦАТ»: реверсивный инжиниринг",
+      caption: "Квалификация: Реверс-инжиниринг",
+      src: certReverseAsset.url,
     },
   ];
+
 
   return (
     <>
