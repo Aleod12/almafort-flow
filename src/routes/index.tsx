@@ -18,7 +18,6 @@ const ORG_JSONLD = {
     "Производство пластиковых комплектующих: серийное литьё, промышленная 3D-печать, реверс-инжиниринг.",
   url: "https://almafort.ru/",
   telephone: "+7 (902) 922-97-34",
-  email: "sales@almafort.ru",
   geo: { "@type": "GeoCoordinates", latitude: 55.96165, longitude: 92.333 },
   founder: { "@type": "Person", name: "Сазонов Евгений Олегович" },
   employee: {
