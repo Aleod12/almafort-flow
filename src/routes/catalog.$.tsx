@@ -81,7 +81,10 @@ function FacetNotFound() {
 }
 
 function FacetPage() {
-  const { facets, items } = Route.useLoaderData();
+  const { facets, items } = Route.useLoaderData() as {
+    facets: ReturnType<typeof parseFacetPath>;
+    items: Product[];
+  };
   const crumbs = [
     { name: "Главная", path: "/" },
     { name: "Каталог", path: "/catalog" },
