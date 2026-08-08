@@ -86,7 +86,7 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
           onClick={startScan}
           title="Поиск по фото детали или чертежу"
           aria-label="Поиск по фото детали или чертежу"
-          className="grid size-9 shrink-0 place-items-center rounded-sm bg-[oklch(0.96_0.002_247.9)] text-[oklch(0.4_0.01_264)] transition-colors duration-200 hover:bg-primary hover:text-primary-foreground"
+          className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-sm bg-[#F3F4F6] text-[oklch(0.4_0.01_264)] transition-colors duration-200 hover:bg-primary hover:text-primary-foreground"
         >
           <Camera className="size-4" strokeWidth={1.75} />
         </button>
