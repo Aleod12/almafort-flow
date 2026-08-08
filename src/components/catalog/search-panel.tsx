@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Camera, FileText, FolderTree, Package, Search, X } from "lucide-react";
 import { CATEGORIES, PRODUCTS, type Product } from "@/data/catalog";
 import { scoreMatch } from "@/lib/fuzzy-search";
+import type { SearchHit } from "@/lib/search-index";
 import { PhotoScanner } from "@/components/catalog/photo-scanner";
 
 type Props = {
@@ -29,21 +30,51 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
+  const [hits, setHits] = useState<SearchHit[]>([]);
+  const [took, setTook] = useState<number | null>(null);
+
+  // Drop-down стартует от 3 символов, запрос дебаунсится и отменяется при новом вводе.
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 3) {
+      setHits([]);
+      setTook(null);
+      return;
+    }
+    const ctrl = new AbortController();
+    const t = window.setTimeout(() => {
+      fetch(`/api/search?q=${encodeURIComponent(q)}&limit=6`, { signal: ctrl.signal })
+        .then((r) => r.json() as Promise<{ hits: SearchHit[]; took: number }>)
+        .then((d) => {
+          setHits(d.hits);
+          setTook(d.took);
+        })
+        .catch(() => undefined);
+    }, 120);
+    return () => {
+      window.clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [query]);
+
   const results = useMemo(() => {
-    if (query.trim().length < 2) return { products: [], cats: [], docs: [] };
-    const products = PRODUCTS.map((p) => ({
-      p,
-      s: Math.max(scoreMatch(p.name, query), scoreMatch(p.sku, query), scoreMatch(p.dims, query)),
-    }))
-      .filter((r) => r.s > 0)
-      .sort((a, b) => b.s - a.s)
-      .slice(0, 5)
-      .map((r) => r.p);
+    if (query.trim().length < 3) return { products: [], cats: [], docs: [] };
+    const bySku = new Map(PRODUCTS.map((p) => [p.sku, p]));
+    const products = hits.length
+      ? hits.map((h) => bySku.get(h.sku)).filter((p): p is Product => Boolean(p))
+      : PRODUCTS.map((p) => ({
+          p,
+          s: Math.max(scoreMatch(p.name, query), scoreMatch(p.sku, query), scoreMatch(p.dims, query)),
+        }))
+          .filter((r) => r.s > 0)
+          .sort((a, b) => b.s - a.s)
+          .slice(0, 5)
+          .map((r) => r.p);
 
     const cats = CATEGORIES.filter((c) => scoreMatch(c, query) > 0).slice(0, 4);
     const docs = products.slice(0, 3).map((p) => `Чертёж DWG · ${p.sku}`);
     return { products, cats, docs };
-  }, [query]);
+  }, [query, hits]);
 
   const startScan = () => {
     setScan(true);
@@ -64,9 +95,9 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
           value={query}
           onChange={(e) => {
             onQuery(e.target.value);
-            setOpen(e.target.value.trim().length >= 2);
+            setOpen(e.target.value.trim().length >= 3);
           }}
-          onFocus={() => setOpen(query.trim().length >= 2)}
+          onFocus={() => setOpen(query.trim().length >= 3)}
           placeholder="Введите артикул, название или параметры (например: крепеж сэндвич-панели 120мм)"
           className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
           aria-label="Поиск по каталогу"
@@ -92,7 +123,7 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
         </button>
       </div>
 
-      {open && query.trim().length >= 2 && (
+      {open && query.trim().length >= 3 && (
         <div className="absolute left-0 right-0 top-[calc(100%+8px)] grid gap-6 rounded-lg border border-border bg-card p-5 shadow-[0_16px_40px_oklch(0_0_0/0.08)] md:grid-cols-3">
           <div>
             <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -154,6 +185,11 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
           <div>
             <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <FileText className="size-3.5" strokeWidth={1.75} /> Документация
+              {took !== null && (
+                <span className="ml-auto font-normal normal-case tracking-normal tabular-nums">
+                  {took} мс
+                </span>
+              )}
             </p>
             <ul className="space-y-2 text-sm text-foreground">
               {results.docs.length === 0 && (
