@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { PRODUCTS, tierOf, unitPrice, type Product } from "@/data/catalog";
 import {
   FALLBACK_VOLUME_M3,
@@ -110,7 +111,9 @@ type State = {
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
-export const useCart = create<State>((set) => ({
+export const useCart = create<State>()(
+  persist(
+    (set) => ({
   fileName: null,
   parsing: false,
   lines: [],
@@ -242,4 +245,20 @@ export const useCart = create<State>((set) => ({
 
   clear: () =>
     set({ lines: [], analogs: [], unmapped: [], fileName: null, quotes: [], quoteError: null, fiasId: null }),
-}));
+    }),
+    {
+      // Корзина переживает переход между страницами и закрытие вкладки.
+      name: "almafort:cart",
+      storage: createJSONStorage(() => localStorage),
+      partialize: (s) => ({
+        lines: s.lines,
+        analogs: s.analogs,
+        unmapped: s.unmapped,
+        fileName: s.fileName,
+        carrier: s.carrier,
+        city: s.city,
+        fiasId: s.fiasId,
+      }),
+    },
+  ),
+);
