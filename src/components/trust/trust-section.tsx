@@ -213,19 +213,17 @@ export function TrustSection() {
 
       {/* 4.3 Инженерная экспертиза */}
       <section id="expertise" className="bg-background py-20 lg:py-24">
-        <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 items-center gap-12 px-5 lg:grid-cols-12 lg:gap-16 lg:px-10">
+        <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 items-start gap-12 px-5 lg:grid-cols-12 lg:gap-16 lg:px-10">
           <div className="lg:col-span-5">
-            <div className="no-scrollbar -mx-5 flex snap-x gap-6 overflow-x-auto px-5 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0">
+            <div className="grid grid-cols-2 gap-6">
               {expertDocs.map((d) => (
-                <div key={d.alt} className="min-w-[80%] shrink-0 snap-center sm:min-w-0">
-                  <DocThumb doc={d} onOpen={open} />
-                </div>
+                <DocThumb key={d.alt} doc={d} onOpen={open} />
               ))}
             </div>
           </div>
 
-          <div className="lg:col-span-7">
-            <h2 className="text-[28px] font-extrabold leading-[1.15] tracking-tight text-foreground lg:text-[42px]">
+          <div className="text-left lg:col-span-7">
+            <h2 className="text-left text-[28px] font-extrabold leading-[1.15] tracking-tight text-foreground lg:text-[42px]">
               Кто отвечает за точность деталей?
             </h2>
             <p className="mt-5 max-w-[64ch] text-base leading-[1.6] text-muted-foreground">
@@ -242,7 +240,10 @@ export function TrustSection() {
 
             <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
               {COMPETENCIES.map((c) => (
-                <div key={c.title} className="border-l-2 border-primary pl-4">
+                <div
+                  key={c.title}
+                  className="rounded-r-md border-l-[3px] border-primary bg-surface p-6"
+                >
                   <p className="text-sm font-bold text-foreground">{c.title}</p>
                   <p className="mt-2 text-sm leading-[1.6] text-muted-foreground">
                     {c.text}
@@ -251,6 +252,7 @@ export function TrustSection() {
               ))}
             </div>
           </div>
+
         </div>
       </section>
 
