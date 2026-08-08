@@ -96,6 +96,12 @@ function Index() {
         </section>
       </main>
       <ProductionSection />
+      <TrustSection />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSONLD) }}
+      />
+
 
     </div>
   );
