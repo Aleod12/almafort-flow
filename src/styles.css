@@ -199,8 +199,19 @@
 }
 
 
-/* Единая монолитная сетка каталога: шапка и строки подчиняются одному родителю */
+/* Единая монолитная сетка каталога: шапка и строки подчиняются одному шаблону.
+   Все колонки, кроме названия, зафиксированы в px — расхождения невозможны. */
 @utility catalog-grid-parent {
+  display: grid;
+  grid-template-columns:
+    40px 60px minmax(220px, 3fr) 120px 130px 110px 110px 110px 110px 150px;
+  width: 100%;
+  min-width: 1080px;
+}
+
+/* Шапка вынесена отдельным элементом только ради position: sticky
+   (grid-item не может «выехать» за пределы своей полосы), шаблон — тот же. */
+@utility catalog-grid-header {
   display: grid;
   grid-template-columns:
     40px 60px minmax(220px, 3fr) 120px 130px 110px 110px 110px 110px 150px;
@@ -211,6 +222,7 @@
 @utility catalog-row {
   display: contents;
 }
+
 
 @utility catalog-cell {
   min-width: 0;
