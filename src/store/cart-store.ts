@@ -44,22 +44,27 @@ export type ParsePayload = {
 
 export const productBySku = (sku: string) => PRODUCTS.find((p) => p.sku === sku);
 
-/** Чистая функция каскадных скидок. */
-export function linePrice(sku: string, qty: number) {
+/**
+ * Чистая функция каскадных скидок.
+ * minColumn — «пол» ценовой колонки от грейда лояльности: Опт 1 / Опт 2
+ * закрепляются за партнёром на любой объём.
+ */
+export function linePrice(sku: string, qty: number, minColumn: 0 | 1 | 2 = 0) {
   const p = productBySku(sku);
   if (!p) return { base: 0, unit: 0, tier: 0 as 0 | 1 | 2, sum: 0 };
-  const unit = unitPrice(p, qty);
-  return { base: p.price, unit, tier: tierOf(qty, p), sum: unit * qty };
+  const tier = Math.max(tierOf(qty, p), minColumn) as 0 | 1 | 2;
+  const unit = tier === 2 ? p.price5000 : tier === 1 ? p.price1000 : unitPrice(p, qty);
+  return { base: p.price, unit, tier, sum: unit * qty };
 }
 
 /** Агрегация партии на лету: сумма, вес и объём с защитой от нулевых ТТХ. */
-export function cartTotals(lines: CartLine[]) {
+export function cartTotals(lines: CartLine[], minColumn: 0 | 1 | 2 = 0) {
   let goods = 0;
   let weight = 0;
   let volume = 0;
   for (const l of lines) {
     const p = productBySku(l.sku);
-    goods += linePrice(l.sku, l.quantity).sum;
+    goods += linePrice(l.sku, l.quantity, minColumn).sum;
     weight += (p?.weight && p.weight > 0 ? p.weight : FALLBACK_WEIGHT_KG) * l.quantity;
     volume += (p?.volume && p.volume > 0 ? p.volume : FALLBACK_VOLUME_M3) * l.quantity;
   }

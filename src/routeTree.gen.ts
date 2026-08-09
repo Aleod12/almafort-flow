@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -17,12 +19,14 @@ import { Route as SitemapCategoriesDotxmlRouteImport } from './routes/sitemap-ca
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SuccessRouteImport } from './routes/success'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AuthenticatedCabinetRouteImport } from './routes/_authenticated/cabinet'
 import { Route as ApiCartRouteImport } from './routes/api/cart'
 import { Route as ApiSearchRouteImport } from './routes/api/search'
 import { Route as ApiShippingCalcRouteImport } from './routes/api/shipping-calc'
 import { Route as CatalogIndexRouteImport } from './routes/catalog.index'
 import { Route as CatalogSplatRouteImport } from './routes/catalog.$'
 import { Route as SitemapProductsPageRouteImport } from './routes/sitemap-products.$page'
+import { Route as AuthenticatedOrdersOrderIdRouteImport } from './routes/_authenticated/orders.$orderId'
 import { Route as ApiAdminCatalogSyncRouteImport } from './routes/api/admin/catalog-sync'
 import { Route as ApiCheckoutSubmitRouteImport } from './routes/api/checkout/submit'
 import { Route as ApiConfiguratorSolveRouteImport } from './routes/api/configurator/solve'
@@ -32,10 +36,20 @@ import { Route as ApiQuizSubmitRouteImport } from './routes/api/quiz/submit'
 import { Route as ApiUploadPresignedUrlRouteImport } from './routes/api/upload/presigned-url'
 import { Route as ApiVisionIdentifyRouteImport } from './routes/api/vision/identify'
 import { Route as ApiPublicCadSplatRouteImport } from './routes/api/public/cad/$'
+import { Route as ApiPublicWebhooksCarrierRouteImport } from './routes/api/public/webhooks/carrier'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartRoute = CartRouteImport.update({
@@ -73,6 +87,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedCabinetRoute = AuthenticatedCabinetRouteImport.update({
+  id: '/cabinet',
+  path: '/cabinet',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiCartRoute = ApiCartRouteImport.update({
   id: '/api/cart',
   path: '/api/cart',
@@ -103,6 +122,12 @@ const SitemapProductsPageRoute = SitemapProductsPageRouteImport.update({
   path: '/sitemap-products/$page',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedOrdersOrderIdRoute =
+  AuthenticatedOrdersOrderIdRouteImport.update({
+    id: '/orders/$orderId',
+    path: '/orders/$orderId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiAdminCatalogSyncRoute = ApiAdminCatalogSyncRouteImport.update({
   id: '/api/admin/catalog-sync',
   path: '/api/admin/catalog-sync',
@@ -148,9 +173,16 @@ const ApiPublicCadSplatRoute = ApiPublicCadSplatRouteImport.update({
   path: '/api/public/cad/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWebhooksCarrierRoute =
+  ApiPublicWebhooksCarrierRouteImport.update({
+    id: '/api/public/webhooks/carrier',
+    path: '/api/public/webhooks/carrier',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -158,12 +190,14 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
   '/terms': typeof TermsRoute
+  '/cabinet': typeof AuthenticatedCabinetRoute
   '/api/cart': typeof ApiCartRoute
   '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/catalog/$': typeof CatalogSplatRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/catalog/': typeof CatalogIndexRoute
+  '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/api/admin/catalog-sync': typeof ApiAdminCatalogSyncRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
@@ -173,21 +207,25 @@ export interface FileRoutesByFullPath {
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
   '/api/vision/identify': typeof ApiVisionIdentifyRoute
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
+  '/api/public/webhooks/carrier': typeof ApiPublicWebhooksCarrierRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap-categories.xml': typeof SitemapCategoriesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
   '/terms': typeof TermsRoute
+  '/cabinet': typeof AuthenticatedCabinetRoute
   '/api/cart': typeof ApiCartRoute
   '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/catalog/$': typeof CatalogSplatRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/catalog': typeof CatalogIndexRoute
+  '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/api/admin/catalog-sync': typeof ApiAdminCatalogSyncRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
@@ -197,10 +235,13 @@ export interface FileRoutesByTo {
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
   '/api/vision/identify': typeof ApiVisionIdentifyRoute
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
+  '/api/public/webhooks/carrier': typeof ApiPublicWebhooksCarrierRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/catalog': typeof CatalogRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -208,12 +249,14 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
   '/terms': typeof TermsRoute
+  '/_authenticated/cabinet': typeof AuthenticatedCabinetRoute
   '/api/cart': typeof ApiCartRoute
   '/api/search': typeof ApiSearchRoute
   '/api/shipping-calc': typeof ApiShippingCalcRoute
   '/catalog/$': typeof CatalogSplatRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/catalog/': typeof CatalogIndexRoute
+  '/_authenticated/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/api/admin/catalog-sync': typeof ApiAdminCatalogSyncRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
@@ -223,11 +266,13 @@ export interface FileRoutesById {
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
   '/api/vision/identify': typeof ApiVisionIdentifyRoute
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
+  '/api/public/webhooks/carrier': typeof ApiPublicWebhooksCarrierRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/cart'
     | '/catalog'
     | '/privacy'
@@ -235,12 +280,14 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/success'
     | '/terms'
+    | '/cabinet'
     | '/api/cart'
     | '/api/search'
     | '/api/shipping-calc'
     | '/catalog/$'
     | '/sitemap-products/$page'
     | '/catalog/'
+    | '/orders/$orderId'
     | '/api/admin/catalog-sync'
     | '/api/checkout/submit'
     | '/api/configurator/solve'
@@ -250,21 +297,25 @@ export interface FileRouteTypes {
     | '/api/upload/presigned-url'
     | '/api/vision/identify'
     | '/api/public/cad/$'
+    | '/api/public/webhooks/carrier'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/cart'
     | '/privacy'
     | '/sitemap-categories.xml'
     | '/sitemap.xml'
     | '/success'
     | '/terms'
+    | '/cabinet'
     | '/api/cart'
     | '/api/search'
     | '/api/shipping-calc'
     | '/catalog/$'
     | '/sitemap-products/$page'
     | '/catalog'
+    | '/orders/$orderId'
     | '/api/admin/catalog-sync'
     | '/api/checkout/submit'
     | '/api/configurator/solve'
@@ -274,9 +325,12 @@ export interface FileRouteTypes {
     | '/api/upload/presigned-url'
     | '/api/vision/identify'
     | '/api/public/cad/$'
+    | '/api/public/webhooks/carrier'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
+    | '/auth'
     | '/cart'
     | '/catalog'
     | '/privacy'
@@ -284,12 +338,14 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/success'
     | '/terms'
+    | '/_authenticated/cabinet'
     | '/api/cart'
     | '/api/search'
     | '/api/shipping-calc'
     | '/catalog/$'
     | '/sitemap-products/$page'
     | '/catalog/'
+    | '/_authenticated/orders/$orderId'
     | '/api/admin/catalog-sync'
     | '/api/checkout/submit'
     | '/api/configurator/solve'
@@ -299,10 +355,13 @@ export interface FileRouteTypes {
     | '/api/upload/presigned-url'
     | '/api/vision/identify'
     | '/api/public/cad/$'
+    | '/api/public/webhooks/carrier'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
   CatalogRoute: typeof CatalogRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
@@ -323,6 +382,7 @@ export interface RootRouteChildren {
   ApiUploadPresignedUrlRoute: typeof ApiUploadPresignedUrlRoute
   ApiVisionIdentifyRoute: typeof ApiVisionIdentifyRoute
   ApiPublicCadSplatRoute: typeof ApiPublicCadSplatRoute
+  ApiPublicWebhooksCarrierRoute: typeof ApiPublicWebhooksCarrierRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -332,6 +392,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cart': {
@@ -383,6 +457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/cabinet': {
+      id: '/_authenticated/cabinet'
+      path: '/cabinet'
+      fullPath: '/cabinet'
+      preLoaderRoute: typeof AuthenticatedCabinetRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/cart': {
       id: '/api/cart'
       path: '/api/cart'
@@ -424,6 +505,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/sitemap-products/$page'
       preLoaderRoute: typeof SitemapProductsPageRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/orders/$orderId': {
+      id: '/_authenticated/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/orders/$orderId'
+      preLoaderRoute: typeof AuthenticatedOrdersOrderIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/admin/catalog-sync': {
       id: '/api/admin/catalog-sync'
@@ -488,8 +576,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCadSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webhooks/carrier': {
+      id: '/api/public/webhooks/carrier'
+      path: '/api/public/webhooks/carrier'
+      fullPath: '/api/public/webhooks/carrier'
+      preLoaderRoute: typeof ApiPublicWebhooksCarrierRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCabinetRoute: typeof AuthenticatedCabinetRoute
+  AuthenticatedOrdersOrderIdRoute: typeof AuthenticatedOrdersOrderIdRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCabinetRoute: AuthenticatedCabinetRoute,
+  AuthenticatedOrdersOrderIdRoute: AuthenticatedOrdersOrderIdRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface CatalogRouteChildren {
   CatalogSplatRoute: typeof CatalogSplatRoute
@@ -506,6 +614,8 @@ const CatalogRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
   CartRoute: CartRoute,
   CatalogRoute: CatalogRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
@@ -526,17 +636,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUploadPresignedUrlRoute: ApiUploadPresignedUrlRoute,
   ApiVisionIdentifyRoute: ApiVisionIdentifyRoute,
   ApiPublicCadSplatRoute: ApiPublicCadSplatRoute,
+  ApiPublicWebhooksCarrierRoute: ApiPublicWebhooksCarrierRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
