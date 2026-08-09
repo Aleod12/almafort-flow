@@ -1,0 +1,2 @@
+REVOKE ALL ON FUNCTION public.link_asset_group(text, text, text, jsonb, text[]) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.link_asset_group(text, text, text, jsonb, text[]) TO authenticated, service_role;

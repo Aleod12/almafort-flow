@@ -6,12 +6,15 @@ import { searchCatalog } from "@/lib/search-index";
 import { toast } from "sonner";
 import { QuoteRequestModal } from "@/components/catalog/quote-request-modal";
 import { ProductThumb } from "@/components/catalog/product-thumb";
+import { AssetLightbox } from "@/components/catalog/asset-lightbox";
+import { useAssetGroups, type AssetGroup } from "@/lib/asset-groups";
 
 type Props = {
   query: string;
   onOpenProduct: (p: Product) => void;
   onAdd: (p: Product, qty: number) => void;
 };
+
 
 // Общая база ячейки: границы и hover-подсветка живут на ячейках,
 // т.к. сама строка — display: contents и не рисует бокс.
@@ -49,7 +52,14 @@ function Checkbox({ label }: { label: string }) {
   );
 }
 
-function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">) {
+function Row({
+  p,
+  group,
+  onOpenProduct,
+  onAdd,
+}: { p: Product; group?: AssetGroup | undefined } & Omit<Props, "query">) {
+  const [lightbox, setLightbox] = useState(false);
+
   const [qty, setQty] = useState(0);
   const [state, setState] = useState<"idle" | "loading" | "done">("idle");
   const [inCart, setInCart] = useState(0);
@@ -135,10 +145,29 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
         <Checkbox label={`Выбрать ${p.sku}`} />
       </div>
       <div className={CELL}>
-        <span className="block w-10">
-          <ProductThumb src={p.image_url} alt={p.name} />
-        </span>
+        {group?.images[0] ? (
+          <button
+            type="button"
+            onClick={() => setLightbox(true)}
+            aria-label={`Открыть фото ${p.sku}`}
+            className="block size-10 shrink-0 cursor-zoom-in overflow-hidden rounded-[6px] bg-white transition-transform duration-150 hover:scale-105"
+          >
+            <img
+              src={group.images[0].thumb_url}
+              alt={p.name}
+              width={40}
+              height={40}
+              loading="lazy"
+              className="size-10 object-contain"
+            />
+          </button>
+        ) : (
+          <span className="block w-10">
+            <ProductThumb src={p.image_url} alt={p.name} />
+          </span>
+        )}
       </div>
+
       <div
         className={`${CELL} sticky left-0 z-[5] flex-col items-start justify-center bg-card shadow-[6px_0_8px_-6px_oklch(0_0_0/0.18)] group-hover/row:bg-surface md:static md:shadow-none`}
       >
@@ -214,12 +243,17 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
       {quote && (
         <QuoteRequestModal sku={p.sku} name={p.name} onClose={() => setQuote(false)} />
       )}
+      {lightbox && group && (
+        <AssetLightbox product={p} group={group} onClose={() => setLightbox(false)} onAdd={onAdd} />
+
+      )}
     </div>
 
   );
 }
 
 export function CatalogMatrix({ query, onOpenProduct, onAdd }: Props) {
+  const assets = useAssetGroups();
   const rows =
     query.trim().length >= 2
       ? (() => {
@@ -228,6 +262,7 @@ export function CatalogMatrix({ query, onOpenProduct, onAdd }: Props) {
           return hits.map((h) => bySku.get(h.sku)).filter((p): p is Product => Boolean(p));
         })()
       : PRODUCTS;
+
 
   const headers = [
     "",
@@ -260,7 +295,14 @@ export function CatalogMatrix({ query, onOpenProduct, onAdd }: Props) {
 
       <div className="catalog-grid-parent">
         {rows.map((p) => (
-          <Row key={p.id} p={p} onOpenProduct={onOpenProduct} onAdd={onAdd} />
+          <Row
+            key={p.id}
+            p={p}
+            group={assets.get(p.sku)}
+            onOpenProduct={onOpenProduct}
+            onAdd={onAdd}
+          />
+
         ))}
         {rows.length === 0 && (
           <div className="col-span-full px-3 py-10 text-center text-sm text-muted-foreground">

@@ -644,3 +644,63 @@ export const adminSetStaffRole = createServerFn({ method: "POST" })
   });
 
 export type { AdminOrderItem };
+
+/* ── БЛОК 4б. Массовая привязка контента (Master Asset) ───────────── */
+
+const assetImageSchema = z.object({
+  thumb_url: z.string().min(1).max(400_000),
+  full_url: z.string().min(1).max(2_000_000),
+  caption: z.string().max(300).optional(),
+});
+
+/** Список групп контента и привязанных к ним артикулов. */
+export const adminListAssetGroups = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireRole(context.supabase, context.userId, ["owner", "content"]);
+    const [groups, links] = await Promise.all([
+      context.supabase.from("asset_groups").select("id, slug, title, description, images"),
+      context.supabase.from("product_asset_links").select("sku, group_id"),
+    ]);
+    if (groups.error) throw new Error(groups.error.message);
+    if (links.error) throw new Error(links.error.message);
+    return { groups: groups.data ?? [], links: links.data ?? [] };
+  });
+
+/**
+ * Одной транзакцией (SQL-функция link_asset_group) создаёт/обновляет пакет
+ * контента и переустанавливает связи Many-to-One строго на выбранные SKU.
+ */
+export const adminLinkAssetGroup = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        slug: z.string().min(2).max(80).regex(/^[A-Za-z0-9._-]+$/),
+        title: z.string().min(2).max(200),
+        description: z.string().max(4000),
+        images: z.array(assetImageSchema).max(8),
+        skus: z.array(z.string().min(1).max(60)).min(1).max(200),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await requireRole(context.supabase, context.userId, ["owner", "content"]);
+    const { data: gid, error } = await context.supabase.rpc("link_asset_group", {
+      _slug: data.slug,
+      _title: data.title,
+      _description: data.description,
+      _images: data.images,
+      _skus: data.skus,
+    });
+    if (error) throw new Error(error.message);
+    await logAdmin(
+      context.userId,
+      (context.claims as { email?: string })?.email ?? null,
+      "LINK_ASSET_GROUP",
+      `${data.slug}: ${data.skus.join(", ")}`.slice(0, 200),
+      null,
+      { slug: data.slug, skus: data.skus, images: data.images.length },
+    );
+    return { ok: true, groupId: gid as string, linked: data.skus.length };
+  });
