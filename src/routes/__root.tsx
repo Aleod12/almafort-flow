@@ -79,16 +79,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "ALMAFORT — завод пластиковой фурнитуры" },
+      { title: "ALMAFORT — производство пластиковой фурнитуры" },
       {
         name: "description",
-        content: "Завод-производитель пластиковых комплектующих для B2B: литьё, 3D-печать, ЭДО.",
+        content: "Производитель пластиковых комплектующих для B2B: литьё, 3D-печать, ЭДО.",
       },
       { name: "author", content: "ALMAFORT" },
-      { property: "og:title", content: "ALMAFORT — завод пластиковой фурнитуры" },
+      { property: "og:title", content: "ALMAFORT — производство пластиковой фурнитуры" },
       {
         property: "og:description",
-        content: "Завод-производитель пластиковых комплектующих для B2B: литьё, 3D-печать, ЭДО.",
+        content: "Производитель пластиковых комплектующих для B2B: литьё, 3D-печать, ЭДО.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
