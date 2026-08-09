@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_authenticated/admin-alma-secure-2026/")(
 
 function OrdersRegistry() {
   const list = useServerFn(adminListOrders);
+  const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [status, setStatus] = useState("");
   const [q, setQ] = useState("");
