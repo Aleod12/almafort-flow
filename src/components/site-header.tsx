@@ -134,12 +134,13 @@ export function SiteHeader() {
             ))}
           </nav>
             <a
-              href="/cabinet"
+              href={authed ? "/cabinet" : "/auth"}
               onClick={() => setOpen(false)}
-              className="text-sm font-medium text-foreground"
+              className="mt-3 block text-sm font-semibold text-primary"
             >
-              Личный кабинет
+              {authed ? "Мой кабинет" : "Вход для партнёров"}
             </a>
+
           <p className="mt-4 text-xs text-muted-foreground">
             Пн-Пт 08:00–19:00 (МСК+4) · г. Дивногорск, Нижний проезд, 15/1
           </p>
