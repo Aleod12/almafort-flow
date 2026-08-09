@@ -24,6 +24,8 @@ export function AssetLightbox({
 }) {
   const [slide, setSlide] = useState(0);
   const [qty, setQty] = useState(0);
+  const [colorChoice, setColorChoice] = useState("Белый");
+
   const [state, setState] = useState<"idle" | "loading">("idle");
   const onRequest = isOnRequest(product);
   const tier = tierOf(qty, product);
