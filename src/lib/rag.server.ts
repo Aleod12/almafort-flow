@@ -9,6 +9,9 @@
 import { KNOWLEDGE_BASE, type KbChunk } from "@/data/knowledge-base";
 import { PRODUCTS, isOnRequest, tierOf } from "@/data/catalog";
 import { unitPriceOf, lineTotal } from "@/lib/pricing";
+import { activePrompt, logLlmCall, type LlmUsage } from "@/lib/llm-log.server";
+
+const MODEL = "openai/gpt-5.6-sol";
 
 export type SolutionItem = {
   sku: string;
