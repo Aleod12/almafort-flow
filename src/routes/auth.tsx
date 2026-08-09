@@ -226,13 +226,25 @@ function AuthPage() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setFieldError(null);
+                  }}
                   onKeyDown={(e) => e.key === "Enter" && !disabled && void submit()}
                   placeholder="snab@zavod.ru"
                   autoComplete="email"
-                  className="mt-2 h-11 w-full rounded-sm border border-[#D1D5DB] px-3.5 text-sm outline-none transition-colors focus:border-foreground"
+                  aria-invalid={fieldError?.field === "email"}
+                  className={`mt-2 h-11 w-full rounded-sm border px-3.5 text-sm outline-none transition-colors focus:border-foreground ${
+                    fieldError?.field === "email" ? "border-primary" : "border-[#D1D5DB]"
+                  }`}
                 />
+                {fieldError?.field === "email" && (
+                  <span className="mt-1.5 block text-xs font-normal leading-[1.5] text-primary">
+                    {fieldError.text}
+                  </span>
+                )}
               </label>
+
 
               {(mode === "login" || mode === "register") && (
                 <label className="block text-sm font-medium text-foreground">
