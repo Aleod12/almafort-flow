@@ -60,8 +60,8 @@ export async function findPartyByInn(inn: string): Promise<PartyInfo> {
     ogrn: s.data.ogrn ?? null,
     director:
       s.data.management?.name ??
-      [s.data.fio?.surname, s.data.fio?.name, s.data.fio?.patronymic].filter(Boolean).join(" ") ||
-      null,
+      ([s.data.fio?.surname, s.data.fio?.name, s.data.fio?.patronymic].filter(Boolean).join(" ") ||
+        null),
     source: "dadata",
   };
 }
