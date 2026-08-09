@@ -6,6 +6,7 @@ import { Check, FileUp, Loader2, X } from "lucide-react";
 import { uploadToS3, validateFile } from "@/lib/direct-upload";
 import { getRecaptchaToken } from "@/lib/recaptcha";
 import { ConsentCheckbox } from "@/components/consent-checkbox";
+import engineeringAnalysisAsset from "@/assets/services/engineering-analysis.jpg.asset.json";
 
 type Upload = {
   id: string;
@@ -377,7 +378,15 @@ export function EngineeringQuiz() {
           </div>
         </form>
 
-        <div className="relative min-h-[320px] bg-placeholder lg:col-span-5 lg:rounded-r-lg">
+        <div className="relative min-h-[320px] overflow-hidden lg:col-span-5 lg:rounded-r-lg">
+          <img
+            src={engineeringAnalysisAsset.url}
+            alt="Инженерный анализ допусков, геометрии и смета на оснастку"
+            loading="lazy"
+            width={1200}
+            height={900}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
           <div className="absolute inset-x-6 bottom-6 rounded-md bg-background/85 p-6 backdrop-blur-lg lg:inset-x-8 lg:bottom-8">
             <p className="text-sm leading-[1.6] text-foreground">
               Инженерный отдел проанализирует допуски, геометрию и пришлет детальную смету
