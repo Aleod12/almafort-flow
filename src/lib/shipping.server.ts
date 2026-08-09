@@ -193,12 +193,38 @@ async function dlQuote(dest: Destination, parcel: Parcel): Promise<ShippingQuote
 
 /* -------------------------------- Агрегатор ------------------------------ */
 
+/** Наценка производства сверх тарифа ТК (упаковка, обрешётка) из панели управления. */
+async function markup(): Promise<{ fixed: number; percent: number }> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("app_settings")
+      .select("value")
+      .eq("key", "logistics_markup")
+      .maybeSingle();
+    const v = (data as { value?: { fixed_rub?: number; percent?: number } } | null)?.value;
+    return { fixed: Number(v?.fixed_rub ?? 0) || 0, percent: Number(v?.percent ?? 0) || 0 };
+  } catch {
+    return { fixed: 0, percent: 0 };
+  }
+}
+
 export async function calcShipping(dest: Destination, parcel: Parcel) {
-  const results = await Promise.allSettled([
-    withTimeout(cdekQuote(dest, parcel)).catch(() => cdekModel(dest, parcel)),
-    withTimeout(dlQuote(dest, parcel)).catch(() => dlModel(dest, parcel)),
+  const [results, extra] = await Promise.all([
+    Promise.allSettled([
+      withTimeout(cdekQuote(dest, parcel)).catch(() => cdekModel(dest, parcel)),
+      withTimeout(dlQuote(dest, parcel)).catch(() => dlModel(dest, parcel)),
+    ]),
+    markup(),
   ]);
   const quotes: ShippingQuote[] = [];
-  for (const r of results) if (r.status === "fulfilled") quotes.push(r.value);
+  for (const r of results) {
+    if (r.status !== "fulfilled") continue;
+    const q = r.value;
+    quotes.push({
+      ...q,
+      price: Math.round(q.price * (1 + extra.percent / 100) + extra.fixed),
+    });
+  }
   return quotes;
 }

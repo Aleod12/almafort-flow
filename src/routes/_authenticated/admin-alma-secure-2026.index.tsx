@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_authenticated/admin-alma-secure-2026/")(
 
 function OrdersRegistry() {
   const list = useServerFn(adminListOrders);
+  const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [status, setStatus] = useState("");
   const [q, setQ] = useState("");
@@ -86,7 +87,16 @@ function OrdersRegistry() {
           </thead>
           <tbody>
             {(data?.rows ?? []).map((o) => (
-              <tr key={o.id} className="border-t">
+              <tr
+                key={o.id}
+                onClick={() =>
+                  void navigate({
+                    to: "/admin-alma-secure-2026/orders/$orderId",
+                    params: { orderId: o.id },
+                  })
+                }
+                className="cursor-pointer border-t transition-colors hover:bg-muted/50"
+              >
                 <td className="px-4 py-3 font-medium">{o.number}</td>
                 <td className="px-4 py-3 text-muted-foreground">
                   {new Date(o.created_at).toLocaleDateString("ru-RU")}

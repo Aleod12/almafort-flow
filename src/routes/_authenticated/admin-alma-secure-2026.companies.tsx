@@ -10,6 +10,36 @@ export const Route = createFileRoute("/_authenticated/admin-alma-secure-2026/com
   component: Companies,
 });
 
+/** Тумблер вместо чекбокса: явное состояние «вкл/выкл» с плавным переходом. */
+function Toggle({
+  on,
+  label,
+  onChange,
+}: {
+  on: boolean;
+  label: string;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      onClick={() => onChange(!on)}
+      className={`relative h-6 w-11 rounded-full transition-colors duration-200 ${
+        on ? "bg-[#DC2626]" : "bg-muted-foreground/30"
+      } hover:opacity-90 active:scale-95`}
+    >
+      <span
+        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all duration-200 ${
+          on ? "left-[22px]" : "left-0.5"
+        }`}
+      />
+    </button>
+  );
+}
+
 function Companies() {
   const qc = useQueryClient();
   const list = useServerFn(adminListCompanies);
@@ -79,15 +109,21 @@ function Companies() {
                 <td className="px-4 py-3">
                   <select
                     value={c.assigned_tier ?? 1}
+                    disabled={!c.manual_tier_override}
+                    title={
+                      c.manual_tier_override
+                        ? "Грейд задаётся вручную"
+                        : "Включите «Ручной режим», чтобы задать грейд вручную"
+                    }
                     onChange={(e) =>
                       mutation.mutate({
                         id: c.id,
-                        manual_tier_override: c.manual_tier_override ?? false,
+                        manual_tier_override: true,
                         assigned_tier: Number(e.target.value),
                         credit_allowed: c.credit_allowed ?? false,
                       })
                     }
-                    className="rounded-md border bg-background px-2 py-1"
+                    className="rounded-md border bg-background px-2 py-1 transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {[1, 2, 3].map((t) => (
                       <option key={t} value={t}>
@@ -97,33 +133,37 @@ function Companies() {
                   </select>
                 </td>
                 <td className="px-4 py-3">
-                  <input
-                    type="checkbox"
-                    checked={c.manual_tier_override ?? false}
-                    onChange={(e) =>
+                  <Toggle
+                    on={c.manual_tier_override ?? false}
+                    label="Ручной режим грейда"
+                    onChange={(v) =>
                       mutation.mutate({
                         id: c.id,
-                        manual_tier_override: e.target.checked,
+                        manual_tier_override: v,
                         assigned_tier: c.assigned_tier ?? 1,
                         credit_allowed: c.credit_allowed ?? false,
                       })
                     }
-                    className="h-4 w-4 cursor-pointer accent-[#DC2626]"
                   />
                 </td>
                 <td className="px-4 py-3">
-                  <input
-                    type="checkbox"
-                    checked={c.credit_allowed ?? false}
-                    onChange={(e) =>
+                  <Toggle
+                    on={c.credit_allowed ?? false}
+                    label="Отсрочка платежа"
+                    onChange={(v) => {
+                      if (v && (c.assigned_tier ?? 1) < 3) {
+                        setMsg(
+                          `Отсрочка доступна только грейду 3 — у «${c.name}» сейчас грейд ${c.assigned_tier ?? 1}.`,
+                        );
+                        return;
+                      }
                       mutation.mutate({
                         id: c.id,
                         manual_tier_override: c.manual_tier_override ?? false,
                         assigned_tier: c.assigned_tier ?? 1,
-                        credit_allowed: e.target.checked,
-                      })
-                    }
-                    className="h-4 w-4 cursor-pointer accent-[#DC2626]"
+                        credit_allowed: v,
+                      });
+                    }}
                   />
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">

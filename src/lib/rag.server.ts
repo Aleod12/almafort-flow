@@ -9,6 +9,9 @@
 import { KNOWLEDGE_BASE, type KbChunk } from "@/data/knowledge-base";
 import { PRODUCTS, isOnRequest, tierOf } from "@/data/catalog";
 import { unitPriceOf, lineTotal } from "@/lib/pricing";
+import { activePrompt, logLlmCall, type LlmUsage } from "@/lib/llm-log.server";
+
+const MODEL = "openai/gpt-5.6-sol";
 
 export type SolutionItem = {
   sku: string;
@@ -170,8 +173,11 @@ const SCHEMA = {
   required: ["recommended_items", "engineering_logic", "safety_margin_factor", "is_service"],
 } as const;
 
-/** Собирает ответ LLM из SSE-потока /v1/responses. */
-async function streamResponsesText(body: unknown, apiKey: string): Promise<string> {
+/** Собирает ответ LLM из SSE-потока /v1/responses вместе с расходом токенов. */
+async function streamResponsesText(
+  body: unknown,
+  apiKey: string,
+): Promise<{ text: string; usage: LlmUsage }> {
   const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
     method: "POST",
     headers: {
@@ -194,6 +200,7 @@ async function streamResponsesText(body: unknown, apiKey: string): Promise<strin
   const decoder = new TextDecoder();
   let buffer = "";
   let text = "";
+  const usage: LlmUsage = { prompt_tokens: 0, completion_tokens: 0 };
 
   for (;;) {
     const { done, value } = await reader.read();
@@ -209,12 +216,17 @@ async function streamResponsesText(body: unknown, apiKey: string): Promise<strin
         const event = JSON.parse(payload) as {
           type?: string;
           delta?: string;
-          response?: { output_text?: string };
+          response?: {
+            output_text?: string;
+            usage?: { input_tokens?: number; output_tokens?: number };
+          };
         };
         if (event.type === "response.output_text.delta" && typeof event.delta === "string") {
           text += event.delta;
-        } else if (event.type === "response.completed" && !text) {
-          text = event.response?.output_text ?? "";
+        } else if (event.type === "response.completed") {
+          if (!text) text = event.response?.output_text ?? "";
+          usage.prompt_tokens = event.response?.usage?.input_tokens ?? usage.prompt_tokens;
+          usage.completion_tokens = event.response?.usage?.output_tokens ?? usage.completion_tokens;
         }
       } catch {
         /* фрагмент SSE — пропускаем */
@@ -222,7 +234,7 @@ async function streamResponsesText(body: unknown, apiKey: string): Promise<strin
     }
   }
 
-  return text.trim();
+  return { text: text.trim(), usage };
 }
 
 /** Каталог для системного контекста: артикул, габарит, все тиры цен и остаток. */
@@ -271,12 +283,14 @@ export async function solveConfiguration(query: string): Promise<{
 
   const chunks = retrieve(query);
   const context = chunks.map((c) => `### ${c.title}\n${c.text}`).join("\n\n");
+  // Промпт, сохранённый в панели управления, имеет приоритет над встроенным.
+  const override = await activePrompt("configurator");
 
-  const raw = await streamResponsesText(
+  const result = await streamResponsesText(
     {
-      model: "openai/gpt-5.6-sol",
+      model: MODEL,
       stream: true,
-      instructions: `${SYSTEM_PROMPT}\n\n${DOMAIN_MATRIX}`,
+      instructions: `${override ?? SYSTEM_PROMPT}\n\n${DOMAIN_MATRIX}`,
       input: [
         {
           role: "user",
@@ -303,15 +317,49 @@ export async function solveConfiguration(query: string): Promise<{
     apiKey,
   );
 
-  if (!raw) throw new Error("ИИ не вернул решение. Уточните формулировку задачи.");
+  const raw = result.text;
+  if (!raw) {
+    await logLlmCall({
+      kind: "configurator",
+      prompt: query,
+      response: "",
+      parseStatus: "api_error",
+      model: MODEL,
+      usage: result.usage,
+    });
+    throw new Error("ИИ не вернул решение. Уточните формулировку задачи.");
+  }
 
-  const match = raw.replace(/```json|```/g, "").match(/\{[\s\S]*\}/);
-  const parsed = JSON.parse(match?.[0] ?? raw) as {
+  let parsed: {
     recommended_items?: Array<{ sku?: string; quantity?: number }>;
     engineering_logic?: string;
     safety_margin_factor?: number | null;
     is_service?: boolean;
   };
+  try {
+    const match = raw.replace(/```json|```/g, "").match(/\{[\s\S]*\}/);
+    parsed = JSON.parse(match?.[0] ?? raw);
+  } catch (e) {
+    // Журнал диалогов должен показывать красный «Ошибка JSON», а не молчать.
+    await logLlmCall({
+      kind: "configurator",
+      prompt: query,
+      response: raw,
+      parseStatus: "json_error",
+      model: MODEL,
+      usage: result.usage,
+    });
+    throw new Error("ИИ вернул некорректный формат ответа. Повторите запрос.");
+  }
+
+  await logLlmCall({
+    kind: "configurator",
+    prompt: query,
+    response: raw,
+    parseStatus: "ok",
+    model: MODEL,
+    usage: result.usage,
+  });
 
   const wantsSandwich = /сэндвич|сендвич|sandwich|панел/i.test(query);
   const proposed = (parsed.recommended_items ?? []).filter((i) =>
