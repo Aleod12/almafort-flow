@@ -9,6 +9,7 @@ import { EMPTY_LOYALTY, TIER_META, type LoyaltySummary, type LoyaltyTier } from 
 export function useLoyalty() {
   const [summary, setSummary] = useState<LoyaltySummary>(EMPTY_LOYALTY);
   const [authed, setAuthed] = useState(false);
+  const [verified, setVerified] = useState(true);
 
   useEffect(() => {
     let alive = true;
@@ -18,8 +19,10 @@ export function useLoyalty() {
       setAuthed(Boolean(sess.session));
       if (!sess.session) {
         setSummary(EMPTY_LOYALTY);
+        setVerified(true);
         return;
       }
+      setVerified(Boolean(sess.session.user.email_confirmed_at));
       const { data } = await supabase.rpc("my_loyalty");
       if (!alive || !data) return;
       const s = data as unknown as LoyaltySummary;
@@ -40,5 +43,5 @@ export function useLoyalty() {
   }, []);
 
   const tier = summary.tier;
-  return { summary, tier, authed, minColumn: TIER_META[tier].minColumn, credit: TIER_META[tier].credit };
+  return { summary, tier, authed, verified, minColumn: TIER_META[tier].minColumn, credit: TIER_META[tier].credit };
 }
