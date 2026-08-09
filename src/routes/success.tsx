@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { SiteHeader } from "@/components/site-header";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { readLastOrder, type LastOrder } from "@/lib/last-order";
+import { supabase } from "@/integrations/supabase/client";
+
 
 export const Route = createFileRoute("/success")({
   head: () => ({
