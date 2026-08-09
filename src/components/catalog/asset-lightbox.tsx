@@ -185,6 +185,33 @@ export function AssetLightbox({
               </p>
             )}
 
+            {product.sku.startsWith("ZGD-") && (
+              <div className="mt-5">
+                <label
+                  htmlFor={`color-${product.sku}`}
+                  className="text-xs uppercase tracking-wider text-muted-foreground"
+                >
+                  Цвет по ЛДСП
+                </label>
+                <select
+                  id={`color-${product.sku}`}
+                  value={colorChoice}
+                  onChange={(e) => setColorChoice(e.target.value)}
+                  className="mt-1.5 w-full cursor-pointer rounded-sm border border-[#D1D5DB] bg-card px-3 py-2 text-sm outline-none transition-colors hover:border-foreground/50 focus:border-foreground"
+                >
+                  {["Белый", "Чёрный", "Венге", "Дуб Сонома", "Бук", "Серый"].map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Цвет уточняется менеджером при подтверждении заказа.
+                </p>
+              </div>
+            )}
+
+
             {!onRequest && (
               <div className="mt-6 flex gap-3">
                 <input
