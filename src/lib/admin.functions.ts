@@ -609,6 +609,18 @@ export const adminSetStaffRole = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!profile) throw new Error("Пользователь с такой почтой не зарегистрирован");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (data.revoke && data.role === "owner") {
+      // Защита от самоблокировки: последнего владельца снять нельзя.
+      const { count } = await supabaseAdmin
+        .from("user_roles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "owner");
+      if ((count ?? 0) <= 1) {
+        throw new Error(
+          "Нельзя отозвать роль у единственного владельца — сначала назначьте второго владельца.",
+        );
+      }
+    }
     if (data.revoke) {
       await supabaseAdmin
         .from("user_roles")
