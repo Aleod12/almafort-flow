@@ -11,6 +11,9 @@ import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { saveLastOrder } from "@/lib/last-order";
 import { ConsentCheckbox } from "@/components/consent-checkbox";
 import { ProductThumb } from "@/components/catalog/product-thumb";
+import { useLoyalty } from "@/hooks/use-loyalty";
+import { TIER_META } from "@/lib/loyalty";
+import { saveOrderToCabinet } from "@/lib/cabinet.functions";
 import {
   cartTotals,
   deliveryCost,
@@ -52,7 +55,12 @@ export function CartPanel() {
   const setQuoting = useCart((s) => s.setQuoting);
   const setQuoteError = useCart((s) => s.setQuoteError);
 
-  const { goods, weight, volume } = useMemo(() => cartTotals(lines), [lines]);
+  // Грейд лояльности закрепляет оптовую колонку на любой объём.
+  const { tier, authed, minColumn, credit } = useLoyalty();
+  const { goods, weight, volume } = useMemo(
+    () => cartTotals(lines, minColumn),
+    [lines, minColumn],
+  );
 
   // Единый дебаунс 500 мс: и на ввод города, и на изменение габаритов партии —
   // один запрос к ТК вместо шквала при наборе количества.
@@ -117,6 +125,8 @@ export function CartPanel() {
 
   const [form, setForm] = useState({ name: "", phone: "", email: "", company: "", comment: "" });
   const [submitting, setSubmitting] = useState(false);
+  // Стратегическому партнёру доступна отгрузка с отсрочкой платежа 15–30 дней.
+  const [deferred, setDeferred] = useState(false);
   const field = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -154,7 +164,7 @@ export function CartPanel() {
           goodsPrice: goods,
           total,
           items: lines.map((l) => {
-            const { unit, sum } = linePrice(l.sku, l.quantity);
+            const { unit, sum } = linePrice(l.sku, l.quantity, minColumn);
             return { sku: l.sku, name: l.name, quantity: l.quantity, unit, sum };
           }),
           ...(invoicePdfBase64 ? { invoicePdfBase64 } : {}),
@@ -162,6 +172,29 @@ export function CartPanel() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error ?? "Не удалось оформить заказ");
+
+      if (authed) {
+        try {
+          await saveOrderToCabinet({
+            data: {
+              number: String(json.orderId ?? Date.now()),
+              items: lines.map((l) => {
+                const { unit, sum } = linePrice(l.sku, l.quantity, minColumn);
+                return { sku: l.sku, name: l.name, quantity: l.quantity, unit, sum };
+              }),
+              goodsPrice: goods,
+              deliveryPrice: delivery,
+              total,
+              carrier,
+              city,
+              deferred,
+              invoiceUrl: json.invoiceUrl ?? null,
+            },
+          });
+        } catch (err) {
+          console.error("[cabinet] order save failed", err);
+        }
+      }
 
       saveLastOrder({
         orderId: json.orderId,
@@ -447,6 +480,24 @@ export function CartPanel() {
             />
           </div>
 
+          {authed && minColumn > 0 && (
+            <p className="mt-4 rounded-sm bg-[#E8F5E9] px-3 py-2 text-xs leading-[1.5] text-foreground">
+              Статус «{TIER_META[tier].name}»: цены пересчитаны по колонке «Опт {minColumn}» на весь
+              объём партии.
+            </p>
+          )}
+          {credit && (
+            <label className="mt-3 flex cursor-pointer items-start gap-2 text-xs leading-[1.5] text-foreground">
+              <input
+                type="checkbox"
+                checked={deferred}
+                onChange={(e) => setDeferred(e.target.checked)}
+                className="mt-0.5 size-4 shrink-0 cursor-pointer accent-[var(--primary)]"
+              />
+              Отгрузить с отсрочкой платежа (15–30 дней по договору)
+            </label>
+          )}
+
           <button
             type="button"
             onClick={() => {
@@ -457,7 +508,11 @@ export function CartPanel() {
             className="mt-5 flex w-full items-center justify-center gap-2 rounded-sm bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-all duration-200 enabled:hover:-translate-y-px enabled:hover:brightness-95 enabled:hover:shadow-[0_4px_12px_rgba(229,36,33,0.2)] enabled:active:translate-y-0 enabled:active:scale-[0.98] enabled:active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
           >
             {submitting && <Loader2 className="size-4 animate-spin" strokeWidth={2} />}
-            {submitting ? "Передаём заказ менеджеру…" : "Оформить заказ"}
+            {submitting
+              ? "Передаём заказ менеджеру…"
+              : deferred
+                ? "Отгрузить с отсрочкой"
+                : "Оформить заказ"}
           </button>
           <button
             type="button"
