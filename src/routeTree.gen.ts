@@ -29,6 +29,7 @@ import { Route as CatalogIndexRouteImport } from './routes/catalog.index'
 import { Route as CatalogSplatRouteImport } from './routes/catalog.$'
 import { Route as SitemapProductsPageRouteImport } from './routes/sitemap-products.$page'
 import { Route as AuthenticatedAdminAlmaSecure2026IndexRouteImport } from './routes/_authenticated/admin-alma-secure-2026.index'
+import { Route as AuthenticatedAdminAlmaSecure2026AiRouteImport } from './routes/_authenticated/admin-alma-secure-2026.ai'
 import { Route as AuthenticatedAdminAlmaSecure2026CompaniesRouteImport } from './routes/_authenticated/admin-alma-secure-2026.companies'
 import { Route as AuthenticatedAdminAlmaSecure2026ProductsRouteImport } from './routes/_authenticated/admin-alma-secure-2026.products'
 import { Route as AuthenticatedOrdersOrderIdRouteImport } from './routes/_authenticated/orders.$orderId'
@@ -145,6 +146,12 @@ const AuthenticatedAdminAlmaSecure2026IndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedAdminAlmaSecure2026Route,
   } as any)
+const AuthenticatedAdminAlmaSecure2026AiRoute =
+  AuthenticatedAdminAlmaSecure2026AiRouteImport.update({
+    id: '/ai',
+    path: '/ai',
+    getParentRoute: () => AuthenticatedAdminAlmaSecure2026Route,
+  } as any)
 const AuthenticatedAdminAlmaSecure2026CompaniesRoute =
   AuthenticatedAdminAlmaSecure2026CompaniesRouteImport.update({
     id: '/companies',
@@ -240,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/catalog/$': typeof CatalogSplatRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/catalog/': typeof CatalogIndexRoute
+  '/admin-alma-secure-2026/ai': typeof AuthenticatedAdminAlmaSecure2026AiRoute
   '/admin-alma-secure-2026/companies': typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
   '/admin-alma-secure-2026/products': typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
@@ -273,6 +281,7 @@ export interface FileRoutesByTo {
   '/catalog/$': typeof CatalogSplatRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/catalog': typeof CatalogIndexRoute
+  '/admin-alma-secure-2026/ai': typeof AuthenticatedAdminAlmaSecure2026AiRoute
   '/admin-alma-secure-2026/companies': typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
   '/admin-alma-secure-2026/products': typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
@@ -310,6 +319,7 @@ export interface FileRoutesById {
   '/catalog/$': typeof CatalogSplatRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/catalog/': typeof CatalogIndexRoute
+  '/_authenticated/admin-alma-secure-2026/ai': typeof AuthenticatedAdminAlmaSecure2026AiRoute
   '/_authenticated/admin-alma-secure-2026/companies': typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
   '/_authenticated/admin-alma-secure-2026/products': typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
   '/_authenticated/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
@@ -347,6 +357,7 @@ export interface FileRouteTypes {
     | '/catalog/$'
     | '/sitemap-products/$page'
     | '/catalog/'
+    | '/admin-alma-secure-2026/ai'
     | '/admin-alma-secure-2026/companies'
     | '/admin-alma-secure-2026/products'
     | '/orders/$orderId'
@@ -380,6 +391,7 @@ export interface FileRouteTypes {
     | '/catalog/$'
     | '/sitemap-products/$page'
     | '/catalog'
+    | '/admin-alma-secure-2026/ai'
     | '/admin-alma-secure-2026/companies'
     | '/admin-alma-secure-2026/products'
     | '/orders/$orderId'
@@ -416,6 +428,7 @@ export interface FileRouteTypes {
     | '/catalog/$'
     | '/sitemap-products/$page'
     | '/catalog/'
+    | '/_authenticated/admin-alma-secure-2026/ai'
     | '/_authenticated/admin-alma-secure-2026/companies'
     | '/_authenticated/admin-alma-secure-2026/products'
     | '/_authenticated/orders/$orderId'
@@ -603,6 +616,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAlmaSecure2026IndexRouteImport
       parentRoute: typeof AuthenticatedAdminAlmaSecure2026Route
     }
+    '/_authenticated/admin-alma-secure-2026/ai': {
+      id: '/_authenticated/admin-alma-secure-2026/ai'
+      path: '/ai'
+      fullPath: '/admin-alma-secure-2026/ai'
+      preLoaderRoute: typeof AuthenticatedAdminAlmaSecure2026AiRouteImport
+      parentRoute: typeof AuthenticatedAdminAlmaSecure2026Route
+    }
     '/_authenticated/admin-alma-secure-2026/companies': {
       id: '/_authenticated/admin-alma-secure-2026/companies'
       path: '/companies'
@@ -705,6 +725,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminAlmaSecure2026RouteChildren {
+  AuthenticatedAdminAlmaSecure2026AiRoute: typeof AuthenticatedAdminAlmaSecure2026AiRoute
   AuthenticatedAdminAlmaSecure2026CompaniesRoute: typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
   AuthenticatedAdminAlmaSecure2026ProductsRoute: typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
   AuthenticatedAdminAlmaSecure2026IndexRoute: typeof AuthenticatedAdminAlmaSecure2026IndexRoute
@@ -713,6 +734,8 @@ interface AuthenticatedAdminAlmaSecure2026RouteChildren {
 
 const AuthenticatedAdminAlmaSecure2026RouteChildren: AuthenticatedAdminAlmaSecure2026RouteChildren =
   {
+    AuthenticatedAdminAlmaSecure2026AiRoute:
+      AuthenticatedAdminAlmaSecure2026AiRoute,
     AuthenticatedAdminAlmaSecure2026CompaniesRoute:
       AuthenticatedAdminAlmaSecure2026CompaniesRoute,
     AuthenticatedAdminAlmaSecure2026ProductsRoute:
@@ -787,3 +810,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
