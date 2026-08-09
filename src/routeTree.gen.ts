@@ -32,6 +32,7 @@ import { Route as AuthenticatedAdminAlmaSecure2026IndexRouteImport } from './rou
 import { Route as AuthenticatedAdminAlmaSecure2026AiRouteImport } from './routes/_authenticated/admin-alma-secure-2026.ai'
 import { Route as AuthenticatedAdminAlmaSecure2026CompaniesRouteImport } from './routes/_authenticated/admin-alma-secure-2026.companies'
 import { Route as AuthenticatedAdminAlmaSecure2026ProductsRouteImport } from './routes/_authenticated/admin-alma-secure-2026.products'
+import { Route as AuthenticatedAdminAlmaSecure2026SettingsRouteImport } from './routes/_authenticated/admin-alma-secure-2026.settings'
 import { Route as AuthenticatedOrdersOrderIdRouteImport } from './routes/_authenticated/orders.$orderId'
 import { Route as ApiAdminCatalogSyncRouteImport } from './routes/api/admin/catalog-sync'
 import { Route as ApiCheckoutSubmitRouteImport } from './routes/api/checkout/submit'
@@ -164,6 +165,12 @@ const AuthenticatedAdminAlmaSecure2026ProductsRoute =
     path: '/products',
     getParentRoute: () => AuthenticatedAdminAlmaSecure2026Route,
   } as any)
+const AuthenticatedAdminAlmaSecure2026SettingsRoute =
+  AuthenticatedAdminAlmaSecure2026SettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAdminAlmaSecure2026Route,
+  } as any)
 const AuthenticatedOrdersOrderIdRoute =
   AuthenticatedOrdersOrderIdRouteImport.update({
     id: '/orders/$orderId',
@@ -250,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/admin-alma-secure-2026/ai': typeof AuthenticatedAdminAlmaSecure2026AiRoute
   '/admin-alma-secure-2026/companies': typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
   '/admin-alma-secure-2026/products': typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
+  '/admin-alma-secure-2026/settings': typeof AuthenticatedAdminAlmaSecure2026SettingsRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/api/admin/catalog-sync': typeof ApiAdminCatalogSyncRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
@@ -284,6 +292,7 @@ export interface FileRoutesByTo {
   '/admin-alma-secure-2026/ai': typeof AuthenticatedAdminAlmaSecure2026AiRoute
   '/admin-alma-secure-2026/companies': typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
   '/admin-alma-secure-2026/products': typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
+  '/admin-alma-secure-2026/settings': typeof AuthenticatedAdminAlmaSecure2026SettingsRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/api/admin/catalog-sync': typeof ApiAdminCatalogSyncRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
@@ -322,6 +331,7 @@ export interface FileRoutesById {
   '/_authenticated/admin-alma-secure-2026/ai': typeof AuthenticatedAdminAlmaSecure2026AiRoute
   '/_authenticated/admin-alma-secure-2026/companies': typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
   '/_authenticated/admin-alma-secure-2026/products': typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
+  '/_authenticated/admin-alma-secure-2026/settings': typeof AuthenticatedAdminAlmaSecure2026SettingsRoute
   '/_authenticated/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/api/admin/catalog-sync': typeof ApiAdminCatalogSyncRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
@@ -360,6 +370,7 @@ export interface FileRouteTypes {
     | '/admin-alma-secure-2026/ai'
     | '/admin-alma-secure-2026/companies'
     | '/admin-alma-secure-2026/products'
+    | '/admin-alma-secure-2026/settings'
     | '/orders/$orderId'
     | '/api/admin/catalog-sync'
     | '/api/checkout/submit'
@@ -394,6 +405,7 @@ export interface FileRouteTypes {
     | '/admin-alma-secure-2026/ai'
     | '/admin-alma-secure-2026/companies'
     | '/admin-alma-secure-2026/products'
+    | '/admin-alma-secure-2026/settings'
     | '/orders/$orderId'
     | '/api/admin/catalog-sync'
     | '/api/checkout/submit'
@@ -431,6 +443,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin-alma-secure-2026/ai'
     | '/_authenticated/admin-alma-secure-2026/companies'
     | '/_authenticated/admin-alma-secure-2026/products'
+    | '/_authenticated/admin-alma-secure-2026/settings'
     | '/_authenticated/orders/$orderId'
     | '/api/admin/catalog-sync'
     | '/api/checkout/submit'
@@ -637,6 +650,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAlmaSecure2026ProductsRouteImport
       parentRoute: typeof AuthenticatedAdminAlmaSecure2026Route
     }
+    '/_authenticated/admin-alma-secure-2026/settings': {
+      id: '/_authenticated/admin-alma-secure-2026/settings'
+      path: '/settings'
+      fullPath: '/admin-alma-secure-2026/settings'
+      preLoaderRoute: typeof AuthenticatedAdminAlmaSecure2026SettingsRouteImport
+      parentRoute: typeof AuthenticatedAdminAlmaSecure2026Route
+    }
     '/_authenticated/orders/$orderId': {
       id: '/_authenticated/orders/$orderId'
       path: '/orders/$orderId'
@@ -728,6 +748,7 @@ interface AuthenticatedAdminAlmaSecure2026RouteChildren {
   AuthenticatedAdminAlmaSecure2026AiRoute: typeof AuthenticatedAdminAlmaSecure2026AiRoute
   AuthenticatedAdminAlmaSecure2026CompaniesRoute: typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
   AuthenticatedAdminAlmaSecure2026ProductsRoute: typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
+  AuthenticatedAdminAlmaSecure2026SettingsRoute: typeof AuthenticatedAdminAlmaSecure2026SettingsRoute
   AuthenticatedAdminAlmaSecure2026IndexRoute: typeof AuthenticatedAdminAlmaSecure2026IndexRoute
   AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute: typeof AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute
 }
@@ -740,6 +761,8 @@ const AuthenticatedAdminAlmaSecure2026RouteChildren: AuthenticatedAdminAlmaSecur
       AuthenticatedAdminAlmaSecure2026CompaniesRoute,
     AuthenticatedAdminAlmaSecure2026ProductsRoute:
       AuthenticatedAdminAlmaSecure2026ProductsRoute,
+    AuthenticatedAdminAlmaSecure2026SettingsRoute:
+      AuthenticatedAdminAlmaSecure2026SettingsRoute,
     AuthenticatedAdminAlmaSecure2026IndexRoute:
       AuthenticatedAdminAlmaSecure2026IndexRoute,
     AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute:
@@ -810,13 +833,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
