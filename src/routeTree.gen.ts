@@ -20,6 +20,7 @@ import { Route as SitemapCategoriesDotxmlRouteImport } from './routes/sitemap-ca
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SuccessRouteImport } from './routes/success'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AuthenticatedAdminAlmaSecure2026RouteImport } from './routes/_authenticated/admin-alma-secure-2026'
 import { Route as AuthenticatedCabinetRouteImport } from './routes/_authenticated/cabinet'
 import { Route as ApiCartRouteImport } from './routes/api/cart'
 import { Route as ApiSearchRouteImport } from './routes/api/search'
@@ -27,6 +28,11 @@ import { Route as ApiShippingCalcRouteImport } from './routes/api/shipping-calc'
 import { Route as CatalogIndexRouteImport } from './routes/catalog.index'
 import { Route as CatalogSplatRouteImport } from './routes/catalog.$'
 import { Route as SitemapProductsPageRouteImport } from './routes/sitemap-products.$page'
+import { Route as AuthenticatedAdminAlmaSecure2026IndexRouteImport } from './routes/_authenticated/admin-alma-secure-2026.index'
+import { Route as AuthenticatedAdminAlmaSecure2026AiRouteImport } from './routes/_authenticated/admin-alma-secure-2026.ai'
+import { Route as AuthenticatedAdminAlmaSecure2026CompaniesRouteImport } from './routes/_authenticated/admin-alma-secure-2026.companies'
+import { Route as AuthenticatedAdminAlmaSecure2026ProductsRouteImport } from './routes/_authenticated/admin-alma-secure-2026.products'
+import { Route as AuthenticatedAdminAlmaSecure2026SettingsRouteImport } from './routes/_authenticated/admin-alma-secure-2026.settings'
 import { Route as AuthenticatedOrdersOrderIdRouteImport } from './routes/_authenticated/orders.$orderId'
 import { Route as ApiAdminCatalogSyncRouteImport } from './routes/api/admin/catalog-sync'
 import { Route as ApiCheckoutSubmitRouteImport } from './routes/api/checkout/submit'
@@ -36,6 +42,7 @@ import { Route as ApiParserUploadRouteImport } from './routes/api/parser/upload'
 import { Route as ApiQuizSubmitRouteImport } from './routes/api/quiz/submit'
 import { Route as ApiUploadPresignedUrlRouteImport } from './routes/api/upload/presigned-url'
 import { Route as ApiVisionIdentifyRouteImport } from './routes/api/vision/identify'
+import { Route as AuthenticatedAdminAlmaSecure2026OrdersOrderIdRouteImport } from './routes/_authenticated/admin-alma-secure-2026.orders.$orderId'
 import { Route as ApiPublicCadSplatRouteImport } from './routes/api/public/cad/$'
 import { Route as ApiPublicWebhooksCarrierRouteImport } from './routes/api/public/webhooks/carrier'
 
@@ -93,6 +100,12 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminAlmaSecure2026Route =
+  AuthenticatedAdminAlmaSecure2026RouteImport.update({
+    id: '/admin-alma-secure-2026',
+    path: '/admin-alma-secure-2026',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCabinetRoute = AuthenticatedCabinetRouteImport.update({
   id: '/cabinet',
   path: '/cabinet',
@@ -128,6 +141,36 @@ const SitemapProductsPageRoute = SitemapProductsPageRouteImport.update({
   path: '/sitemap-products/$page',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminAlmaSecure2026IndexRoute =
+  AuthenticatedAdminAlmaSecure2026IndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAdminAlmaSecure2026Route,
+  } as any)
+const AuthenticatedAdminAlmaSecure2026AiRoute =
+  AuthenticatedAdminAlmaSecure2026AiRouteImport.update({
+    id: '/ai',
+    path: '/ai',
+    getParentRoute: () => AuthenticatedAdminAlmaSecure2026Route,
+  } as any)
+const AuthenticatedAdminAlmaSecure2026CompaniesRoute =
+  AuthenticatedAdminAlmaSecure2026CompaniesRouteImport.update({
+    id: '/companies',
+    path: '/companies',
+    getParentRoute: () => AuthenticatedAdminAlmaSecure2026Route,
+  } as any)
+const AuthenticatedAdminAlmaSecure2026ProductsRoute =
+  AuthenticatedAdminAlmaSecure2026ProductsRouteImport.update({
+    id: '/products',
+    path: '/products',
+    getParentRoute: () => AuthenticatedAdminAlmaSecure2026Route,
+  } as any)
+const AuthenticatedAdminAlmaSecure2026SettingsRoute =
+  AuthenticatedAdminAlmaSecure2026SettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAdminAlmaSecure2026Route,
+  } as any)
 const AuthenticatedOrdersOrderIdRoute =
   AuthenticatedOrdersOrderIdRouteImport.update({
     id: '/orders/$orderId',
@@ -174,6 +217,12 @@ const ApiVisionIdentifyRoute = ApiVisionIdentifyRouteImport.update({
   path: '/api/vision/identify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute =
+  AuthenticatedAdminAlmaSecure2026OrdersOrderIdRouteImport.update({
+    id: '/orders/$orderId',
+    path: '/orders/$orderId',
+    getParentRoute: () => AuthenticatedAdminAlmaSecure2026Route,
+  } as any)
 const ApiPublicCadSplatRoute = ApiPublicCadSplatRouteImport.update({
   id: '/api/public/cad/$',
   path: '/api/public/cad/$',
@@ -197,6 +246,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
   '/terms': typeof TermsRoute
+  '/admin-alma-secure-2026': typeof AuthenticatedAdminAlmaSecure2026RouteWithChildren
   '/cabinet': typeof AuthenticatedCabinetRoute
   '/api/cart': typeof ApiCartRoute
   '/api/search': typeof ApiSearchRoute
@@ -204,6 +254,10 @@ export interface FileRoutesByFullPath {
   '/catalog/$': typeof CatalogSplatRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/catalog/': typeof CatalogIndexRoute
+  '/admin-alma-secure-2026/ai': typeof AuthenticatedAdminAlmaSecure2026AiRoute
+  '/admin-alma-secure-2026/companies': typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
+  '/admin-alma-secure-2026/products': typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
+  '/admin-alma-secure-2026/settings': typeof AuthenticatedAdminAlmaSecure2026SettingsRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/api/admin/catalog-sync': typeof ApiAdminCatalogSyncRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
@@ -213,6 +267,8 @@ export interface FileRoutesByFullPath {
   '/api/quiz/submit': typeof ApiQuizSubmitRoute
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
   '/api/vision/identify': typeof ApiVisionIdentifyRoute
+  '/admin-alma-secure-2026/': typeof AuthenticatedAdminAlmaSecure2026IndexRoute
+  '/admin-alma-secure-2026/orders/$orderId': typeof AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
   '/api/public/webhooks/carrier': typeof ApiPublicWebhooksCarrierRoute
 }
@@ -233,6 +289,10 @@ export interface FileRoutesByTo {
   '/catalog/$': typeof CatalogSplatRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/catalog': typeof CatalogIndexRoute
+  '/admin-alma-secure-2026/ai': typeof AuthenticatedAdminAlmaSecure2026AiRoute
+  '/admin-alma-secure-2026/companies': typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
+  '/admin-alma-secure-2026/products': typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
+  '/admin-alma-secure-2026/settings': typeof AuthenticatedAdminAlmaSecure2026SettingsRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/api/admin/catalog-sync': typeof ApiAdminCatalogSyncRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
@@ -242,6 +302,8 @@ export interface FileRoutesByTo {
   '/api/quiz/submit': typeof ApiQuizSubmitRoute
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
   '/api/vision/identify': typeof ApiVisionIdentifyRoute
+  '/admin-alma-secure-2026': typeof AuthenticatedAdminAlmaSecure2026IndexRoute
+  '/admin-alma-secure-2026/orders/$orderId': typeof AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
   '/api/public/webhooks/carrier': typeof ApiPublicWebhooksCarrierRoute
 }
@@ -258,6 +320,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/success': typeof SuccessRoute
   '/terms': typeof TermsRoute
+  '/_authenticated/admin-alma-secure-2026': typeof AuthenticatedAdminAlmaSecure2026RouteWithChildren
   '/_authenticated/cabinet': typeof AuthenticatedCabinetRoute
   '/api/cart': typeof ApiCartRoute
   '/api/search': typeof ApiSearchRoute
@@ -265,6 +328,10 @@ export interface FileRoutesById {
   '/catalog/$': typeof CatalogSplatRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/catalog/': typeof CatalogIndexRoute
+  '/_authenticated/admin-alma-secure-2026/ai': typeof AuthenticatedAdminAlmaSecure2026AiRoute
+  '/_authenticated/admin-alma-secure-2026/companies': typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
+  '/_authenticated/admin-alma-secure-2026/products': typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
+  '/_authenticated/admin-alma-secure-2026/settings': typeof AuthenticatedAdminAlmaSecure2026SettingsRoute
   '/_authenticated/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/api/admin/catalog-sync': typeof ApiAdminCatalogSyncRoute
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
@@ -274,6 +341,8 @@ export interface FileRoutesById {
   '/api/quiz/submit': typeof ApiQuizSubmitRoute
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
   '/api/vision/identify': typeof ApiVisionIdentifyRoute
+  '/_authenticated/admin-alma-secure-2026/': typeof AuthenticatedAdminAlmaSecure2026IndexRoute
+  '/_authenticated/admin-alma-secure-2026/orders/$orderId': typeof AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
   '/api/public/webhooks/carrier': typeof ApiPublicWebhooksCarrierRoute
 }
@@ -290,6 +359,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/success'
     | '/terms'
+    | '/admin-alma-secure-2026'
     | '/cabinet'
     | '/api/cart'
     | '/api/search'
@@ -297,6 +367,10 @@ export interface FileRouteTypes {
     | '/catalog/$'
     | '/sitemap-products/$page'
     | '/catalog/'
+    | '/admin-alma-secure-2026/ai'
+    | '/admin-alma-secure-2026/companies'
+    | '/admin-alma-secure-2026/products'
+    | '/admin-alma-secure-2026/settings'
     | '/orders/$orderId'
     | '/api/admin/catalog-sync'
     | '/api/checkout/submit'
@@ -306,6 +380,8 @@ export interface FileRouteTypes {
     | '/api/quiz/submit'
     | '/api/upload/presigned-url'
     | '/api/vision/identify'
+    | '/admin-alma-secure-2026/'
+    | '/admin-alma-secure-2026/orders/$orderId'
     | '/api/public/cad/$'
     | '/api/public/webhooks/carrier'
   fileRoutesByTo: FileRoutesByTo
@@ -326,6 +402,10 @@ export interface FileRouteTypes {
     | '/catalog/$'
     | '/sitemap-products/$page'
     | '/catalog'
+    | '/admin-alma-secure-2026/ai'
+    | '/admin-alma-secure-2026/companies'
+    | '/admin-alma-secure-2026/products'
+    | '/admin-alma-secure-2026/settings'
     | '/orders/$orderId'
     | '/api/admin/catalog-sync'
     | '/api/checkout/submit'
@@ -335,6 +415,8 @@ export interface FileRouteTypes {
     | '/api/quiz/submit'
     | '/api/upload/presigned-url'
     | '/api/vision/identify'
+    | '/admin-alma-secure-2026'
+    | '/admin-alma-secure-2026/orders/$orderId'
     | '/api/public/cad/$'
     | '/api/public/webhooks/carrier'
   id:
@@ -350,6 +432,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/success'
     | '/terms'
+    | '/_authenticated/admin-alma-secure-2026'
     | '/_authenticated/cabinet'
     | '/api/cart'
     | '/api/search'
@@ -357,6 +440,10 @@ export interface FileRouteTypes {
     | '/catalog/$'
     | '/sitemap-products/$page'
     | '/catalog/'
+    | '/_authenticated/admin-alma-secure-2026/ai'
+    | '/_authenticated/admin-alma-secure-2026/companies'
+    | '/_authenticated/admin-alma-secure-2026/products'
+    | '/_authenticated/admin-alma-secure-2026/settings'
     | '/_authenticated/orders/$orderId'
     | '/api/admin/catalog-sync'
     | '/api/checkout/submit'
@@ -366,6 +453,8 @@ export interface FileRouteTypes {
     | '/api/quiz/submit'
     | '/api/upload/presigned-url'
     | '/api/vision/identify'
+    | '/_authenticated/admin-alma-secure-2026/'
+    | '/_authenticated/admin-alma-secure-2026/orders/$orderId'
     | '/api/public/cad/$'
     | '/api/public/webhooks/carrier'
   fileRoutesById: FileRoutesById
@@ -477,6 +566,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin-alma-secure-2026': {
+      id: '/_authenticated/admin-alma-secure-2026'
+      path: '/admin-alma-secure-2026'
+      fullPath: '/admin-alma-secure-2026'
+      preLoaderRoute: typeof AuthenticatedAdminAlmaSecure2026RouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/cabinet': {
       id: '/_authenticated/cabinet'
       path: '/cabinet'
@@ -525,6 +621,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/sitemap-products/$page'
       preLoaderRoute: typeof SitemapProductsPageRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin-alma-secure-2026/': {
+      id: '/_authenticated/admin-alma-secure-2026/'
+      path: '/'
+      fullPath: '/admin-alma-secure-2026/'
+      preLoaderRoute: typeof AuthenticatedAdminAlmaSecure2026IndexRouteImport
+      parentRoute: typeof AuthenticatedAdminAlmaSecure2026Route
+    }
+    '/_authenticated/admin-alma-secure-2026/ai': {
+      id: '/_authenticated/admin-alma-secure-2026/ai'
+      path: '/ai'
+      fullPath: '/admin-alma-secure-2026/ai'
+      preLoaderRoute: typeof AuthenticatedAdminAlmaSecure2026AiRouteImport
+      parentRoute: typeof AuthenticatedAdminAlmaSecure2026Route
+    }
+    '/_authenticated/admin-alma-secure-2026/companies': {
+      id: '/_authenticated/admin-alma-secure-2026/companies'
+      path: '/companies'
+      fullPath: '/admin-alma-secure-2026/companies'
+      preLoaderRoute: typeof AuthenticatedAdminAlmaSecure2026CompaniesRouteImport
+      parentRoute: typeof AuthenticatedAdminAlmaSecure2026Route
+    }
+    '/_authenticated/admin-alma-secure-2026/products': {
+      id: '/_authenticated/admin-alma-secure-2026/products'
+      path: '/products'
+      fullPath: '/admin-alma-secure-2026/products'
+      preLoaderRoute: typeof AuthenticatedAdminAlmaSecure2026ProductsRouteImport
+      parentRoute: typeof AuthenticatedAdminAlmaSecure2026Route
+    }
+    '/_authenticated/admin-alma-secure-2026/settings': {
+      id: '/_authenticated/admin-alma-secure-2026/settings'
+      path: '/settings'
+      fullPath: '/admin-alma-secure-2026/settings'
+      preLoaderRoute: typeof AuthenticatedAdminAlmaSecure2026SettingsRouteImport
+      parentRoute: typeof AuthenticatedAdminAlmaSecure2026Route
     }
     '/_authenticated/orders/$orderId': {
       id: '/_authenticated/orders/$orderId'
@@ -589,6 +720,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiVisionIdentifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin-alma-secure-2026/orders/$orderId': {
+      id: '/_authenticated/admin-alma-secure-2026/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/admin-alma-secure-2026/orders/$orderId'
+      preLoaderRoute: typeof AuthenticatedAdminAlmaSecure2026OrdersOrderIdRouteImport
+      parentRoute: typeof AuthenticatedAdminAlmaSecure2026Route
+    }
     '/api/public/cad/$': {
       id: '/api/public/cad/$'
       path: '/api/public/cad/$'
@@ -606,12 +744,45 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminAlmaSecure2026RouteChildren {
+  AuthenticatedAdminAlmaSecure2026AiRoute: typeof AuthenticatedAdminAlmaSecure2026AiRoute
+  AuthenticatedAdminAlmaSecure2026CompaniesRoute: typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
+  AuthenticatedAdminAlmaSecure2026ProductsRoute: typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
+  AuthenticatedAdminAlmaSecure2026SettingsRoute: typeof AuthenticatedAdminAlmaSecure2026SettingsRoute
+  AuthenticatedAdminAlmaSecure2026IndexRoute: typeof AuthenticatedAdminAlmaSecure2026IndexRoute
+  AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute: typeof AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute
+}
+
+const AuthenticatedAdminAlmaSecure2026RouteChildren: AuthenticatedAdminAlmaSecure2026RouteChildren =
+  {
+    AuthenticatedAdminAlmaSecure2026AiRoute:
+      AuthenticatedAdminAlmaSecure2026AiRoute,
+    AuthenticatedAdminAlmaSecure2026CompaniesRoute:
+      AuthenticatedAdminAlmaSecure2026CompaniesRoute,
+    AuthenticatedAdminAlmaSecure2026ProductsRoute:
+      AuthenticatedAdminAlmaSecure2026ProductsRoute,
+    AuthenticatedAdminAlmaSecure2026SettingsRoute:
+      AuthenticatedAdminAlmaSecure2026SettingsRoute,
+    AuthenticatedAdminAlmaSecure2026IndexRoute:
+      AuthenticatedAdminAlmaSecure2026IndexRoute,
+    AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute:
+      AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute,
+  }
+
+const AuthenticatedAdminAlmaSecure2026RouteWithChildren =
+  AuthenticatedAdminAlmaSecure2026Route._addFileChildren(
+    AuthenticatedAdminAlmaSecure2026RouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminAlmaSecure2026Route: typeof AuthenticatedAdminAlmaSecure2026RouteWithChildren
   AuthenticatedCabinetRoute: typeof AuthenticatedCabinetRoute
   AuthenticatedOrdersOrderIdRoute: typeof AuthenticatedOrdersOrderIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminAlmaSecure2026Route:
+    AuthenticatedAdminAlmaSecure2026RouteWithChildren,
   AuthenticatedCabinetRoute: AuthenticatedCabinetRoute,
   AuthenticatedOrdersOrderIdRoute: AuthenticatedOrdersOrderIdRoute,
 }
