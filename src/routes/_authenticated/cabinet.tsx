@@ -17,6 +17,8 @@ import {
 import { SiteHeader } from "@/components/site-header";
 import { BackLink } from "@/components/back-link";
 import { formatPrice } from "@/lib/pricing";
+import { innHint, isValidInn, sanitizeInn } from "@/lib/inn";
+
 import { STAGES, TIER_META, stageIndex, tierProgress, type LoyaltyTier } from "@/lib/loyalty";
 import { addCompanyByInn, getCabinet, removeCompany, repeatOrder } from "@/lib/cabinet.functions";
 import { supabase } from "@/integrations/supabase/client";
