@@ -6,6 +6,8 @@ import { SiteHeader } from "@/components/site-header";
 import { BackLink } from "@/components/back-link";
 import { supabase } from "@/integrations/supabase/client";
 import { ConsentCheckbox } from "@/components/consent-checkbox";
+import { authErrorField, authErrorMessage } from "@/lib/auth-errors";
+
 
 type Mode = "login" | "register" | "magic" | "forgot";
 
