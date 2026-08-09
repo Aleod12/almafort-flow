@@ -113,7 +113,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="ru">
       <head>
         <HeadContent />
       </head>
@@ -125,6 +125,45 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+/** Режим техработ: включается в панели управления, персонал внутрь пускаем. */
+function MaintenanceGate() {
+  const location = useLocation();
+  const [state, setState] = useState<{ enabled: boolean; message: string } | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    void supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "maintenance_mode")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!alive) return;
+        const v = (data as { value?: { enabled?: boolean; message?: string } } | null)?.value;
+        setState({ enabled: Boolean(v?.enabled), message: v?.message ?? "" });
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const exempt =
+    location.pathname.startsWith("/admin-alma-secure-2026") ||
+    location.pathname.startsWith("/auth");
+  if (!state?.enabled || exempt) return null;
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-background/98 p-6 text-center">
+      <div className="max-w-lg space-y-3">
+        <h1 className="text-2xl font-bold">Идут технические работы</h1>
+        <p className="text-muted-foreground">
+          {state.message || "Приём заказов временно приостановлен. Скоро вернёмся."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -132,6 +171,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <MaintenanceGate />
       <Toaster />
     </QueryClientProvider>
   );
