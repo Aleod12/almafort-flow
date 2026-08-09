@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Clock, MapPin, Phone, UserRound, Menu } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
   { label: "Каталог", href: "/catalog" },
@@ -13,6 +14,8 @@ const NAV = [
 export function SiteHeader() {
   const [elevated, setElevated] = useState(false);
   const [open, setOpen] = useState(false);
+  /** null — сессия ещё не прочитана (SSR-safe), иначе e-mail снабженца или "". */
+  const [account, setAccount] = useState<string | null>(null);
 
   useEffect(() => {
     const onScroll = () => setElevated(window.scrollY > 8);
@@ -20,6 +23,25 @@ export function SiteHeader() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    let alive = true;
+    const sync = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (alive) setAccount(data.session?.user.email ?? "");
+    };
+    void sync();
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") void sync();
+    });
+    return () => {
+      alive = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  const authed = Boolean(account);
+
 
   return (
     <header

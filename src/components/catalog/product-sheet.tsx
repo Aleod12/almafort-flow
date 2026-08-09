@@ -3,10 +3,9 @@ import { Download, FileText, Layers, Ruler, Truck } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { Product } from "@/data/catalog";
 import { trackCadDownload } from "@/lib/metrika";
+import { CityInput, type CityValue } from "@/components/cart/city-input";
 
 const CadViewer = lazy(() => import("@/components/catalog/cad-viewer"));
-
-const CITIES = ["Екатеринбург", "Москва", "Новосибирск", "Казань"];
 
 export function ProductSheet({
   product,
@@ -15,7 +14,8 @@ export function ProductSheet({
   product: Product | null;
   onClose: () => void;
 }) {
-  const [city, setCity] = useState(CITIES[0]!);
+  const [city, setCity] = useState<CityValue>({ city: "", fiasId: null });
+
 
   const logistics = useMemo(() => {
     if (!product) return [];
