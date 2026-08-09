@@ -6,6 +6,7 @@ import { Check, FileUp, Loader2, X } from "lucide-react";
 import { uploadToS3, validateFile } from "@/lib/direct-upload";
 import { getRecaptchaToken } from "@/lib/recaptcha";
 import { ConsentCheckbox } from "@/components/consent-checkbox";
+import engineeringAnalysisAsset from "@/assets/services/engineering-analysis.jpg.asset.json";
 
 type Upload = {
   id: string;
