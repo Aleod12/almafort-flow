@@ -170,8 +170,11 @@ const SCHEMA = {
   required: ["recommended_items", "engineering_logic", "safety_margin_factor", "is_service"],
 } as const;
 
-/** Собирает ответ LLM из SSE-потока /v1/responses. */
-async function streamResponsesText(body: unknown, apiKey: string): Promise<string> {
+/** Собирает ответ LLM из SSE-потока /v1/responses вместе с расходом токенов. */
+async function streamResponsesText(
+  body: unknown,
+  apiKey: string,
+): Promise<{ text: string; usage: LlmUsage }> {
   const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
     method: "POST",
     headers: {
