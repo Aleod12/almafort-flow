@@ -56,7 +56,7 @@ export function CartPanel() {
   const setQuoteError = useCart((s) => s.setQuoteError);
 
   // Грейд лояльности закрепляет оптовую колонку на любой объём.
-  const { tier, authed, minColumn, credit } = useLoyalty();
+  const { tier, authed, verified, minColumn, credit } = useLoyalty();
   const { goods, weight, volume } = useMemo(
     () => cartTotals(lines, minColumn),
     [lines, minColumn],
@@ -121,7 +121,8 @@ export function CartPanel() {
   const [consent, setConsent] = useState(false);
   const [triedSubmit, setTriedSubmit] = useState(false);
   const cartReady = Boolean(lines.length) && !pendingQuote;
-  const ctaDisabled = !cartReady || !consent;
+  const unverified = authed && !verified;
+  const ctaDisabled = !cartReady || !consent || unverified;
 
   const [form, setForm] = useState({ name: "", phone: "", email: "", company: "", comment: "" });
   const [submitting, setSubmitting] = useState(false);
@@ -496,6 +497,13 @@ export function CartPanel() {
               />
               Отгрузить с отсрочкой платежа (15–30 дней по договору)
             </label>
+          )}
+
+          {unverified && (
+            <p className="mt-4 rounded-sm border border-primary/40 bg-primary/5 px-3 py-2 text-xs leading-[1.5] text-foreground">
+              Почта не подтверждена. Откройте письмо ALMAFORT и перейдите по ссылке — оформление
+              заказов в кабинете разблокируется сразу после подтверждения.
+            </p>
           )}
 
           <button

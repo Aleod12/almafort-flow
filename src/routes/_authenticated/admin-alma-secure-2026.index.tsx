@@ -104,7 +104,8 @@ function OrdersRegistry() {
                 <td className="px-4 py-3 text-right tabular-nums">{formatPrice(Number(o.total))}</td>
                 <td className="px-4 py-3 text-right">
                   <Link
-                    to={`${ADMIN_BASE}/orders/${o.id}`}
+                    to="/admin-alma-secure-2026/orders/$orderId"
+                    params={{ orderId: o.id }}
                     className="rounded-md border px-3 py-1.5 text-xs transition-colors hover:bg-muted"
                   >
                     Открыть

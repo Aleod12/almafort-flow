@@ -8,6 +8,7 @@ export type PartyInfo = {
   name: string;
   legalAddress: string | null;
   ogrn: string | null;
+  director: string | null;
   source: "dadata" | "manual";
 };
 
@@ -19,6 +20,7 @@ export async function findPartyByInn(inn: string): Promise<PartyInfo> {
     name: "",
     legalAddress: null,
     ogrn: null,
+    director: null,
     source: "manual",
   };
   if (!token) return fallback;
@@ -43,6 +45,8 @@ export async function findPartyByInn(inn: string): Promise<PartyInfo> {
         ogrn?: string;
         address?: { unrestricted_value?: string; value?: string };
         name?: { short_with_opf?: string; full_with_opf?: string };
+        management?: { name?: string; post?: string };
+        fio?: { surname?: string; name?: string; patronymic?: string };
       };
     }>;
   };
@@ -54,6 +58,10 @@ export async function findPartyByInn(inn: string): Promise<PartyInfo> {
     name: s.data.name?.short_with_opf ?? s.value ?? "",
     legalAddress: s.data.address?.unrestricted_value ?? s.data.address?.value ?? null,
     ogrn: s.data.ogrn ?? null,
+    director:
+      s.data.management?.name ??
+      ([s.data.fio?.surname, s.data.fio?.name, s.data.fio?.patronymic].filter(Boolean).join(" ") ||
+        null),
     source: "dadata",
   };
 }

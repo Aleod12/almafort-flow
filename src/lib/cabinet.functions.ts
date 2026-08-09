@@ -105,6 +105,7 @@ export const addCompanyByInn = createServerFn({ method: "POST" })
           name: party.name,
           legal_address: party.legalAddress,
           ogrn: party.ogrn,
+          director: party.director,
         },
         { onConflict: "user_id,inn" },
       )
@@ -151,7 +152,17 @@ export const saveOrderToCabinet = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { supabase, userId, claims } = context;
+    const emailVerified =
+      (claims as { email_verified?: boolean; user_metadata?: { email_verified?: boolean } })
+        ?.email_verified ??
+      (claims as { user_metadata?: { email_verified?: boolean } })?.user_metadata?.email_verified ??
+      false;
+    if (!emailVerified) {
+      throw new Error(
+        "Почта не подтверждена. Откройте письмо ALMAFORT и перейдите по ссылке — после этого оформление заказов в кабинете разблокируется.",
+      );
+    }
     const { data: order, error } = await supabase
       .from("orders")
       .insert({
@@ -206,5 +217,25 @@ export const repeatOrder = createServerFn({ method: "POST" })
       .array(z.object({ sku: z.string(), quantity: z.number() }).passthrough())
       .catch([])
       .parse(order.items);
-    return { items: items.map((i) => ({ sku: i.sku, quantity: Math.max(1, Math.round(i.quantity)) })) };
+
+    // Свежие цены и актуальное наличие берём из текущего каталога, а не из старой сделки.
+    const { PRODUCTS } = await import("@/data/catalog");
+    const { unitPriceOf } = await import("@/lib/pricing");
+    const lines = items.map((i) => {
+      const qty = Math.max(1, Math.round(i.quantity));
+      const product = PRODUCTS.find((p) => p.sku === i.sku);
+      return {
+        sku: i.sku,
+        quantity: qty,
+        available: Boolean(product) && !product!.is_service,
+        name: product?.name ?? String(i.sku),
+        unit: product ? unitPriceOf(product, qty) : 0,
+        inStock: (product?.stock.qty ?? 0) >= qty,
+        lead: product?.stock.lead ?? null,
+      };
+    });
+    return {
+      items: lines.filter((l) => l.available),
+      unavailable: lines.filter((l) => !l.available).map((l) => l.name),
+    };
   });

@@ -52,8 +52,11 @@ function OrderPage() {
 
   const onRepeat = async () => {
     try {
-      const { items } = await repeat({ data: { orderId } });
+      const { items, unavailable } = await repeat({ data: { orderId } });
       items.forEach((i) => addLine(i.sku, i.quantity));
+      if (unavailable.length) {
+        toast.warning(`Снято с производства и не перенесено: ${unavailable.join(", ")}`);
+      }
       toast.success("Спецификация перенесена в корзину по актуальным ценам");
       void navigate({ to: "/cart" });
     } catch (e) {
