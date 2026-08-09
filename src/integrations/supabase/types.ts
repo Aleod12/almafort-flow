@@ -73,6 +73,7 @@ export type Database = {
           assigned_tier: number
           created_at: string
           credit_allowed: boolean
+          director: string | null
           id: string
           inn: string
           is_default: boolean
@@ -89,6 +90,7 @@ export type Database = {
           assigned_tier?: number
           created_at?: string
           credit_allowed?: boolean
+          director?: string | null
           id?: string
           inn: string
           is_default?: boolean
@@ -105,6 +107,7 @@ export type Database = {
           assigned_tier?: number
           created_at?: string
           credit_allowed?: boolean
+          director?: string | null
           id?: string
           inn?: string
           is_default?: boolean
@@ -454,6 +457,7 @@ export type Database = {
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       my_loyalty: { Args: never; Returns: Json }
+      recalc_company_tiers: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "owner" | "manager" | "content"
