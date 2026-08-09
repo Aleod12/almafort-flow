@@ -4,6 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import type { Product } from "@/data/catalog";
 import { trackCadDownload } from "@/lib/metrika";
 import { CityInput, type CityValue } from "@/components/cart/city-input";
+import { useAssetGroups } from "@/lib/asset-groups";
+
 
 const CadViewer = lazy(() => import("@/components/catalog/cad-viewer"));
 
@@ -15,6 +17,9 @@ export function ProductSheet({
   onClose: () => void;
 }) {
   const [city, setCity] = useState<CityValue>({ city: "", fiasId: null });
+  const assets = useAssetGroups();
+  const assetGroup = product ? assets.get(product.sku) : undefined;
+
 
 
   const logistics = useMemo(() => {
@@ -120,6 +125,13 @@ export function ProductSheet({
                     </div>
                   ))}
                 </dl>
+
+                {assetGroup?.description && (
+                  <p className="mt-5 text-sm leading-[1.65] text-foreground">
+                    {assetGroup.description}
+                  </p>
+                )}
+
 
                 <div className="mt-6 space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">

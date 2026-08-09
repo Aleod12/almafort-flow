@@ -68,6 +68,36 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_groups: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          images: Json
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          images?: Json
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          images?: Json
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           assigned_tier: number
@@ -338,6 +368,32 @@ export type Database = {
           },
         ]
       }
+      product_asset_links: {
+        Row: {
+          created_at: string
+          group_id: string
+          sku: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          sku: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          sku?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_asset_links_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "asset_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_overrides: {
         Row: {
           base_price: number | null
@@ -456,6 +512,16 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      link_asset_group: {
+        Args: {
+          _description: string
+          _images: Json
+          _skus: string[]
+          _slug: string
+          _title: string
+        }
+        Returns: string
+      }
       my_loyalty: { Args: never; Returns: Json }
       recalc_company_tiers: { Args: never; Returns: undefined }
     }

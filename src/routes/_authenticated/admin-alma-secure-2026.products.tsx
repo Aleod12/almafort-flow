@@ -8,6 +8,7 @@ import {
   adminSaveProducts,
 } from "@/lib/admin.functions";
 import { formatPrice } from "@/lib/pricing";
+import { AssetLinkModal } from "@/components/admin/asset-link-modal";
 
 export const Route = createFileRoute("/_authenticated/admin-alma-secure-2026/products")({
   component: Pim,
@@ -27,6 +28,8 @@ function Pim() {
   const [draft, setDraft] = useState<Draft>({});
   const [msg, setMsg] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [linkOpen, setLinkOpen] = useState(false);
 
   const { data } = useQuery({ queryKey: ["admin-products"], queryFn: () => list() });
 
@@ -114,6 +117,13 @@ function Pim() {
           />
         </label>
         <button
+          disabled={selected.length === 0}
+          onClick={() => setLinkOpen(true)}
+          className="rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted disabled:opacity-40"
+        >
+          Привязать контент {selected.length ? `(${selected.length})` : ""}
+        </button>
+        <button
           disabled={!dirty || saveMutation.isPending}
           onClick={() => saveMutation.mutate()}
           className="rounded-md bg-[#DC2626] px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-[#B91C1C] hover:shadow-md active:scale-[0.98] disabled:opacity-40"
@@ -138,6 +148,7 @@ function Pim() {
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
             <tr>
+              <th className="px-3 py-3 w-8"></th>
               <th className="px-3 py-3">SKU</th>
               <th className="px-3 py-3">Наименование</th>
               <th className="px-3 py-3 text-right">База</th>
@@ -162,6 +173,21 @@ function Pim() {
               );
               return (
                 <tr key={r.sku} className={`border-t ${d ? "bg-amber-50/60" : ""}`}>
+                  <td className="px-3 py-2">
+                    <input
+                      type="checkbox"
+                      aria-label={`Выбрать ${r.sku}`}
+                      className="cursor-pointer"
+                      checked={selected.includes(r.sku)}
+                      onChange={(e) =>
+                        setSelected((prev) =>
+                          e.target.checked
+                            ? [...prev, r.sku]
+                            : prev.filter((s) => s !== r.sku),
+                        )
+                      }
+                    />
+                  </td>
                   <td className="px-3 py-2 font-mono text-xs">{r.sku}</td>
                   <td className="px-3 py-2">
                     <div>{r.name}</div>
@@ -187,6 +213,16 @@ function Pim() {
           </tbody>
         </table>
       </div>
+
+      {linkOpen && (
+        <AssetLinkModal
+          skus={selected}
+          onClose={() => {
+            setLinkOpen(false);
+            setSelected([]);
+          }}
+        />
+      )}
     </section>
   );
 }
