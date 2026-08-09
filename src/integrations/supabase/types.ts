@@ -14,39 +14,177 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_logs: {
+        Row: {
+          action: string
+          admin_email: string | null
+          admin_id: string | null
+          created_at: string
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          target: string | null
+        }
+        Insert: {
+          action: string
+          admin_email?: string | null
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          target?: string | null
+        }
+        Update: {
+          action?: string
+          admin_email?: string | null
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          target?: string | null
+        }
+        Relationships: []
+      }
+      app_settings: {
+        Row: {
+          is_public: boolean
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          is_public?: boolean
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          is_public?: boolean
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
+          assigned_tier: number
           created_at: string
+          credit_allowed: boolean
           id: string
           inn: string
           is_default: boolean
           kpp: string | null
+          last_activity_at: string
           legal_address: string | null
+          lifetime_value: number
+          manual_tier_override: boolean
           name: string
           ogrn: string | null
           user_id: string
         }
         Insert: {
+          assigned_tier?: number
           created_at?: string
+          credit_allowed?: boolean
           id?: string
           inn: string
           is_default?: boolean
           kpp?: string | null
+          last_activity_at?: string
           legal_address?: string | null
+          lifetime_value?: number
+          manual_tier_override?: boolean
           name: string
           ogrn?: string | null
           user_id: string
         }
         Update: {
+          assigned_tier?: number
           created_at?: string
+          credit_allowed?: boolean
           id?: string
           inn?: string
           is_default?: boolean
           kpp?: string | null
+          last_activity_at?: string
           legal_address?: string | null
+          lifetime_value?: number
+          manual_tier_override?: boolean
           name?: string
           ogrn?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      llm_logs: {
+        Row: {
+          completion_tokens: number
+          cost_usd: number
+          created_at: string
+          id: string
+          kind: string
+          model: string | null
+          parse_status: string
+          prompt: string | null
+          prompt_tokens: number
+          response: string | null
+        }
+        Insert: {
+          completion_tokens?: number
+          cost_usd?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          model?: string | null
+          parse_status?: string
+          prompt?: string | null
+          prompt_tokens?: number
+          response?: string | null
+        }
+        Update: {
+          completion_tokens?: number
+          cost_usd?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          model?: string | null
+          parse_status?: string
+          prompt?: string | null
+          prompt_tokens?: number
+          response?: string | null
+        }
+        Relationships: []
+      }
+      llm_prompts: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          slot: string
+          version: number
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          slot: string
+          version: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          slot?: string
+          version?: number
         }
         Relationships: []
       }
@@ -197,6 +335,51 @@ export type Database = {
           },
         ]
       }
+      product_overrides: {
+        Row: {
+          base_price: number | null
+          created_at: string
+          description: string | null
+          hidden: boolean
+          image_url: string | null
+          model_url: string | null
+          opt1_price: number | null
+          opt2_price: number | null
+          sku: string
+          stock: number | null
+          synonyms: string[]
+          updated_at: string
+        }
+        Insert: {
+          base_price?: number | null
+          created_at?: string
+          description?: string | null
+          hidden?: boolean
+          image_url?: string | null
+          model_url?: string | null
+          opt1_price?: number | null
+          opt2_price?: number | null
+          sku: string
+          stock?: number | null
+          synonyms?: string[]
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number | null
+          created_at?: string
+          description?: string | null
+          hidden?: boolean
+          image_url?: string | null
+          model_url?: string | null
+          opt1_price?: number | null
+          opt2_price?: number | null
+          sku?: string
+          stock?: number | null
+          synonyms?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -236,15 +419,44 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
       my_loyalty: { Args: never; Returns: Json }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "owner" | "manager" | "content"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -371,6 +583,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["owner", "manager", "content"],
+    },
   },
 } as const
