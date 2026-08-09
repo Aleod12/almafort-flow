@@ -62,7 +62,7 @@ export function SiteHeader() {
           </a>
 
           <a
-            href="#account"
+            href="/cabinet"
             aria-label="Личный кабинет"
             className="grid size-9 shrink-0 place-items-center rounded-sm border border-border text-foreground hover:border-primary hover:text-primary"
           >
@@ -105,6 +105,13 @@ export function SiteHeader() {
               </a>
             ))}
           </nav>
+            <a
+              href="/cabinet"
+              onClick={() => setOpen(false)}
+              className="text-sm font-medium text-foreground"
+            >
+              Личный кабинет
+            </a>
           <p className="mt-4 text-xs text-muted-foreground">
             Пн-Пт 08:00–19:00 (МСК+4) · г. Дивногорск, Нижний проезд, 15/1
           </p>
