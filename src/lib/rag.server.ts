@@ -197,6 +197,7 @@ async function streamResponsesText(
   const decoder = new TextDecoder();
   let buffer = "";
   let text = "";
+  const usage: LlmUsage = { prompt_tokens: 0, completion_tokens: 0 };
 
   for (;;) {
     const { done, value } = await reader.read();
@@ -212,12 +213,17 @@ async function streamResponsesText(
         const event = JSON.parse(payload) as {
           type?: string;
           delta?: string;
-          response?: { output_text?: string };
+          response?: {
+            output_text?: string;
+            usage?: { input_tokens?: number; output_tokens?: number };
+          };
         };
         if (event.type === "response.output_text.delta" && typeof event.delta === "string") {
           text += event.delta;
-        } else if (event.type === "response.completed" && !text) {
-          text = event.response?.output_text ?? "";
+        } else if (event.type === "response.completed") {
+          if (!text) text = event.response?.output_text ?? "";
+          usage.prompt_tokens = event.response?.usage?.input_tokens ?? usage.prompt_tokens;
+          usage.completion_tokens = event.response?.usage?.output_tokens ?? usage.completion_tokens;
         }
       } catch {
         /* фрагмент SSE — пропускаем */
@@ -225,7 +231,7 @@ async function streamResponsesText(
     }
   }
 
-  return text.trim();
+  return { text: text.trim(), usage };
 }
 
 /** Каталог для системного контекста: артикул, габарит, все тиры цен и остаток. */
