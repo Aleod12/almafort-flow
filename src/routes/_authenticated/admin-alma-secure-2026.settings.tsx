@@ -10,7 +10,6 @@ import {
   adminSetStaffRole,
 } from "@/lib/admin.functions";
 import { ROLE_LABEL, type AdminRole } from "@/lib/admin";
-import { TwoFactorPanel } from "@/components/admin/two-factor-panel";
 
 export const Route = createFileRoute("/_authenticated/admin-alma-secure-2026/settings")({
   component: Settings,
@@ -81,7 +80,6 @@ function Settings() {
       <h1 className="text-2xl font-bold">Системные настройки</h1>
       {msg && <div className="rounded-lg border bg-background px-4 py-3 text-sm">{msg}</div>}
 
-      <TwoFactorPanel />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className={card}>
