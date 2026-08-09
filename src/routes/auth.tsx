@@ -252,13 +252,25 @@ function AuthPage() {
                   <input
                     type="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setFieldError(null);
+                    }}
                     onKeyDown={(e) => e.key === "Enter" && !disabled && void submit()}
                     placeholder="Минимум 8 символов"
                     autoComplete={mode === "login" ? "current-password" : "new-password"}
-                    className="mt-2 h-11 w-full rounded-sm border border-[#D1D5DB] px-3.5 text-sm outline-none transition-colors focus:border-foreground"
+                    aria-invalid={fieldError?.field === "password"}
+                    className={`mt-2 h-11 w-full rounded-sm border px-3.5 text-sm outline-none transition-colors focus:border-foreground ${
+                      fieldError?.field === "password" ? "border-primary" : "border-[#D1D5DB]"
+                    }`}
                   />
+                  {fieldError?.field === "password" && (
+                    <span className="mt-1.5 block text-xs font-normal leading-[1.5] text-primary">
+                      {fieldError.text}
+                    </span>
+                  )}
                 </label>
+
               )}
 
               {mode === "forgot" && (
