@@ -5,6 +5,8 @@ import { KeyRound, Loader2 } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { BackLink } from "@/components/back-link";
 import { supabase } from "@/integrations/supabase/client";
+import { authErrorMessage } from "@/lib/auth-errors";
+
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -42,7 +44,9 @@ function ResetPasswordPage() {
 
   const save = async () => {
     if (password.length < 8) {
-      toast.error("Пароль — минимум 8 символов");
+      toast.error(
+        "Пароль слишком простой. Используйте минимум 8 символов, заглавные буквы и цифры.",
+      );
       return;
     }
     if (password !== repeat) {
@@ -50,12 +54,13 @@ function ResetPasswordPage() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.auth.updateUser({ password });
+    const { error } = await supabase.auth.updateUser({ password }).catch((e) => ({ error: e }));
     setBusy(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(authErrorMessage(error));
       return;
     }
+
     // Сбрасываем все прочие сессии: украденный refresh-токен становится бесполезным.
     await supabase.auth.signOut({ scope: "others" });
     toast.success("Пароль обновлён — остальные устройства разлогинены");

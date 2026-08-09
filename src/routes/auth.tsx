@@ -6,6 +6,8 @@ import { SiteHeader } from "@/components/site-header";
 import { BackLink } from "@/components/back-link";
 import { supabase } from "@/integrations/supabase/client";
 import { ConsentCheckbox } from "@/components/consent-checkbox";
+import { authErrorField, authErrorMessage } from "@/lib/auth-errors";
+
 
 type Mode = "login" | "register" | "magic" | "forgot";
 
@@ -48,7 +50,12 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   /** Экран «проверьте почту»: подтверждение регистрации, magic-link или сброс. */
   const [sentKind, setSentKind] = useState<null | "verify" | "magic" | "reset">(null);
+  const [fieldError, setFieldError] = useState<{
+    field: "email" | "password";
+    text: string;
+  } | null>(null);
   const navigate = useNavigate();
+
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -61,14 +68,26 @@ function AuthPage() {
   }, [navigate]);
 
   const submit = async () => {
+    setFieldError(null);
     if (!emailOk(email)) {
-      toast.error("Укажите рабочую почту");
+      setFieldError({ field: "email", text: "Укажите корректный рабочий E-mail." });
+      toast.error("Укажите корректный рабочий E-mail.");
       return;
     }
     if ((mode === "login" || mode === "register") && password.length < 8) {
+      setFieldError({
+        field: "password",
+        text: "Пароль слишком простой. Используйте минимум 8 символов, заглавные буквы и цифры.",
+      });
       toast.error("Пароль — минимум 8 символов");
       return;
     }
+    const fail = (error: unknown) => {
+      const text = authErrorMessage(error);
+      const field = authErrorField(error);
+      if (field) setFieldError({ field, text });
+      toast.error(text);
+    };
     setBusy(true);
     try {
       if (mode === "login") {
@@ -77,11 +96,7 @@ function AuthPage() {
           password,
         });
         if (error) {
-          toast.error(
-            /email not confirmed/i.test(error.message)
-              ? "Почта не подтверждена — откройте ссылку из письма"
-              : "Неверная почта или пароль",
-          );
+          fail(error);
           return;
         }
       }
@@ -96,7 +111,7 @@ function AuthPage() {
           },
         });
         if (error) {
-          toast.error(error.message);
+          fail(error);
           return;
         }
         // Пока письмо не подтверждено, сессии нет — кабинет закрыт.
@@ -109,7 +124,7 @@ function AuthPage() {
           options: { emailRedirectTo: `${window.location.origin}/cabinet` },
         });
         if (error) {
-          toast.error(error.message);
+          fail(error);
           return;
         }
         setSentKind("magic");
@@ -120,15 +135,18 @@ function AuthPage() {
           redirectTo: `${window.location.origin}/reset-password`,
         });
         if (error) {
-          toast.error(error.message);
+          fail(error);
           return;
         }
         setSentKind("reset");
       }
+    } catch (e) {
+      fail(e);
     } finally {
       setBusy(false);
     }
   };
+
 
   const needConsent = mode === "register";
   const disabled = busy || (needConsent && !consent);
@@ -208,13 +226,25 @@ function AuthPage() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setFieldError(null);
+                  }}
                   onKeyDown={(e) => e.key === "Enter" && !disabled && void submit()}
                   placeholder="snab@zavod.ru"
                   autoComplete="email"
-                  className="mt-2 h-11 w-full rounded-sm border border-[#D1D5DB] px-3.5 text-sm outline-none transition-colors focus:border-foreground"
+                  aria-invalid={fieldError?.field === "email"}
+                  className={`mt-2 h-11 w-full rounded-sm border px-3.5 text-sm outline-none transition-colors focus:border-foreground ${
+                    fieldError?.field === "email" ? "border-primary" : "border-[#D1D5DB]"
+                  }`}
                 />
+                {fieldError?.field === "email" && (
+                  <span className="mt-1.5 block text-xs font-normal leading-[1.5] text-primary">
+                    {fieldError.text}
+                  </span>
+                )}
               </label>
+
 
               {(mode === "login" || mode === "register") && (
                 <label className="block text-sm font-medium text-foreground">
@@ -222,13 +252,25 @@ function AuthPage() {
                   <input
                     type="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setFieldError(null);
+                    }}
                     onKeyDown={(e) => e.key === "Enter" && !disabled && void submit()}
                     placeholder="Минимум 8 символов"
                     autoComplete={mode === "login" ? "current-password" : "new-password"}
-                    className="mt-2 h-11 w-full rounded-sm border border-[#D1D5DB] px-3.5 text-sm outline-none transition-colors focus:border-foreground"
+                    aria-invalid={fieldError?.field === "password"}
+                    className={`mt-2 h-11 w-full rounded-sm border px-3.5 text-sm outline-none transition-colors focus:border-foreground ${
+                      fieldError?.field === "password" ? "border-primary" : "border-[#D1D5DB]"
+                    }`}
                   />
+                  {fieldError?.field === "password" && (
+                    <span className="mt-1.5 block text-xs font-normal leading-[1.5] text-primary">
+                      {fieldError.text}
+                    </span>
+                  )}
                 </label>
+
               )}
 
               {mode === "forgot" && (

@@ -17,6 +17,8 @@ import {
 import { SiteHeader } from "@/components/site-header";
 import { BackLink } from "@/components/back-link";
 import { formatPrice } from "@/lib/pricing";
+import { innHint, isValidInn, sanitizeInn } from "@/lib/inn";
+
 import { STAGES, TIER_META, stageIndex, tierProgress, type LoyaltyTier } from "@/lib/loyalty";
 import { addCompanyByInn, getCabinet, removeCompany, repeatOrder } from "@/lib/cabinet.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,18 +68,28 @@ function CabinetPage() {
   };
 
   const onAddCompany = async () => {
+    const hint = innHint(inn);
+    if (hint) {
+      toast.error(hint);
+      return;
+    }
     setBusy(true);
     try {
-      await addCompany({ data: { inn: inn.trim() } });
+      const row = await addCompany({ data: { inn: sanitizeInn(inn) } });
       setInn("");
       await qc.invalidateQueries({ queryKey: ["cabinet"] });
-      toast.success("Юрлицо добавлено — реквизиты подтянутся в счета автоматически");
+      toast.success(
+        (row as { resolved?: boolean }).resolved
+          ? "Юрлицо добавлено — реквизиты подтянутся в счета автоматически"
+          : "Юрлицо добавлено. Реестр сейчас недоступен — название и адрес уточнит менеджер",
+      );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Не удалось добавить юрлицо");
     } finally {
       setBusy(false);
     }
   };
+
 
   const onRepeat = async (orderId: string) => {
     try {
@@ -312,14 +324,17 @@ function CabinetPage() {
             <div className="mt-4 flex gap-2">
               <input
                 value={inn}
-                onChange={(e) => setInn(e.target.value.replace(/\D/g, "").slice(0, 12))}
-                placeholder="ИНН"
+                onChange={(e) => setInn(sanitizeInn(e.target.value))}
+                placeholder="ИНН — 10 цифр (юрлицо) или 12 (ИП)"
                 inputMode="numeric"
-                className="h-10 w-full rounded-sm border border-[#D1D5DB] px-3 text-sm tabular-nums outline-none transition-colors focus:border-foreground"
+                aria-invalid={inn.length > 0 && !isValidInn(inn)}
+                className={`h-10 w-full rounded-sm border px-3 text-sm tabular-nums outline-none transition-colors focus:border-foreground ${
+                  inn.length > 0 && !isValidInn(inn) ? "border-primary" : "border-[#D1D5DB]"
+                }`}
               />
               <button
                 type="button"
-                disabled={busy || inn.length < 10}
+                disabled={busy || !isValidInn(inn)}
                 onClick={onAddCompany}
                 className="inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-sm bg-primary px-3 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-[#B91C1C] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -327,6 +342,10 @@ function CabinetPage() {
                 Добавить
               </button>
             </div>
+            {inn.length > 0 && !isValidInn(inn) && (
+              <p className="mt-2 text-xs leading-[1.5] text-primary">{innHint(inn)}</p>
+            )}
+
           </div>
         </aside>
       </div>

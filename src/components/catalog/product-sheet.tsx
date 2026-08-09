@@ -3,10 +3,9 @@ import { Download, FileText, Layers, Ruler, Truck } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { Product } from "@/data/catalog";
 import { trackCadDownload } from "@/lib/metrika";
+import { CityInput, type CityValue } from "@/components/cart/city-input";
 
 const CadViewer = lazy(() => import("@/components/catalog/cad-viewer"));
-
-const CITIES = ["Екатеринбург", "Москва", "Новосибирск", "Казань"];
 
 export function ProductSheet({
   product,
@@ -15,7 +14,8 @@ export function ProductSheet({
   product: Product | null;
   onClose: () => void;
 }) {
-  const [city, setCity] = useState(CITIES[0]!);
+  const [city, setCity] = useState<CityValue>({ city: "", fiasId: null });
+
 
   const logistics = useMemo(() => {
     if (!product) return [];
@@ -150,21 +150,13 @@ export function ProductSheet({
                 </div>
 
                 <div className="mt-6 rounded-lg border border-border p-4">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-col gap-2">
                     <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       <Truck className="size-4" strokeWidth={1.5} /> Логистика на партию 1 000 шт
                     </p>
-                    <select
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      aria-label="Ваш город"
-                      className="rounded-sm border border-border bg-card px-2 py-1 text-xs text-foreground outline-none focus:border-primary"
-                    >
-                      {CITIES.map((c) => (
-                        <option key={c}>{c}</option>
-                      ))}
-                    </select>
+                    <CityInput value={city} onChange={setCity} />
                   </div>
+
                   <ul className="mt-3 space-y-2 text-sm">
                     {logistics.map((l) => (
                       <li key={l.name} className="flex justify-between gap-4">
