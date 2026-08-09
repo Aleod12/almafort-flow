@@ -227,10 +227,11 @@ export const repeatOrder = createServerFn({ method: "POST" })
       return {
         sku: i.sku,
         quantity: qty,
-        available: Boolean(product) && product!.stock !== "out",
+        available: Boolean(product) && !product!.is_service,
         name: product?.name ?? String(i.sku),
         unit: product ? unitPriceOf(product, qty) : 0,
-        stock: product?.stock ?? "out",
+        inStock: (product?.stock.qty ?? 0) >= qty,
+        lead: product?.stock.lead ?? null,
       };
     });
     return {
