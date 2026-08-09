@@ -280,12 +280,14 @@ export async function solveConfiguration(query: string): Promise<{
 
   const chunks = retrieve(query);
   const context = chunks.map((c) => `### ${c.title}\n${c.text}`).join("\n\n");
+  // Промпт, сохранённый в панели управления, имеет приоритет над встроенным.
+  const override = await activePrompt("configurator");
 
-  const raw = await streamResponsesText(
+  const result = await streamResponsesText(
     {
-      model: "openai/gpt-5.6-sol",
+      model: MODEL,
       stream: true,
-      instructions: `${SYSTEM_PROMPT}\n\n${DOMAIN_MATRIX}`,
+      instructions: `${override ?? SYSTEM_PROMPT}\n\n${DOMAIN_MATRIX}`,
       input: [
         {
           role: "user",
