@@ -160,7 +160,10 @@ export function SiteFooter() {
       <div className="border-t border-[#2A2A2E]">
         <div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-[max(5vw,20px)] py-5 text-[12px] leading-[1.6] text-[#9CA3AF] sm:flex-row sm:items-center sm:justify-between lg:px-10">
           <p>© 2006–2026 ALMAFORT · ИП Сазонов Е. О..  Официально зарегистрированный товарный знак (№ 1192250).</p>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap gap-6">
+            <a href="/auth" className="font-semibold text-white transition-colors hover:text-[#9CA3AF]">
+              Кабинет снабженца
+            </a>
             <a href="/privacy" className="underline underline-offset-2 transition-colors hover:text-white">
               Политика конфиденциальности
             </a>
@@ -168,6 +171,7 @@ export function SiteFooter() {
               Пользовательское соглашение
             </a>
           </div>
+
 
         </div>
       </div>

@@ -102,6 +102,25 @@ function SuccessPage() {
           </dl>
         )}
 
+        <div className="mt-10 rounded-lg border border-primary/30 bg-primary/5 p-6">
+          <p className="text-sm font-bold text-foreground">
+            {authed
+              ? "Заказ уже в вашем B2B-кабинете"
+              : "Отслеживайте эту сделку в B2B-кабинете"}
+          </p>
+          <p className="mt-2 text-sm leading-[1.6] text-muted-foreground">
+            {authed
+              ? "Статусы от оплаты до двери, счёт и УПД, повтор закупки в один клик."
+              : "Создайте пароль для этой почты — и получите сквозной трекинг заказа, архив документов и повтор закупки в один клик."}
+          </p>
+          <Link
+            to={authed ? "/cabinet" : "/auth"}
+            className="mt-4 inline-flex items-center rounded-sm bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-[#B91C1C] hover:shadow-[0_8px_20px_oklch(0_0_0/0.18)] active:scale-[0.98]"
+          >
+            {authed ? "Открыть кабинет" : "Создать пароль и открыть кабинет"}
+          </Link>
+        </div>
+
         <div className="mt-10 flex flex-wrap gap-3">
           <Link
             to="/catalog"
@@ -116,6 +135,7 @@ function SuccessPage() {
             На главную
           </Link>
         </div>
+
       </main>
     </div>
   );
