@@ -87,14 +87,15 @@ export const addCompanyByInn = createServerFn({ method: "POST" })
     inn: z
       .string()
       .trim()
-      .regex(/^\d{10}$|^\d{12}$/, "ИНН — 10 цифр для юрлица или 12 для ИП")
+      .regex(/^\d{10}(\d{2})?$/, "ИНН содержит 10 цифр (юрлицо) или 12 цифр (ИП)")
       .parse(input.inn),
   }))
   .handler(async ({ data, context }) => {
     const { findPartyByInn } = await import("@/lib/dadata.server");
     const party = await findPartyByInn(data.inn);
-    if (!party.name) throw new Error("Не удалось найти организацию по этому ИНН");
 
+    // Реестр недоступен или ИНН свежий — карточку всё равно создаём,
+    // менеджер и клиент дозаполнят реквизиты вручную, воронка не рвётся.
     const { data: row, error } = await context.supabase
       .from("companies")
       .upsert(
@@ -102,7 +103,7 @@ export const addCompanyByInn = createServerFn({ method: "POST" })
           user_id: context.userId,
           inn: party.inn,
           kpp: party.kpp,
-          name: party.name,
+          name: party.name || `Контрагент ИНН ${data.inn}`,
           legal_address: party.legalAddress,
           ogrn: party.ogrn,
           director: party.director,
@@ -112,8 +113,9 @@ export const addCompanyByInn = createServerFn({ method: "POST" })
       .select()
       .single();
     if (error) throw new Error(error.message);
-    return row;
+    return { ...row, resolved: Boolean(party.name) };
   });
+
 
 export const removeCompany = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
