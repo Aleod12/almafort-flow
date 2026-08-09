@@ -86,7 +86,16 @@ function OrdersRegistry() {
           </thead>
           <tbody>
             {(data?.rows ?? []).map((o) => (
-              <tr key={o.id} className="border-t">
+              <tr
+                key={o.id}
+                onClick={() =>
+                  void navigate({
+                    to: "/admin-alma-secure-2026/orders/$orderId",
+                    params: { orderId: o.id },
+                  })
+                }
+                className="cursor-pointer border-t transition-colors hover:bg-muted/50"
+              >
                 <td className="px-4 py-3 font-medium">{o.number}</td>
                 <td className="px-4 py-3 text-muted-foreground">
                   {new Date(o.created_at).toLocaleDateString("ru-RU")}
