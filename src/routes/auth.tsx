@@ -61,14 +61,26 @@ function AuthPage() {
   }, [navigate]);
 
   const submit = async () => {
+    setFieldError(null);
     if (!emailOk(email)) {
-      toast.error("Укажите рабочую почту");
+      setFieldError({ field: "email", text: "Укажите корректный рабочий E-mail." });
+      toast.error("Укажите корректный рабочий E-mail.");
       return;
     }
     if ((mode === "login" || mode === "register") && password.length < 8) {
+      setFieldError({
+        field: "password",
+        text: "Пароль слишком простой. Используйте минимум 8 символов, заглавные буквы и цифры.",
+      });
       toast.error("Пароль — минимум 8 символов");
       return;
     }
+    const fail = (error: unknown) => {
+      const text = authErrorMessage(error);
+      const field = authErrorField(error);
+      if (field) setFieldError({ field, text });
+      toast.error(text);
+    };
     setBusy(true);
     try {
       if (mode === "login") {
@@ -77,11 +89,7 @@ function AuthPage() {
           password,
         });
         if (error) {
-          toast.error(
-            /email not confirmed/i.test(error.message)
-              ? "Почта не подтверждена — откройте ссылку из письма"
-              : "Неверная почта или пароль",
-          );
+          fail(error);
           return;
         }
       }
@@ -96,7 +104,7 @@ function AuthPage() {
           },
         });
         if (error) {
-          toast.error(error.message);
+          fail(error);
           return;
         }
         // Пока письмо не подтверждено, сессии нет — кабинет закрыт.
@@ -109,7 +117,7 @@ function AuthPage() {
           options: { emailRedirectTo: `${window.location.origin}/cabinet` },
         });
         if (error) {
-          toast.error(error.message);
+          fail(error);
           return;
         }
         setSentKind("magic");
@@ -120,15 +128,18 @@ function AuthPage() {
           redirectTo: `${window.location.origin}/reset-password`,
         });
         if (error) {
-          toast.error(error.message);
+          fail(error);
           return;
         }
         setSentKind("reset");
       }
+    } catch (e) {
+      fail(e);
     } finally {
       setBusy(false);
     }
   };
+
 
   const needConsent = mode === "register";
   const disabled = busy || (needConsent && !consent);
