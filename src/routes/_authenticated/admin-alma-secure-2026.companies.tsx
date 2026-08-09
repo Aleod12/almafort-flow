@@ -10,6 +10,36 @@ export const Route = createFileRoute("/_authenticated/admin-alma-secure-2026/com
   component: Companies,
 });
 
+/** Тумблер вместо чекбокса: явное состояние «вкл/выкл» с плавным переходом. */
+function Toggle({
+  on,
+  label,
+  onChange,
+}: {
+  on: boolean;
+  label: string;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      onClick={() => onChange(!on)}
+      className={`relative h-6 w-11 rounded-full transition-colors duration-200 ${
+        on ? "bg-[#DC2626]" : "bg-muted-foreground/30"
+      } hover:opacity-90 active:scale-95`}
+    >
+      <span
+        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all duration-200 ${
+          on ? "left-[22px]" : "left-0.5"
+        }`}
+      />
+    </button>
+  );
+}
+
 function Companies() {
   const qc = useQueryClient();
   const list = useServerFn(adminListCompanies);
