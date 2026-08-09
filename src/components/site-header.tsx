@@ -84,12 +84,18 @@ export function SiteHeader() {
           </a>
 
           <a
-            href="/cabinet"
-            aria-label="Личный кабинет"
-            className="grid size-9 shrink-0 place-items-center rounded-sm border border-border text-foreground hover:border-primary hover:text-primary"
+            href={authed ? "/cabinet" : "/auth"}
+            title={authed ? `Кабинет · ${account}` : "Вход и регистрация для партнёров"}
+            className={`flex h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-sm border px-3 text-[13px] font-semibold transition-colors ${
+              authed
+                ? "border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                : "border-border text-foreground hover:border-primary hover:text-primary"
+            }`}
           >
-            <UserRound className="size-4" strokeWidth={1.5} />
+            <UserRound className="size-4 shrink-0" strokeWidth={1.75} />
+            {authed ? "Мой кабинет" : "Вход для партнёров"}
           </a>
+
         </div>
 
 
