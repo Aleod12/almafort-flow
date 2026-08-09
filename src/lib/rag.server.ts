@@ -312,15 +312,49 @@ export async function solveConfiguration(query: string): Promise<{
     apiKey,
   );
 
-  if (!raw) throw new Error("ИИ не вернул решение. Уточните формулировку задачи.");
+  const raw = result.text;
+  if (!raw) {
+    await logLlmCall({
+      kind: "configurator",
+      prompt: query,
+      response: "",
+      parseStatus: "api_error",
+      model: MODEL,
+      usage: result.usage,
+    });
+    throw new Error("ИИ не вернул решение. Уточните формулировку задачи.");
+  }
 
-  const match = raw.replace(/```json|```/g, "").match(/\{[\s\S]*\}/);
-  const parsed = JSON.parse(match?.[0] ?? raw) as {
+  let parsed: {
     recommended_items?: Array<{ sku?: string; quantity?: number }>;
     engineering_logic?: string;
     safety_margin_factor?: number | null;
     is_service?: boolean;
   };
+  try {
+    const match = raw.replace(/```json|```/g, "").match(/\{[\s\S]*\}/);
+    parsed = JSON.parse(match?.[0] ?? raw);
+  } catch (e) {
+    // Журнал диалогов должен показывать красный «Ошибка JSON», а не молчать.
+    await logLlmCall({
+      kind: "configurator",
+      prompt: query,
+      response: raw,
+      parseStatus: "json_error",
+      model: MODEL,
+      usage: result.usage,
+    });
+    throw new Error("ИИ вернул некорректный формат ответа. Повторите запрос.");
+  }
+
+  await logLlmCall({
+    kind: "configurator",
+    prompt: query,
+    response: raw,
+    parseStatus: "ok",
+    model: MODEL,
+    usage: result.usage,
+  });
 
   const wantsSandwich = /сэндвич|сендвич|sandwich|панел/i.test(query);
   const proposed = (parsed.recommended_items ?? []).filter((i) =>
