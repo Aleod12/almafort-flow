@@ -50,7 +50,12 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   /** Экран «проверьте почту»: подтверждение регистрации, magic-link или сброс. */
   const [sentKind, setSentKind] = useState<null | "verify" | "magic" | "reset">(null);
+  const [fieldError, setFieldError] = useState<{
+    field: "email" | "password";
+    text: string;
+  } | null>(null);
   const navigate = useNavigate();
+
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
