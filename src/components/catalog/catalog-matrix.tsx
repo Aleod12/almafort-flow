@@ -66,8 +66,9 @@ function Row({ p, onOpenProduct, onAdd }: { p: Product } & Omit<Props, "query">)
       return (
         <div className={`${CELL} justify-end`}>
           <span className="inline-block whitespace-nowrap rounded-sm bg-[#F3F4F6] px-2 py-1 text-[11px] font-semibold text-muted-foreground">
-            По договоренности
+            По запросу
           </span>
+
         </div>
       );
     const active = tier === level && qty > 0;
