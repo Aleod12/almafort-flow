@@ -31,7 +31,18 @@ export const Route = createFileRoute("/success")({
 function SuccessPage() {
   // sessionStorage читаем после гидрации, чтобы SSR и клиент совпали.
   const [order, setOrder] = useState<LastOrder | null>(null);
+  const [authed, setAuthed] = useState(false);
   useEffect(() => setOrder(readLastOrder()), []);
+  useEffect(() => {
+    let alive = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (alive) setAuthed(Boolean(data.session));
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
 
   const downloadCopy = async () => {
     if (!order) return;
