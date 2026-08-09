@@ -66,18 +66,28 @@ function CabinetPage() {
   };
 
   const onAddCompany = async () => {
+    const hint = innHint(inn);
+    if (hint) {
+      toast.error(hint);
+      return;
+    }
     setBusy(true);
     try {
-      await addCompany({ data: { inn: inn.trim() } });
+      const row = await addCompany({ data: { inn: sanitizeInn(inn) } });
       setInn("");
       await qc.invalidateQueries({ queryKey: ["cabinet"] });
-      toast.success("Юрлицо добавлено — реквизиты подтянутся в счета автоматически");
+      toast.success(
+        (row as { resolved?: boolean }).resolved
+          ? "Юрлицо добавлено — реквизиты подтянутся в счета автоматически"
+          : "Юрлицо добавлено. Реестр сейчас недоступен — название и адрес уточнит менеджер",
+      );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Не удалось добавить юрлицо");
     } finally {
       setBusy(false);
     }
   };
+
 
   const onRepeat = async (orderId: string) => {
     try {
