@@ -31,6 +31,7 @@ import { Route as SitemapProductsPageRouteImport } from './routes/sitemap-produc
 import { Route as AuthenticatedAdminAlmaSecure2026IndexRouteImport } from './routes/_authenticated/admin-alma-secure-2026.index'
 import { Route as AuthenticatedAdminAlmaSecure2026AiRouteImport } from './routes/_authenticated/admin-alma-secure-2026.ai'
 import { Route as AuthenticatedAdminAlmaSecure2026CompaniesRouteImport } from './routes/_authenticated/admin-alma-secure-2026.companies'
+import { Route as AuthenticatedAdminAlmaSecure2026LeadsRouteImport } from './routes/_authenticated/admin-alma-secure-2026.leads'
 import { Route as AuthenticatedAdminAlmaSecure2026LogsRouteImport } from './routes/_authenticated/admin-alma-secure-2026.logs'
 import { Route as AuthenticatedAdminAlmaSecure2026ProductsRouteImport } from './routes/_authenticated/admin-alma-secure-2026.products'
 import { Route as AuthenticatedAdminAlmaSecure2026SettingsRouteImport } from './routes/_authenticated/admin-alma-secure-2026.settings'
@@ -165,6 +166,12 @@ const AuthenticatedAdminAlmaSecure2026CompaniesRoute =
     path: '/companies',
     getParentRoute: () => AuthenticatedAdminAlmaSecure2026Route,
   } as any)
+const AuthenticatedAdminAlmaSecure2026LeadsRoute =
+  AuthenticatedAdminAlmaSecure2026LeadsRouteImport.update({
+    id: '/leads',
+    path: '/leads',
+    getParentRoute: () => AuthenticatedAdminAlmaSecure2026Route,
+  } as any)
 const AuthenticatedAdminAlmaSecure2026LogsRoute =
   AuthenticatedAdminAlmaSecure2026LogsRouteImport.update({
     id: '/logs',
@@ -293,6 +300,7 @@ export interface FileRoutesByFullPath {
   '/catalog/': typeof CatalogIndexRoute
   '/admin-alma-secure-2026/ai': typeof AuthenticatedAdminAlmaSecure2026AiRoute
   '/admin-alma-secure-2026/companies': typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
+  '/admin-alma-secure-2026/leads': typeof AuthenticatedAdminAlmaSecure2026LeadsRoute
   '/admin-alma-secure-2026/logs': typeof AuthenticatedAdminAlmaSecure2026LogsRoute
   '/admin-alma-secure-2026/products': typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
   '/admin-alma-secure-2026/settings': typeof AuthenticatedAdminAlmaSecure2026SettingsRoute
@@ -334,6 +342,7 @@ export interface FileRoutesByTo {
   '/catalog': typeof CatalogIndexRoute
   '/admin-alma-secure-2026/ai': typeof AuthenticatedAdminAlmaSecure2026AiRoute
   '/admin-alma-secure-2026/companies': typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
+  '/admin-alma-secure-2026/leads': typeof AuthenticatedAdminAlmaSecure2026LeadsRoute
   '/admin-alma-secure-2026/logs': typeof AuthenticatedAdminAlmaSecure2026LogsRoute
   '/admin-alma-secure-2026/products': typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
   '/admin-alma-secure-2026/settings': typeof AuthenticatedAdminAlmaSecure2026SettingsRoute
@@ -379,6 +388,7 @@ export interface FileRoutesById {
   '/catalog/': typeof CatalogIndexRoute
   '/_authenticated/admin-alma-secure-2026/ai': typeof AuthenticatedAdminAlmaSecure2026AiRoute
   '/_authenticated/admin-alma-secure-2026/companies': typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
+  '/_authenticated/admin-alma-secure-2026/leads': typeof AuthenticatedAdminAlmaSecure2026LeadsRoute
   '/_authenticated/admin-alma-secure-2026/logs': typeof AuthenticatedAdminAlmaSecure2026LogsRoute
   '/_authenticated/admin-alma-secure-2026/products': typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
   '/_authenticated/admin-alma-secure-2026/settings': typeof AuthenticatedAdminAlmaSecure2026SettingsRoute
@@ -424,6 +434,7 @@ export interface FileRouteTypes {
     | '/catalog/'
     | '/admin-alma-secure-2026/ai'
     | '/admin-alma-secure-2026/companies'
+    | '/admin-alma-secure-2026/leads'
     | '/admin-alma-secure-2026/logs'
     | '/admin-alma-secure-2026/products'
     | '/admin-alma-secure-2026/settings'
@@ -465,6 +476,7 @@ export interface FileRouteTypes {
     | '/catalog'
     | '/admin-alma-secure-2026/ai'
     | '/admin-alma-secure-2026/companies'
+    | '/admin-alma-secure-2026/leads'
     | '/admin-alma-secure-2026/logs'
     | '/admin-alma-secure-2026/products'
     | '/admin-alma-secure-2026/settings'
@@ -509,6 +521,7 @@ export interface FileRouteTypes {
     | '/catalog/'
     | '/_authenticated/admin-alma-secure-2026/ai'
     | '/_authenticated/admin-alma-secure-2026/companies'
+    | '/_authenticated/admin-alma-secure-2026/leads'
     | '/_authenticated/admin-alma-secure-2026/logs'
     | '/_authenticated/admin-alma-secure-2026/products'
     | '/_authenticated/admin-alma-secure-2026/settings'
@@ -721,6 +734,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAlmaSecure2026CompaniesRouteImport
       parentRoute: typeof AuthenticatedAdminAlmaSecure2026Route
     }
+    '/_authenticated/admin-alma-secure-2026/leads': {
+      id: '/_authenticated/admin-alma-secure-2026/leads'
+      path: '/leads'
+      fullPath: '/admin-alma-secure-2026/leads'
+      preLoaderRoute: typeof AuthenticatedAdminAlmaSecure2026LeadsRouteImport
+      parentRoute: typeof AuthenticatedAdminAlmaSecure2026Route
+    }
     '/_authenticated/admin-alma-secure-2026/logs': {
       id: '/_authenticated/admin-alma-secure-2026/logs'
       path: '/logs'
@@ -867,6 +887,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminAlmaSecure2026RouteChildren {
   AuthenticatedAdminAlmaSecure2026AiRoute: typeof AuthenticatedAdminAlmaSecure2026AiRoute
   AuthenticatedAdminAlmaSecure2026CompaniesRoute: typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
+  AuthenticatedAdminAlmaSecure2026LeadsRoute: typeof AuthenticatedAdminAlmaSecure2026LeadsRoute
   AuthenticatedAdminAlmaSecure2026LogsRoute: typeof AuthenticatedAdminAlmaSecure2026LogsRoute
   AuthenticatedAdminAlmaSecure2026ProductsRoute: typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
   AuthenticatedAdminAlmaSecure2026SettingsRoute: typeof AuthenticatedAdminAlmaSecure2026SettingsRoute
@@ -880,6 +901,8 @@ const AuthenticatedAdminAlmaSecure2026RouteChildren: AuthenticatedAdminAlmaSecur
       AuthenticatedAdminAlmaSecure2026AiRoute,
     AuthenticatedAdminAlmaSecure2026CompaniesRoute:
       AuthenticatedAdminAlmaSecure2026CompaniesRoute,
+    AuthenticatedAdminAlmaSecure2026LeadsRoute:
+      AuthenticatedAdminAlmaSecure2026LeadsRoute,
     AuthenticatedAdminAlmaSecure2026LogsRoute:
       AuthenticatedAdminAlmaSecure2026LogsRoute,
     AuthenticatedAdminAlmaSecure2026ProductsRoute:

@@ -17,6 +17,7 @@ export const ROLE_LABEL: Record<AdminRole, string> = {
 export const SECTION_ACCESS: Record<string, AdminRole[]> = {
   orders: ["owner", "manager"],
   companies: ["owner", "manager"],
+  leads: ["owner", "manager"],
   products: ["owner", "content"],
   ai: ["owner"],
   settings: ["owner"],
