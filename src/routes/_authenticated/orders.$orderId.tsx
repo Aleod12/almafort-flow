@@ -94,14 +94,14 @@ function OrderPage() {
               <button
                 type="button"
                 onClick={onRepeat}
-                className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-sm bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:-translate-y-px hover:bg-[#B91C1C] hover:shadow-[0_8px_20px_oklch(0_0_0/0.18)] active:scale-[0.98]"
+                className="mt-4 inline-flex min-h-[48px] w-full cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-4 py-2.5 sm:w-auto text-sm font-semibold text-primary-foreground transition-all duration-200 hover:-translate-y-px hover:bg-[#B91C1C] hover:shadow-[0_8px_20px_oklch(0_0_0/0.18)] active:scale-[0.98]"
               >
                 <RefreshCw className="size-4" strokeWidth={1.75} /> Повторить заказ
               </button>
             </header>
 
             {/* Единый таймлайн: внутренние этапы ALMAFORT + статусы ТК */}
-            <section className="rounded-sm border border-border bg-card p-6 lg:p-8">
+            <section className="rounded-sm border border-border bg-card p-5 sm:p-6 lg:p-8">
               <h2 className="text-lg font-bold text-foreground">Ход сделки</h2>
               <ol className="mt-5 space-y-0">
                 {STAGES.map((s, i) => {
@@ -163,7 +163,7 @@ function OrderPage() {
             </section>
 
             {/* Документы */}
-            <section className="mt-6 rounded-sm border border-border bg-card p-6 lg:p-8">
+            <section className="mt-6 rounded-sm border border-border bg-card p-5 sm:p-6 lg:p-8">
               <h2 className="text-lg font-bold text-foreground">Документы</h2>
               {data.documents.length === 0 ? (
                 <p className="mt-3 text-sm text-muted-foreground">
@@ -178,7 +178,7 @@ function OrderPage() {
                         href={d.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-primary"
+                        className="flex min-h-[52px] items-center gap-3 rounded-md border border-border px-4 text-[15px] font-semibold text-foreground transition-colors hover:border-primary hover:text-primary"
                       >
                         <Download className="size-4" strokeWidth={1.75} />
                         {d.title || DOC_LABEL[d.kind] || "Документ"}
@@ -190,7 +190,7 @@ function OrderPage() {
             </section>
 
             {/* Состав */}
-            <section className="mt-6 rounded-sm border border-border bg-card p-6 lg:p-8">
+            <section className="mt-6 rounded-sm border border-border bg-card p-5 sm:p-6 lg:p-8">
               <h2 className="text-lg font-bold text-foreground">Спецификация</h2>
               <ul className="mt-4 divide-y divide-border">
                 {((data.order.items ?? []) as Item[]).map((it) => (

@@ -231,7 +231,7 @@ function CabinetPage() {
                       <button
                         type="button"
                         onClick={() => onRepeat(o.id)}
-                        className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-sm border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-all duration-200 hover:-translate-y-px hover:border-primary hover:text-primary"
+                        className="mt-3 inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-sm border border-border px-4 py-2 text-xs font-medium text-foreground transition-all duration-200 hover:-translate-y-px hover:border-primary hover:text-primary"
                       >
                         <RefreshCw className="size-3.5" strokeWidth={1.75} />
                         Повторить заказ
@@ -328,7 +328,7 @@ function CabinetPage() {
                 placeholder="ИНН — 10 цифр (юрлицо) или 12 (ИП)"
                 inputMode="numeric"
                 aria-invalid={inn.length > 0 && !isValidInn(inn)}
-                className={`h-10 w-full rounded-sm border px-3 text-sm tabular-nums outline-none transition-colors focus:border-foreground ${
+                className={`h-12 w-full rounded-sm border px-3 text-sm tabular-nums md:h-10 outline-none transition-colors focus:border-foreground ${
                   inn.length > 0 && !isValidInn(inn) ? "border-primary" : "border-[#D1D5DB]"
                 }`}
               />
@@ -336,7 +336,7 @@ function CabinetPage() {
                 type="button"
                 disabled={busy || !isValidInn(inn)}
                 onClick={onAddCompany}
-                className="inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-sm bg-primary px-3 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-[#B91C1C] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-12 shrink-0 cursor-pointer items-center gap-1.5 md:h-10 rounded-sm bg-primary px-3 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-[#B91C1C] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {busy ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
                 Добавить
