@@ -76,25 +76,42 @@ export function AssetLightbox({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid gap-8 md:grid-cols-2">
-          {/* Слайдер мастер-фотографий */}
+        <div className="grid gap-6 md:grid-cols-2 md:gap-8">
+          {/* Слайдер мастер-фотографий: свайп на телефоне, стрелки на десктопе */}
           <div>
-            <div className="relative grid aspect-square place-items-center overflow-hidden rounded-lg border border-border bg-white">
-              {images[slide] && (
-                <img
-                  src={images[slide].full_url}
-                  alt={images[slide].caption ?? product.name}
-                  loading="lazy"
-                  className="h-full w-full object-contain p-4"
-                />
-              )}
+            <div className="relative overflow-hidden rounded-lg border border-border bg-white">
+              <div
+                className="swipe-track no-scrollbar aspect-square"
+                onScroll={(e) => {
+                  const el = e.currentTarget;
+                  const i = Math.round(el.scrollLeft / Math.max(1, el.clientWidth));
+                  if (i !== slide) setSlide(i);
+                }}
+                ref={(el) => {
+                  if (el && el.clientWidth) {
+                    const target = slide * el.clientWidth;
+                    if (Math.abs(el.scrollLeft - target) > 4) el.scrollLeft = target;
+                  }
+                }}
+              >
+                {images.map((img) => (
+                  <div key={img.full_url} className="swipe-slide grid place-items-center">
+                    <img
+                      src={img.full_url}
+                      alt={img.caption ?? product.name}
+                      loading="lazy"
+                      className="h-full w-full object-contain p-4"
+                    />
+                  </div>
+                ))}
+              </div>
               {images.length > 1 && (
                 <>
                   <button
                     type="button"
                     aria-label="Предыдущее фото"
                     onClick={() => step(-1)}
-                    className="absolute left-2 grid size-9 cursor-pointer place-items-center rounded-full bg-background/85 text-foreground shadow-sm transition-all hover:scale-105 hover:bg-background"
+                    className="absolute left-2 top-1/2 hidden -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-background/85 text-foreground shadow-sm transition-all hover:scale-105 hover:bg-background md:grid md:size-9"
                   >
                     <ChevronLeft className="size-5" strokeWidth={1.75} />
                   </button>
@@ -102,7 +119,7 @@ export function AssetLightbox({
                     type="button"
                     aria-label="Следующее фото"
                     onClick={() => step(1)}
-                    className="absolute right-2 grid size-9 cursor-pointer place-items-center rounded-full bg-background/85 text-foreground shadow-sm transition-all hover:scale-105 hover:bg-background"
+                    className="absolute right-2 top-1/2 hidden -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-background/85 text-foreground shadow-sm transition-all hover:scale-105 hover:bg-background md:grid md:size-9"
                   >
                     <ChevronRight className="size-5" strokeWidth={1.75} />
                   </button>
@@ -111,26 +128,47 @@ export function AssetLightbox({
             </div>
 
             {images.length > 1 && (
-              <div className="mt-3 flex gap-2">
-                {images.map((img, i) => (
-                  <button
-                    key={img.thumb_url}
-                    type="button"
-                    onClick={() => setSlide(i)}
-                    aria-label={`Фото ${i + 1}`}
-                    className={`grid size-14 place-items-center overflow-hidden rounded-md border bg-white transition-colors ${
-                      i === slide ? "border-primary" : "border-border hover:border-foreground/40"
-                    }`}
-                  >
-                    <img
-                      src={img.thumb_url}
-                      alt=""
-                      loading="lazy"
-                      className="h-full w-full object-contain p-1"
-                    />
-                  </button>
-                ))}
-              </div>
+              <>
+                {/* Точки-индикаторы для мобильного свайпа */}
+                <div className="mt-3 flex justify-center gap-2 md:hidden">
+                  {images.map((img, i) => (
+                    <button
+                      key={`dot-${img.thumb_url}`}
+                      type="button"
+                      aria-label={`Фото ${i + 1}`}
+                      onClick={() => setSlide(i)}
+                      className="tap-sm grid size-6 place-items-center"
+                    >
+                      <span
+                        className={`block size-2 rounded-full transition-colors ${
+                          i === slide ? "bg-primary" : "bg-border"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mt-3 hidden gap-2 md:flex">
+                  {images.map((img, i) => (
+                    <button
+                      key={img.thumb_url}
+                      type="button"
+                      onClick={() => setSlide(i)}
+                      aria-label={`Фото ${i + 1}`}
+                      className={`grid size-14 place-items-center overflow-hidden rounded-md border bg-white transition-colors ${
+                        i === slide ? "border-primary" : "border-border hover:border-foreground/40"
+                      }`}
+                    >
+                      <img
+                        src={img.thumb_url}
+                        alt=""
+                        loading="lazy"
+                        className="h-full w-full object-contain p-1"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </>
             )}
 
             {images[slide]?.caption && (
@@ -139,6 +177,7 @@ export function AssetLightbox({
               </p>
             )}
           </div>
+
 
           {/* Спецификация, цена, описание */}
           <div>
