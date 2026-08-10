@@ -26,6 +26,16 @@ function Settings() {
 
   const { data } = useQuery({ queryKey: ["admin-settings"], queryFn: () => get() });
   const { data: staff } = useQuery({ queryKey: ["admin-staff"], queryFn: () => staffList() });
+  const { data: erp } = useQuery({ queryKey: ["admin-erp-jobs"], queryFn: () => erpJobs() });
+
+  const retryMutation = useMutation({
+    mutationFn: () => retryErp(),
+    onSuccess: (r) => {
+      setMsg(`Обмен с 1С: обработано ${r.processed}, синхронизировано ${r.synced}`);
+      qc.invalidateQueries({ queryKey: ["admin-erp-jobs"] });
+    },
+    onError: (e: Error) => setMsg(e.message),
+  });
 
   const [maintenance, setMaintenance] = useState({ enabled: false, message: "" });
   const [logistics, setLogistics] = useState({ fixed_rub: 0, percent: 0 });
