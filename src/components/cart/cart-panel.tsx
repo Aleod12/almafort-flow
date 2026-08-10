@@ -272,10 +272,11 @@ export function CartPanel() {
           const { base, unit, tier, sum } = linePrice(l.sku, l.quantity);
           const discounted = tier > 0;
           return (
+            <SwipeToDelete key={l.sku} onDelete={() => removeLine(l.sku)}>
             <div
-              key={l.sku}
               className="border-b border-border px-4 py-4 last:border-b-0 md:grid md:grid-cols-[minmax(0,1fr)_110px_120px_120px_44px] md:items-center md:gap-3 md:px-5 md:py-3"
             >
+
               <div className="flex min-w-0 items-center gap-3">
                 <span className="block w-10 shrink-0">
                   <ProductThumb
