@@ -6,6 +6,8 @@ import { PRODUCTS } from "@/data/catalog";
 import { scoreMatch } from "@/lib/fuzzy-search";
 import { useDebounce } from "@/hooks/use-debounce";
 import { CityInput } from "@/components/cart/city-input";
+import { SwipeToDelete } from "@/components/cart/swipe-to-delete";
+
 import { formatPrice } from "@/lib/pricing";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { saveLastOrder } from "@/lib/last-order";
@@ -272,10 +274,11 @@ export function CartPanel() {
           const { base, unit, tier, sum } = linePrice(l.sku, l.quantity);
           const discounted = tier > 0;
           return (
+            <SwipeToDelete key={l.sku} onDelete={() => removeLine(l.sku)}>
             <div
-              key={l.sku}
               className="border-b border-border px-4 py-4 last:border-b-0 md:grid md:grid-cols-[minmax(0,1fr)_110px_120px_120px_44px] md:items-center md:gap-3 md:px-5 md:py-3"
             >
+
               <div className="flex min-w-0 items-center gap-3">
                 <span className="block w-10 shrink-0">
                   <ProductThumb
@@ -366,7 +369,9 @@ export function CartPanel() {
                 <Trash2 className="size-4" strokeWidth={1.75} />
               </button>
             </div>
+            </SwipeToDelete>
           );
+
         })}
       </section>
 
@@ -603,7 +608,47 @@ export function CartPanel() {
           )}
         </div>
       </section>
+
+      {/* Липкая нижняя панель оформления: итог и CTA всегда под большим пальцем */}
+      {lines.length > 0 && (
+        <div className="above-tabbar fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/97 px-4 py-3 shadow-[0_-8px_24px_oklch(0_0_0/0.1)] backdrop-blur md:hidden">
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Итого</p>
+              <p className="truncate text-lg font-extrabold tabular-nums text-foreground">
+                {money(total)}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setTriedSubmit(true);
+                if (ctaDisabled) {
+                  toast.error(
+                    !consent
+                      ? "Подтвердите согласие на обработку данных"
+                      : unverified
+                        ? "Подтвердите почту, чтобы оформить заказ"
+                        : "Дождитесь расчёта доставки",
+                  );
+                  return;
+                }
+                void submitOrder();
+              }}
+              disabled={submitting}
+              className="flex h-12 min-w-[60%] items-center justify-center gap-2 rounded-md bg-[#10B981] px-5 text-[15px] font-semibold text-white transition-transform active:scale-[0.98] disabled:opacity-60"
+            >
+              {submitting && <Loader2 className="size-4 animate-spin" strokeWidth={2} />}
+              {submitting ? "Отправляем…" : "Оформить заказ"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Запас под липкую панель, чтобы последний блок не прятался */}
+      {lines.length > 0 && <div className="h-24 md:hidden" aria-hidden />}
     </div>
+
   );
 }
 

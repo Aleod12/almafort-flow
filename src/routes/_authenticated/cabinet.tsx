@@ -327,10 +327,13 @@ function CabinetPage() {
                 onChange={(e) => setInn(sanitizeInn(e.target.value))}
                 placeholder="ИНН — 10 цифр (юрлицо) или 12 (ИП)"
                 inputMode="numeric"
+                pattern="[0-9]*"
+                autoComplete="off"
                 aria-invalid={inn.length > 0 && !isValidInn(inn)}
-                className={`h-12 w-full rounded-sm border px-3 text-sm tabular-nums md:h-10 outline-none transition-colors focus:border-foreground ${
+                className={`h-12 w-full rounded-sm border px-3 text-base tabular-nums md:h-10 md:text-sm outline-none transition-colors focus:border-foreground ${
                   inn.length > 0 && !isValidInn(inn) ? "border-primary" : "border-[#D1D5DB]"
                 }`}
+
               />
               <button
                 type="button"
