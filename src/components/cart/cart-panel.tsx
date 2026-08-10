@@ -123,13 +123,13 @@ export function CartPanel() {
       (payloadKey !== debouncedKey || !quoteFor(carrier)));
   const [consent, setConsent] = useState(false);
   const [triedSubmit, setTriedSubmit] = useState(false);
+  const [form, setForm] = useState({ name: "", phone: "", email: "", company: "", comment: "" });
+  const [inn, setInn] = useState("");
+  const [party, setParty] = useState<Party | null>(null);
   const cartReady = Boolean(lines.length) && !pendingQuote;
   const unverified = authed && !verified;
   const ctaDisabled = !cartReady || !consent || unverified || Boolean(party?.blocked);
 
-  const [form, setForm] = useState({ name: "", phone: "", email: "", company: "", comment: "" });
-  const [inn, setInn] = useState("");
-  const [party, setParty] = useState<Party | null>(null);
   const [submitting, setSubmitting] = useState(false);
   // Стратегическому партнёру доступна отгрузка с отсрочкой платежа 15–30 дней.
   const [deferred, setDeferred] = useState(false);
