@@ -90,8 +90,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { name: "apple-mobile-web-app-title", content: "ALMAFORT" },
       { title: "ALMAFORT — производство пластиковой фурнитуры" },
-
+      {
         name: "description",
+
         content: "Производитель пластиковых комплектующих для B2B: литьё, 3D-печать, ЭДО.",
       },
       { name: "author", content: "ALMAFORT" },
