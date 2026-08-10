@@ -6,6 +6,8 @@ import { PRODUCTS } from "@/data/catalog";
 import { scoreMatch } from "@/lib/fuzzy-search";
 import { useDebounce } from "@/hooks/use-debounce";
 import { CityInput } from "@/components/cart/city-input";
+import { SwipeToDelete } from "@/components/cart/swipe-to-delete";
+
 import { formatPrice } from "@/lib/pricing";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { saveLastOrder } from "@/lib/last-order";
