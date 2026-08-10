@@ -46,6 +46,7 @@ import { Route as ApiUploadPresignedUrlRouteImport } from './routes/api/upload/p
 import { Route as ApiVisionIdentifyRouteImport } from './routes/api/vision/identify'
 import { Route as AuthenticatedAdminAlmaSecure2026OrdersOrderIdRouteImport } from './routes/_authenticated/admin-alma-secure-2026.orders.$orderId'
 import { Route as ApiPublicCadSplatRouteImport } from './routes/api/public/cad/$'
+import { Route as ApiPublicErpRetryRouteImport } from './routes/api/public/erp/retry'
 import { Route as ApiPublicWebhooksCarrierRouteImport } from './routes/api/public/webhooks/carrier'
 
 const IndexRoute = IndexRouteImport.update({
@@ -241,6 +242,11 @@ const ApiPublicCadSplatRoute = ApiPublicCadSplatRouteImport.update({
   path: '/api/public/cad/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicErpRetryRoute = ApiPublicErpRetryRouteImport.update({
+  id: '/api/public/erp/retry',
+  path: '/api/public/erp/retry',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWebhooksCarrierRoute =
   ApiPublicWebhooksCarrierRouteImport.update({
     id: '/api/public/webhooks/carrier',
@@ -285,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/admin-alma-secure-2026/': typeof AuthenticatedAdminAlmaSecure2026IndexRoute
   '/admin-alma-secure-2026/orders/$orderId': typeof AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
+  '/api/public/erp/retry': typeof ApiPublicErpRetryRoute
   '/api/public/webhooks/carrier': typeof ApiPublicWebhooksCarrierRoute
 }
 export interface FileRoutesByTo {
@@ -322,6 +329,7 @@ export interface FileRoutesByTo {
   '/admin-alma-secure-2026': typeof AuthenticatedAdminAlmaSecure2026IndexRoute
   '/admin-alma-secure-2026/orders/$orderId': typeof AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
+  '/api/public/erp/retry': typeof ApiPublicErpRetryRoute
   '/api/public/webhooks/carrier': typeof ApiPublicWebhooksCarrierRoute
 }
 export interface FileRoutesById {
@@ -363,6 +371,7 @@ export interface FileRoutesById {
   '/_authenticated/admin-alma-secure-2026/': typeof AuthenticatedAdminAlmaSecure2026IndexRoute
   '/_authenticated/admin-alma-secure-2026/orders/$orderId': typeof AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
+  '/api/public/erp/retry': typeof ApiPublicErpRetryRoute
   '/api/public/webhooks/carrier': typeof ApiPublicWebhooksCarrierRoute
 }
 export interface FileRouteTypes {
@@ -404,6 +413,7 @@ export interface FileRouteTypes {
     | '/admin-alma-secure-2026/'
     | '/admin-alma-secure-2026/orders/$orderId'
     | '/api/public/cad/$'
+    | '/api/public/erp/retry'
     | '/api/public/webhooks/carrier'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -441,6 +451,7 @@ export interface FileRouteTypes {
     | '/admin-alma-secure-2026'
     | '/admin-alma-secure-2026/orders/$orderId'
     | '/api/public/cad/$'
+    | '/api/public/erp/retry'
     | '/api/public/webhooks/carrier'
   id:
     | '__root__'
@@ -481,6 +492,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin-alma-secure-2026/'
     | '/_authenticated/admin-alma-secure-2026/orders/$orderId'
     | '/api/public/cad/$'
+    | '/api/public/erp/retry'
     | '/api/public/webhooks/carrier'
   fileRoutesById: FileRoutesById
 }
@@ -510,6 +522,7 @@ export interface RootRouteChildren {
   ApiUploadPresignedUrlRoute: typeof ApiUploadPresignedUrlRoute
   ApiVisionIdentifyRoute: typeof ApiVisionIdentifyRoute
   ApiPublicCadSplatRoute: typeof ApiPublicCadSplatRoute
+  ApiPublicErpRetryRoute: typeof ApiPublicErpRetryRoute
   ApiPublicWebhooksCarrierRoute: typeof ApiPublicWebhooksCarrierRoute
 }
 
@@ -774,6 +787,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCadSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/erp/retry': {
+      id: '/api/public/erp/retry'
+      path: '/api/public/erp/retry'
+      fullPath: '/api/public/erp/retry'
+      preLoaderRoute: typeof ApiPublicErpRetryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/webhooks/carrier': {
       id: '/api/public/webhooks/carrier'
       path: '/api/public/webhooks/carrier'
@@ -872,6 +892,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUploadPresignedUrlRoute: ApiUploadPresignedUrlRoute,
   ApiVisionIdentifyRoute: ApiVisionIdentifyRoute,
   ApiPublicCadSplatRoute: ApiPublicCadSplatRoute,
+  ApiPublicErpRetryRoute: ApiPublicErpRetryRoute,
   ApiPublicWebhooksCarrierRoute: ApiPublicWebhooksCarrierRoute,
 }
 export const routeTree = rootRouteImport
