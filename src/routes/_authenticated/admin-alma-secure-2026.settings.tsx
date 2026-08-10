@@ -18,6 +18,16 @@ export const Route = createFileRoute("/_authenticated/admin-alma-secure-2026/set
   component: Settings,
 });
 
+type ErpJobRow = {
+  id: string;
+  order_number: string;
+  status: string;
+  attempts: number;
+  last_error: string | null;
+  next_attempt_at: string;
+  created_at: string;
+};
+
 function Settings() {
   const qc = useQueryClient();
   const get = useServerFn(adminGetSettings);
@@ -38,7 +48,10 @@ function Settings() {
 
   const { data } = useQuery({ queryKey: ["admin-settings"], queryFn: () => get() });
   const { data: staff } = useQuery({ queryKey: ["admin-staff"], queryFn: () => staffList() });
-  const { data: erp } = useQuery({ queryKey: ["admin-erp-jobs"], queryFn: () => erpJobs() });
+  const { data: erp } = useQuery({
+    queryKey: ["admin-erp-jobs"],
+    queryFn: () => erpJobs() as Promise<{ rows: ErpJobRow[] }>,
+  });
 
   const retryMutation = useMutation({
     mutationFn: () => retryErp(),
@@ -220,7 +233,7 @@ function Settings() {
           </button>
         </div>
         <ul className="space-y-2 text-sm">
-          {(erp?.rows ?? []).map((j: (typeof erp)["rows"][number]) => (
+          {(erp?.rows ?? []).map((j) => (
             <li key={j.id} className="flex flex-wrap items-center gap-3 border-b pb-2">
               <span className="font-medium tabular-nums">{j.order_number}</span>
               <span
