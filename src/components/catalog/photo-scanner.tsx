@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CameraOff, ImageUp, Loader2, X } from "lucide-react";
+import { CameraOff, ImageUp, Loader2, RefreshCw, TriangleAlert, X } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/store/cart-store";
 import { formatPrice } from "@/lib/pricing";
+import { QuoteRequestModal } from "@/components/catalog/quote-request-modal";
 
-type Match = {
+type Item = {
   sku: string;
   name: string;
   dims: string;
@@ -14,14 +15,59 @@ type Match = {
 };
 
 type Verdict = {
+  status: "VALID" | "FOREIGN" | "INVALID";
   type: string;
   shape: string;
   color: string;
   has_threads: boolean;
   confidence: number;
+  observed: string;
+  hands_present: boolean;
 };
 
-type Result = { verdict: Verdict; matches: Match[] };
+type Result =
+  | { scenario: "exact"; verdict: Verdict; category: string; variants: Item[] }
+  | { scenario: "ambiguous"; verdict: Verdict; matches: Item[] }
+  | { scenario: "foreign"; verdict: Verdict }
+  | { scenario: "invalid"; verdict: Verdict };
+
+/**
+ * Резкость кадра через дисперсию лапласиана по яркости.
+ * Смазанный кадр даёт низкую дисперсию — блокируем отправку и экономим API-бюджет.
+ */
+function sharpness(canvas: HTMLCanvasElement): number {
+  const w = 160;
+  const h = Math.max(1, Math.round((canvas.height / canvas.width) * w));
+  const small = document.createElement("canvas");
+  small.width = w;
+  small.height = h;
+  const ctx = small.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return Infinity;
+  ctx.drawImage(canvas, 0, 0, w, h);
+  const { data } = ctx.getImageData(0, 0, w, h);
+  const gray = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) {
+    gray[i] = 0.299 * data[i * 4]! + 0.587 * data[i * 4 + 1]! + 0.114 * data[i * 4 + 2]!;
+  }
+  let sum = 0;
+  let sumSq = 0;
+  let n = 0;
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      const i = y * w + x;
+      const lap =
+        4 * gray[i]! - gray[i - 1]! - gray[i + 1]! - gray[i - w]! - gray[i + w]!;
+      sum += lap;
+      sumSq += lap * lap;
+      n++;
+    }
+  }
+  if (!n) return Infinity;
+  const mean = sum / n;
+  return sumSq / n - mean * mean;
+}
+
+const BLUR_THRESHOLD = 45;
 
 export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -29,6 +75,9 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [camError, setCamError] = useState<string | null>(null);
+  const [shake, setShake] = useState(false);
+  const [size, setSize] = useState("");
+  const [reverse, setReverse] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const addLine = useCart((s) => s.addLine);
 
@@ -37,47 +86,42 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
     streamRef.current = null;
   }, []);
 
+  const start = useCallback(async () => {
+    setCamError(null);
+    try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw Object.assign(new Error("no api"), { name: "NotFoundError" });
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 } },
+        audio: false,
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play().catch(() => undefined);
+      }
+    } catch (e) {
+      // NotFoundError — камеры нет физически, NotAllowedError — доступ запрещён.
+      const name = (e as { name?: string })?.name ?? "";
+      setCamError(
+        name === "NotAllowedError" ? "Доступ к камере запрещён" : "Камера не обнаружена",
+      );
+    }
+  }, []);
+
   useEffect(() => {
     if (!open) {
       stop();
       setResult(null);
       setCamError(null);
+      setSize("");
+      setReverse(false);
       return;
     }
-    let cancelled = false;
-    (async () => {
-      try {
-        if (!navigator.mediaDevices?.getUserMedia) {
-          throw Object.assign(new Error("no api"), { name: "NotFoundError" });
-        }
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 } },
-          audio: false,
-        });
-        if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
-          return;
-        }
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play().catch(() => undefined);
-        }
-      } catch (e) {
-        // NotFoundError — камеры нет физически, NotAllowedError — доступ запрещён.
-        const name = (e as { name?: string })?.name ?? "";
-        setCamError(
-          name === "NotAllowedError"
-            ? "Доступ к камере запрещён"
-            : "Камера не обнаружена",
-        );
-      }
-    })();
-    return () => {
-      cancelled = true;
-      stop();
-    };
-  }, [open, stop]);
+    void start();
+    return stop;
+  }, [open, start, stop]);
 
   const analyze = async (image: string) => {
     setBusy(true);
@@ -89,8 +133,11 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error ?? "Не удалось распознать деталь");
-      setResult(json as Result);
-      stop();
+      const data = json as Result;
+      setResult(data);
+      setSize("");
+      // Сценарий «мусор в кадре» — камеру не закрываем, клиент переснимает.
+      if (data.scenario !== "invalid") stop();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Ошибка распознавания");
     } finally {
@@ -121,37 +168,33 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
   const capture = async () => {
     const video = videoRef.current;
     if (!video || !video.videoWidth) return;
-    setBusy(true);
-    try {
-      // Кроп строго по центральной рамке видоискателя: нейросеть получает деталь,
-      // а не стол, руки и фон. Далее ужимаем до 1024px и жмём в WebP 0.8.
-      const side = Math.round(Math.min(video.videoWidth, video.videoHeight) * 0.72);
-      const sx = Math.round((video.videoWidth - side) / 2);
-      const sy = Math.round((video.videoHeight - side) / 2);
-      const out = Math.min(1024, side);
-      const canvas = document.createElement("canvas");
-      canvas.width = out;
-      canvas.height = out;
-      canvas.getContext("2d")?.drawImage(video, sx, sy, side, side, 0, 0, out, out);
-      const image = canvas.toDataURL("image/webp", 0.85);
+    // Кроп строго по центральной рамке видоискателя: нейросеть получает деталь,
+    // а не стол, руки и фон. Далее ужимаем до 1024px и жмём в WebP.
+    const side = Math.round(Math.min(video.videoWidth, video.videoHeight) * 0.72);
+    const sx = Math.round((video.videoWidth - side) / 2);
+    const sy = Math.round((video.videoHeight - side) / 2);
+    const out = Math.min(1024, side);
+    const canvas = document.createElement("canvas");
+    canvas.width = out;
+    canvas.height = out;
+    canvas.getContext("2d")?.drawImage(video, sx, sy, side, side, 0, 0, out, out);
 
-      const res = await fetch("/api/vision/identify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error ?? "Не удалось распознать деталь");
-      setResult(json as Result);
-      stop();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Ошибка распознавания");
-    } finally {
-      setBusy(false);
+    if (sharpness(canvas) < BLUR_THRESHOLD) {
+      setShake(true);
+      setTimeout(() => setShake(false), 2000);
+      return;
     }
+    await analyze(canvas.toDataURL("image/webp", 0.85));
+  };
+
+  const retry = () => {
+    setResult(null);
+    void start();
   };
 
   if (!open) return null;
+
+  const showCamera = !camError && (!result || result.scenario === "invalid");
 
   return (
     <div className="fixed inset-0 z-50 bg-[oklch(0.16_0.01_264)]">
@@ -159,7 +202,8 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
         type="button"
         onClick={onClose}
         aria-label="Закрыть сканер"
-        className="absolute right-4 top-4 z-10 grid size-10 cursor-pointer place-items-center rounded-full bg-black/50 text-white"
+        className="absolute right-4 top-4 z-20 grid size-11 cursor-pointer place-items-center rounded-full bg-black/50 text-white"
+        style={{ top: "calc(1rem + env(safe-area-inset-top))" }}
       >
         <X className="size-5" strokeWidth={2} />
       </button>
@@ -172,39 +216,39 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
         onChange={(e) => void pickFile(e.target.files?.[0])}
       />
 
-      {!result && camError && (
+      {camError && !result && (
         <div className="flex h-full w-full flex-col items-center justify-center gap-5 px-6 text-center">
           <span className="grid size-16 place-items-center rounded-full bg-white/10 text-white">
             <CameraOff className="size-8" strokeWidth={1.5} />
           </span>
-          <p className="max-w-[46ch] text-sm leading-[1.6] text-white/85">
-            {camError}. Для умного распознавания деталей воспользуйтесь смартфоном или загрузите
-            фотографию вручную.
+          <p className="max-w-[46ch] text-base leading-[1.6] text-white/85">
+            {camError}. Чтобы распознать деталь, разрешите доступ в настройках браузера или
+            загрузите фото из галереи.
           </p>
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={busy}
-            className="flex cursor-pointer items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.02] disabled:opacity-60"
+            className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.02] disabled:opacity-60"
           >
             {busy ? (
               <Loader2 className="size-4 animate-spin" strokeWidth={2} />
             ) : (
               <ImageUp className="size-4" strokeWidth={1.75} />
             )}
-            {busy ? "Анализируем фото…" : "Загрузить фото с диска"}
+            {busy ? "Анализируем фото…" : "Загрузить фото из галереи"}
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer text-xs text-white/60 underline underline-offset-4 hover:text-white"
+            className="min-h-[44px] cursor-pointer text-xs text-white/60 underline underline-offset-4 hover:text-white"
           >
             Закрыть сканер
           </button>
         </div>
       )}
 
-      {!result && !camError && (
+      {showCamera && (
         <>
           <video
             ref={videoRef}
@@ -219,7 +263,7 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
           >
             {busy && <span className="scan-beam" />}
           </div>
-          {/* Прицел */}
+          {/* Прицел с перекрестием */}
           <svg
             viewBox="0 0 100 100"
             preserveAspectRatio="none"
@@ -233,12 +277,49 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
               strokeWidth="2.5"
               vectorEffect="non-scaling-stroke"
             />
+            <path
+              d="M50 44v12M44 50h12"
+              fill="none"
+              stroke="#E52421"
+              strokeOpacity="0.8"
+              strokeWidth="1.5"
+              vectorEffect="non-scaling-stroke"
+            />
           </svg>
 
-          <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 p-8">
+          {shake && (
+            <div className="pointer-events-none absolute left-1/2 top-[18%] z-10 -translate-x-1/2 rounded-full bg-black/75 px-5 py-3 text-sm font-semibold text-white">
+              Зафиксируйте камеру
+            </div>
+          )}
+
+          {/* Сценарий 3.4: мусор, пальцы, темнота */}
+          {result?.scenario === "invalid" && (
+            <div className="absolute inset-x-4 top-[10%] z-10 rounded-md bg-primary p-4 text-primary-foreground">
+              <p className="flex items-start gap-2 text-sm leading-[1.5]">
+                <TriangleAlert className="mt-0.5 size-5 shrink-0" strokeWidth={2} />
+                <span>
+                  Объект не распознан. Пожалуйста, положите деталь на пустой стол, уберите пальцы
+                  из кадра и убедитесь, что освещения достаточно.
+                </span>
+              </p>
+              <button
+                type="button"
+                onClick={retry}
+                className="mt-3 flex min-h-[44px] w-full cursor-pointer items-center justify-center gap-2 rounded-sm bg-white/15 text-sm font-semibold"
+              >
+                <RefreshCw className="size-4" strokeWidth={2} />
+                Повторить
+              </button>
+            </div>
+          )}
+
+          <div
+            className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 p-8"
+            style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom))" }}
+          >
             <p className="max-w-[42ch] text-center text-xs leading-[1.5] text-white/75">
-              Поместите деталь в центр рамки и обеспечьте хорошее освещение. В анализ уходит
-              только область внутри рамки.
+              Поместите деталь в центр рамки. Желательно на светлый однотонный фон (лист бумаги).
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-3">
@@ -246,7 +327,7 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
                 type="button"
                 onClick={capture}
                 disabled={busy}
-                className="flex cursor-pointer items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground shadow-[0_0_0_0_oklch(0.58_0.22_27/0.6)] transition-transform hover:scale-[1.02] disabled:opacity-50 motion-safe:animate-[pulse_2s_ease-in-out_infinite]"
+                className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.02] disabled:opacity-50"
               >
                 {busy && <Loader2 className="size-4 animate-spin" strokeWidth={2} />}
                 {busy ? "Анализируем кадр…" : "Распознать деталь"}
@@ -255,74 +336,149 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={busy}
-                className="flex cursor-pointer items-center gap-2 rounded-full border border-white/30 px-6 py-4 text-sm font-semibold text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+                className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full border border-white/30 px-6 py-4 text-sm font-semibold text-white transition-colors hover:bg-white/10 disabled:opacity-50"
               >
                 <ImageUp className="size-4" strokeWidth={1.75} />
-                Фото с диска
+                Фото из галереи
               </button>
             </div>
           </div>
         </>
       )}
 
-
-      {result && (
-        <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-card p-6 motion-safe:animate-[slide-in-bottom_0.28s_ease-out]">
+      {/* Сценарии 3.1–3.3: шторка с результатом */}
+      {result && result.scenario !== "invalid" && (
+        <div
+          className="absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto rounded-t-2xl bg-card p-6 motion-safe:animate-[slide-in-bottom_0.28s_ease-out]"
+          style={{ paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
+        >
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-[#D1D5DB]" />
-          <h3 className="text-lg font-bold text-foreground">
-            Распознана {result.verdict.type} {result.verdict.shape}
-            {result.verdict.color ? `, ${result.verdict.color}` : ""}
-            {result.verdict.has_threads ? ", с резьбой" : ""}
-          </h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Уверенность {Math.round(result.verdict.confidence * 100)}%. Наиболее точные совпадения
-            из нашего каталога:
-          </p>
-          <ul className="mt-5 space-y-3">
-            {result.matches.length === 0 && (
-              <li className="text-sm text-muted-foreground">
-                Совпадений не найдено — пришлите фото менеджеру, подберём вручную.
-              </li>
-            )}
-            {result.matches.map((m) => (
-              <li
-                key={m.sku}
-                className="flex items-center gap-4 rounded-md border border-border p-4"
+
+          {result.scenario === "exact" && (
+            <>
+              <h3 className="text-lg font-bold text-foreground">
+                Мы распознали: {result.category}
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Уверенность {Math.round(result.verdict.confidence * 100)}%. Выберите размер:
+              </p>
+              <select
+                value={size}
+                onChange={(e) => setSize(e.target.value)}
+                className="mt-4 w-full rounded-sm border border-border bg-background px-4 py-3 text-base text-foreground"
               >
-                <span className="grid size-14 shrink-0 place-items-center rounded-sm bg-surface text-xs font-semibold text-muted-foreground">
-                  {m.sku.slice(0, 2)}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold text-foreground">{m.name}</span>
-                  <span className="block text-xs text-muted-foreground">
-                    {m.sku} · {m.dims} ·{" "}
-                    {m.stock > 0 ? `${m.stock.toLocaleString("ru-RU")} шт на складе` : "под заказ"}
-                  </span>
-                  <span className="mt-1 block text-sm font-bold tabular-nums text-foreground">
-                    {formatPrice(m.price)}
-                  </span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    addLine(m.sku, 1);
-                    toast.success(`${m.sku} добавлен в корзину`);
-                  }}
-                  className="shrink-0 cursor-pointer rounded-sm bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
-                >
-                  В корзину
-                </button>
-              </li>
-            ))}
-          </ul>
+                <option value="">Выберите размер</option>
+                {result.variants.map((v) => (
+                  <option key={v.sku} value={v.sku}>
+                    {v.dims} · {v.name} · {formatPrice(v.price)}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                disabled={!size}
+                onClick={() => {
+                  addLine(size, 1);
+                  toast.success(`${size} добавлен в корзину`);
+                  onClose();
+                }}
+                className="mt-4 min-h-[44px] w-full cursor-pointer rounded-sm bg-primary py-3.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+              >
+                В корзину
+              </button>
+            </>
+          )}
+
+          {result.scenario === "ambiguous" && (
+            <>
+              <h3 className="text-lg font-bold text-foreground">
+                Найдено несколько совпадений. Выберите подходящий вариант:
+              </h3>
+              <ul className="mt-5 space-y-3">
+                {result.matches.length === 0 && (
+                  <li className="text-sm text-muted-foreground">
+                    Совпадений не найдено — пришлите фото менеджеру, подберём вручную.
+                  </li>
+                )}
+                {result.matches.map((m) => (
+                  <li
+                    key={m.sku}
+                    className="flex items-center gap-4 rounded-md border border-border p-4"
+                  >
+                    <span className="grid size-14 shrink-0 place-items-center rounded-sm bg-surface text-xs font-semibold text-muted-foreground">
+                      {m.sku.slice(0, 2)}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-semibold text-foreground">{m.name}</span>
+                      <span className="block text-xs text-muted-foreground">
+                        {m.sku} · {m.dims} ·{" "}
+                        {m.stock > 0
+                          ? `${m.stock.toLocaleString("ru-RU")} шт на складе`
+                          : "под заказ"}
+                      </span>
+                      <span className="mt-1 block text-sm font-bold tabular-nums text-foreground">
+                        {formatPrice(m.price)}
+                      </span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        addLine(m.sku, 1);
+                        toast.success(`${m.sku} добавлен в корзину`);
+                      }}
+                      className="min-h-[44px] shrink-0 cursor-pointer rounded-sm bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
+                    >
+                      В корзину
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {result.scenario === "foreign" && (
+            <div className="rounded-md border border-[#F59E0B] bg-[oklch(0.97_0.06_90)] p-5">
+              <h3 className="text-lg font-bold text-[oklch(0.35_0.08_70)]">
+                В базовом каталоге ALMAFORT такой детали нет
+              </h3>
+              <p className="mt-2 text-sm leading-[1.6] text-[oklch(0.4_0.06_70)]">
+                Но мы можем изготовить её для вас! Прикрепите фото к заявке на реверс-инжиниринг
+                или литьё под давлением.
+              </p>
+              <button
+                type="button"
+                onClick={() => setReverse(true)}
+                className="mt-4 min-h-[44px] w-full cursor-pointer rounded-sm bg-primary py-3.5 text-sm font-semibold text-primary-foreground"
+              >
+                Отправить фото в отдел разработки
+              </button>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={retry}
+            className="mt-4 flex min-h-[44px] w-full cursor-pointer items-center justify-center gap-2 rounded-sm border border-[#D1D5DB] py-3 text-sm font-semibold text-foreground hover:border-primary hover:text-primary"
+          >
+            <RefreshCw className="size-4" strokeWidth={1.75} />
+            Сканировать ещё раз
+          </button>
           <button
             type="button"
             onClick={onClose}
-            className="mt-6 w-full cursor-pointer rounded-sm border border-[#D1D5DB] py-3 text-sm font-semibold text-foreground hover:border-primary hover:text-primary"
+            className="mt-2 min-h-[44px] w-full cursor-pointer text-sm font-semibold text-muted-foreground hover:text-foreground"
           >
             Закрыть
           </button>
         </div>
+      )}
+
+      {reverse && (
+        <QuoteRequestModal
+          sku="REVERSE-ENG"
+          name="Реверс-инжиниринг детали по фото"
+          onClose={() => setReverse(false)}
+        />
       )}
     </div>
   );
