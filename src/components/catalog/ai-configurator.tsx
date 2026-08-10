@@ -163,12 +163,22 @@ export function AiConfigurator() {
       </ul>
 
       {busy && (
-        <div className="mt-8 space-y-3" aria-hidden>
-          <div className="h-6 w-1/3 animate-pulse rounded-sm bg-[#E5E7EB]" />
-          <div className="h-24 animate-pulse rounded-sm bg-[#E5E7EB]" />
-          <div className="h-12 w-2/3 animate-pulse rounded-sm bg-[#E5E7EB]" />
+        <div className="mt-8 space-y-3" aria-live="polite">
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            Инженер ИИ считает решение
+            <span className="flex items-end gap-1 pb-[3px]">
+              <span className="typing-dot size-1.5 rounded-full bg-current" />
+              <span className="typing-dot size-1.5 rounded-full bg-current" />
+              <span className="typing-dot size-1.5 rounded-full bg-current" />
+            </span>
+          </p>
+          {/* Скелет резервирует высоту ответа — интерфейс не «прыгает» при загрузке */}
+          <div className="skeleton h-6 w-1/3" aria-hidden />
+          <div className="skeleton h-24" aria-hidden />
+          <div className="skeleton h-12 w-2/3" aria-hidden />
         </div>
       )}
+
 
       {result && rows.length > 0 && (
         <article className="mt-8 overflow-hidden rounded-lg bg-card shadow-[0_16px_40px_oklch(0_0_0/0.08)]">
