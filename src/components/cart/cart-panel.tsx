@@ -573,7 +573,7 @@ export function CartPanel() {
               void submitOrder();
             }}
             disabled={ctaDisabled || submitting}
-            className="mt-5 flex w-full items-center justify-center gap-2 rounded-sm bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-all duration-200 enabled:hover:-translate-y-px enabled:hover:brightness-95 enabled:hover:shadow-[0_4px_12px_rgba(229,36,33,0.2)] enabled:active:translate-y-0 enabled:active:scale-[0.98] enabled:active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
+            className="mt-5 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-sm bg-primary px-4 py-3 text-[15px] font-semibold text-primary-foreground transition-all duration-200 enabled:hover:-translate-y-px enabled:hover:brightness-95 enabled:hover:shadow-[0_4px_12px_rgba(229,36,33,0.2)] enabled:active:translate-y-0 enabled:active:scale-[0.98] enabled:active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer md:text-sm"
           >
             {submitting && <Loader2 className="size-4 animate-spin" strokeWidth={2} />}
             {submitting
@@ -586,11 +586,12 @@ export function CartPanel() {
             type="button"
             onClick={download}
             disabled={!cartReady}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-sm border border-[#D1D5DB] px-4 py-3 text-sm font-semibold text-foreground transition-all duration-200 enabled:hover:-translate-y-px enabled:hover:border-primary enabled:hover:text-primary enabled:hover:shadow-[0_4px_12px_rgba(229,36,33,0.2)] enabled:active:translate-y-0 enabled:active:scale-[0.98] enabled:active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
+            className="mt-3 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-sm border border-[#D1D5DB] px-4 py-3 text-[15px] font-semibold text-foreground transition-all duration-200 enabled:hover:-translate-y-px enabled:hover:border-primary enabled:hover:text-primary enabled:hover:shadow-[0_4px_12px_rgba(229,36,33,0.2)] enabled:active:translate-y-0 enabled:active:scale-[0.98] enabled:active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer md:text-sm"
           >
             <FileDown className="size-4" strokeWidth={2} />
             {pendingQuote && lines.length ? "Считаем доставку…" : "Скачать PDF-счёт"}
           </button>
+
           {lines.length > 0 && (
             <button
               type="button"
