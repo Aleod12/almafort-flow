@@ -114,6 +114,8 @@ export type Database = {
           manual_tier_override: boolean
           name: string
           ogrn: string | null
+          registry_status: string
+          requisites_source: string
           user_id: string
         }
         Insert: {
@@ -131,6 +133,8 @@ export type Database = {
           manual_tier_override?: boolean
           name: string
           ogrn?: string | null
+          registry_status?: string
+          requisites_source?: string
           user_id: string
         }
         Update: {
@@ -148,7 +152,54 @@ export type Database = {
           manual_tier_override?: boolean
           name?: string
           ogrn?: string | null
+          registry_status?: string
+          requisites_source?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      erp_sync_jobs: {
+        Row: {
+          attempts: number
+          created_at: string
+          direction: string
+          id: string
+          last_error: string | null
+          next_attempt_at: string
+          order_id: string | null
+          order_number: string
+          payload: Json
+          status: string
+          synced_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          direction?: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          order_id?: string | null
+          order_number: string
+          payload?: Json
+          status?: string
+          synced_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          direction?: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          order_id?: string | null
+          order_number?: string
+          payload?: Json
+          status?: string
+          synced_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
