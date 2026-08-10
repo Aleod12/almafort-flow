@@ -14,6 +14,9 @@ import { supabase } from "@/integrations/supabase/client";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
+import { MobileTabBar } from "@/components/mobile-tab-bar";
+import { registerServiceWorker } from "@/lib/pwa";
+
 
 
 function NotFoundComponent() {
