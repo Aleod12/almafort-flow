@@ -58,6 +58,7 @@ function CabinetPage() {
   });
 
   const [inn, setInn] = useState("");
+  const [party, setParty] = useState<Party | null>(null);
   const [busy, setBusy] = useState(false);
 
   const signOut = async () => {
