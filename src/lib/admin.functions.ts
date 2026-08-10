@@ -537,6 +537,9 @@ export const adminSaveApiKey = createServerFn({ method: "POST" })
         { onConflict: "key" },
       );
     if (error) throw new Error(error.message);
+    // Сбрасываем кеш, чтобы интеграции подхватили новый ключ немедленно.
+    const { invalidateSecret } = await import("@/lib/vault.server");
+    invalidateSecret(data.name);
     await logAdmin(
       context.userId,
       (context.claims as { email?: string })?.email ?? null,
