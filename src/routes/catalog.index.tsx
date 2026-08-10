@@ -119,7 +119,7 @@ function CatalogPage() {
       </main>
 
       {cart.lines > 0 && (
-        <div className="safe-bottom fixed inset-x-3 bottom-3 z-40 flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm shadow-[0_16px_40px_oklch(0_0_0/0.12)] sm:inset-x-auto sm:left-1/2 sm:bottom-6 sm:w-auto sm:-translate-x-1/2 sm:rounded-full sm:px-6">
+        <div className="above-tabbar safe-bottom fixed inset-x-3 bottom-3 z-40 flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm shadow-[0_16px_40px_oklch(0_0_0/0.12)] sm:inset-x-auto sm:left-1/2 sm:bottom-6 sm:w-auto sm:-translate-x-1/2 sm:rounded-full sm:px-6">
           <span className="min-w-0">
             <span className="text-muted-foreground">Позиций: </span>
             <span className="font-semibold text-foreground">{cart.lines}</span>
