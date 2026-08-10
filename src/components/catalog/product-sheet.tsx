@@ -213,31 +213,75 @@ export function ProductSheet({
                 <div className="mt-6 rounded-lg border border-border p-4">
                   <div className="flex flex-col gap-2">
                     <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      <Truck className="size-4" strokeWidth={1.5} /> Логистика на партию 1 000 шт
+                      <Truck className="size-4" strokeWidth={1.5} /> Логистика на партию
                     </p>
-                    <CityInput value={city} onChange={setCity} />
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+                      <CityInput value={city} onChange={setCity} />
+                      <input
+                        value={batch}
+                        onChange={(e) =>
+                          setBatch(Math.max(1, Number(e.target.value.replace(/\D/g, "")) || 1))
+                        }
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        aria-label="Количество, шт"
+                        className="mt-3 h-11 w-[104px] shrink-0 rounded-sm border border-[#D1D5DB] px-3 text-base outline-none focus:border-foreground"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Расчётный груз: {parcel.totalWeight.toLocaleString("ru-RU")} кг ·{" "}
+                      {parcel.totalVolume.toLocaleString("ru-RU")} м³
+                    </p>
                   </div>
 
-                  <ul className="mt-3 space-y-2 text-sm">
-                    {logistics.map((l) => (
-                      <li key={l.name} className="flex justify-between gap-4">
-                        <span className="text-muted-foreground">
-                          {l.name} · {l.days}
-                        </span>
-                        <span className="font-medium tabular-nums text-foreground">
-                          {l.cost.toLocaleString("ru-RU")} ₽
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                  {calcState === "loading" && (
+                    <ul className="mt-3 space-y-2" aria-busy="true">
+                      {[0, 1].map((i) => (
+                        <li key={i} className="flex justify-between gap-4">
+                          <span className="h-4 w-2/3 animate-pulse rounded bg-muted" />
+                          <span className="h-4 w-16 animate-pulse rounded bg-muted" />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {calcState === "failed" && (
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Расчет недоступен. Стоимость уточнит менеджер.
+                    </p>
+                  )}
+
+                  {calcState === "ready" && (
+                    <ul className="mt-3 space-y-2 text-sm">
+                      {logistics.map((l) => (
+                        <li key={l.carrier} className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">
+                            {l.label} · {l.days} дн.
+                          </span>
+                          <span className="font-medium tabular-nums text-foreground">
+                            {l.price.toLocaleString("ru-RU")} ₽
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {calcState === "idle" && (
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Укажите город — рассчитаем доставку по реальным тарифам ТК.
+                    </p>
+                  )}
                 </div>
 
                 <button
                   type="button"
-                  className="mt-4 text-sm font-medium text-foreground underline-offset-4 hover:text-primary hover:underline"
+                  onClick={() => setBulkOpen(true)}
+                  className="mt-4 inline-flex min-h-[44px] cursor-pointer items-center rounded-sm px-1 text-left text-sm font-medium text-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
                 >
-                  Запросить спец. условия на партию от 50 000 шт →
+                  Запросить спец. условия на партию от{" "}
+                  {(product.tier2Qty || 50000).toLocaleString("ru-RU")} шт →
                 </button>
+
               </div>
             </div>
 
