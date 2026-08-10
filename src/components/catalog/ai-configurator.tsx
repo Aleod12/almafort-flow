@@ -110,7 +110,7 @@ export function AiConfigurator() {
     <section
       id="configurator"
       aria-label="ИИ-конфигуратор инженерных узлов и смет"
-      className="mt-16 scroll-mt-28 rounded-lg bg-[#F3F4F6] p-8 lg:p-10"
+      className="mt-16 scroll-mt-28 rounded-lg bg-[#F3F4F6] p-5 sm:p-8 lg:p-10"
     >
       <div className="flex items-center gap-3">
         <span className="grid size-10 shrink-0 place-items-center rounded-sm bg-primary text-primary-foreground">
@@ -138,7 +138,7 @@ export function AiConfigurator() {
           type="button"
           onClick={() => solve(query)}
           disabled={busy}
-          className="flex h-fit cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-7 py-4 text-sm font-semibold text-primary-foreground shadow-[0_6px_18px_-6px_oklch(0.573_0.221_27.5/0.55)] transition-[background-color,transform,box-shadow] duration-200 hover:bg-[#B91C1C] hover:shadow-[0_10px_24px_-8px_oklch(0.573_0.221_27.5/0.7)] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex h-fit min-h-[52px] w-full cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-7 py-4 lg:w-auto text-sm font-semibold text-primary-foreground shadow-[0_6px_18px_-6px_oklch(0.573_0.221_27.5/0.55)] transition-[background-color,transform,box-shadow] duration-200 hover:bg-[#B91C1C] hover:shadow-[0_10px_24px_-8px_oklch(0.573_0.221_27.5/0.7)] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {busy ? <Loader2 className="size-4 animate-spin" /> : <Calculator className="size-4" />}
           {busy ? "Инженерный анализ…" : "Подобрать решение"}
@@ -173,7 +173,7 @@ export function AiConfigurator() {
       {result && rows.length > 0 && (
         <article className="mt-8 overflow-hidden rounded-lg bg-card shadow-[0_16px_40px_oklch(0_0_0/0.08)]">
           {/* Инженерное обоснование */}
-          <div className="bg-[#F8F9FA] p-8">
+          <div className="bg-[#F8F9FA] p-5 sm:p-8">
             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
               <ShieldCheck className="size-4" strokeWidth={1.75} /> Инженерное обоснование
             </p>
@@ -188,7 +188,7 @@ export function AiConfigurator() {
           </div>
 
           {/* Спецификация */}
-          <div className="border-t border-border p-8">
+          <div className="border-t border-border p-5 sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
               Спецификация
             </p>
@@ -216,7 +216,7 @@ export function AiConfigurator() {
                         const v = Math.max(1, Math.floor(Number(e.target.value) || 1));
                         setQty((prev) => ({ ...prev, [r.sku]: v }));
                       }}
-                      className="w-full rounded-sm border border-[#D1D5DB] bg-card px-3 py-2 text-sm tabular-nums text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      className="h-12 w-full rounded-sm border border-[#D1D5DB] bg-card px-3 text-sm tabular-nums md:h-auto md:py-2 text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                     />
                   </div>
                   <div className="col-start-2 lg:col-start-4 lg:text-right">
@@ -251,7 +251,7 @@ export function AiConfigurator() {
             )}
           </div>
 
-          <div className="flex flex-col gap-4 border-t border-border p-8 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-4 border-t border-border p-5 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
             <p className="flex items-center gap-2 text-xs text-muted-foreground">
               <FileText className="size-4 shrink-0" strokeWidth={1.75} />
               Источники: {result.sources.map((s) => s.title).join("; ") || "каталог ALMAFORT"}
@@ -260,7 +260,7 @@ export function AiConfigurator() {
               <button
                 type="button"
                 onClick={scrollToQuiz}
-                className="flex cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-8 py-4 text-sm font-bold text-primary-foreground shadow-[0_6px_18px_-6px_oklch(0.573_0.221_27.5/0.55)] transition-[background-color,transform,box-shadow] duration-200 hover:bg-[#B91C1C] hover:shadow-[0_10px_24px_-8px_oklch(0.573_0.221_27.5/0.7)] active:scale-[0.97]"
+                className="flex min-h-[52px] w-full cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-8 py-4 lg:w-auto text-sm font-bold text-primary-foreground shadow-[0_6px_18px_-6px_oklch(0.573_0.221_27.5/0.55)] transition-[background-color,transform,box-shadow] duration-200 hover:bg-[#B91C1C] hover:shadow-[0_10px_24px_-8px_oklch(0.573_0.221_27.5/0.7)] active:scale-[0.97]"
               >
                 <Wrench className="size-4" strokeWidth={2} />
                 Прикрепить ТЗ и запросить расчёт
@@ -269,7 +269,7 @@ export function AiConfigurator() {
               <button
                 type="button"
                 onClick={transferToCart}
-                className="cursor-pointer rounded-sm bg-primary px-8 py-4 text-sm font-bold text-primary-foreground shadow-[0_6px_18px_-6px_oklch(0.573_0.221_27.5/0.55)] transition-all duration-200 hover:scale-[1.02] hover:bg-[#B91C1C] hover:shadow-[0_10px_24px_-8px_oklch(0.573_0.221_27.5/0.7)] active:scale-[0.98]"
+                className="min-h-[52px] w-full cursor-pointer rounded-sm bg-primary px-8 py-4 lg:w-auto text-sm font-bold text-primary-foreground shadow-[0_6px_18px_-6px_oklch(0.573_0.221_27.5/0.55)] transition-all duration-200 hover:scale-[1.02] hover:bg-[#B91C1C] hover:shadow-[0_10px_24px_-8px_oklch(0.573_0.221_27.5/0.7)] active:scale-[0.98]"
               >
                 Добавить смету в корзину
               </button>

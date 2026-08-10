@@ -254,7 +254,7 @@ export function CartPanel() {
 
       {/* Корзина */}
       <section className="overflow-hidden rounded-lg border border-border bg-card">
-        <div className="grid grid-cols-[minmax(0,1fr)_110px_120px_120px_44px] items-center gap-3 border-b border-border bg-[#F8F9FA] px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <div className="hidden grid-cols-[minmax(0,1fr)_110px_120px_120px_44px] items-center gap-3 border-b border-border bg-[#F8F9FA] px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:grid">
           <span>Позиция</span>
           <span className="text-right">Кол-во</span>
           <span className="text-right">Цена</span>
@@ -274,7 +274,7 @@ export function CartPanel() {
           return (
             <div
               key={l.sku}
-              className="grid grid-cols-[minmax(0,1fr)_110px_120px_120px_44px] items-center gap-3 border-b border-border px-5 py-3 last:border-b-0"
+              className="border-b border-border px-4 py-4 last:border-b-0 md:grid md:grid-cols-[minmax(0,1fr)_110px_120px_120px_44px] md:items-center md:gap-3 md:px-5 md:py-3"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <span className="block w-10 shrink-0">
@@ -283,8 +283,8 @@ export function CartPanel() {
                     alt={l.name}
                   />
                 </span>
-                <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-foreground">
+                <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-foreground md:truncate">
                   {l.sku} — {l.name}
                 </p>
                 {l.originalName && l.originalName !== l.name && (
@@ -293,38 +293,75 @@ export function CartPanel() {
                   </p>
                 )}
                 </div>
-              </div>
-              <input
-                inputMode="numeric"
-                value={l.quantity}
-                onChange={(e) =>
-                  setQuantity(l.sku, Number(e.target.value.replace(/\D/g, "")) || 0)
-                }
-                className="w-full rounded-sm border border-[#D1D5DB] px-2 py-1.5 text-right text-sm tabular-nums outline-none transition-colors focus:border-foreground"
-              />
-              <div className="text-right text-sm tabular-nums">
-                {discounted && (
-                  <span className="mr-1 text-xs text-muted-foreground line-through">
-                    {money(base)}
-                  </span>
-                )}
-                <span
-                  className={
-                    discounted ? "font-semibold text-[oklch(0.5_0.15_150)]" : "text-foreground"
-                  }
+                <button
+                  type="button"
+                  onClick={() => removeLine(l.sku)}
+                  aria-label="Удалить позицию"
+                  className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-sm text-muted-foreground transition-colors active:scale-95 md:hidden"
                 >
-                  {money(unit)}
-                </span>
-                <p className="text-[11px] text-muted-foreground">{TIER_LABEL[tier]}</p>
+                  <Trash2 className="size-4" strokeWidth={1.75} />
+                </button>
               </div>
-              <div className="text-right text-sm font-semibold tabular-nums text-foreground">
+
+              {/* Мобильный блок количества: крупные «−» и «+» */}
+              <div className="no-select mt-3 grid grid-cols-[44px_minmax(0,1fr)_44px] gap-2 md:mt-0 md:block">
+                <button
+                  type="button"
+                  aria-label="Уменьшить количество"
+                  onClick={() => setQuantity(l.sku, Math.max(0, l.quantity - 100))}
+                  className="grid h-11 place-items-center rounded-md border border-[#D1D5DB] text-foreground active:scale-95 md:hidden"
+                >
+                  −
+                </button>
+                <input
+                  inputMode="numeric"
+                  value={l.quantity}
+                  onChange={(e) =>
+                    setQuantity(l.sku, Number(e.target.value.replace(/\D/g, "")) || 0)
+                  }
+                  className="h-11 w-full rounded-md border border-[#D1D5DB] px-2 text-center tabular-nums outline-none transition-colors focus:border-foreground md:h-auto md:rounded-sm md:py-1.5 md:text-right md:text-sm"
+                />
+                <button
+                  type="button"
+                  aria-label="Увеличить количество"
+                  onClick={() => setQuantity(l.sku, l.quantity + 100)}
+                  className="grid h-11 place-items-center rounded-md border border-[#D1D5DB] text-foreground active:scale-95 md:hidden"
+                >
+                  +
+                </button>
+              </div>
+
+              <div className="mt-3 flex items-baseline justify-between text-sm tabular-nums md:mt-0 md:block md:text-right">
+                <span className="text-xs uppercase text-muted-foreground md:hidden">Цена</span>
+                <span>
+                  {discounted && (
+                    <span className="mr-1 text-xs text-muted-foreground line-through">
+                      {money(base)}
+                    </span>
+                  )}
+                  <span
+                    className={
+                      discounted ? "font-semibold text-[oklch(0.5_0.15_150)]" : "text-foreground"
+                    }
+                  >
+                    {money(unit)}
+                  </span>
+                </span>
+                <p className="text-[11px] text-muted-foreground md:mt-0">{TIER_LABEL[tier]}</p>
+              </div>
+
+              <div className="mt-2 flex items-baseline justify-between text-sm font-semibold tabular-nums text-foreground md:mt-0 md:block md:text-right">
+                <span className="text-xs uppercase font-normal text-muted-foreground md:hidden">
+                  Сумма
+                </span>
                 {money(sum)}
               </div>
+
               <button
                 type="button"
                 onClick={() => removeLine(l.sku)}
                 aria-label="Удалить позицию"
-                className="grid size-8 cursor-pointer place-items-center rounded-sm text-muted-foreground transition-all duration-200 hover:scale-110 hover:bg-primary hover:text-primary-foreground active:scale-95"
+                className="hidden size-8 cursor-pointer place-items-center rounded-sm text-muted-foreground transition-all duration-200 hover:scale-110 hover:bg-primary hover:text-primary-foreground active:scale-95 md:grid"
               >
                 <Trash2 className="size-4" strokeWidth={1.75} />
               </button>
@@ -332,6 +369,7 @@ export function CartPanel() {
           );
         })}
       </section>
+
 
       {/* Логистика и итог */}
       <section className="grid gap-6 rounded-lg border border-border bg-card p-6 lg:grid-cols-[1fr_320px]">
@@ -446,10 +484,13 @@ export function CartPanel() {
             <input
               value={form.phone}
               onChange={field("phone")}
+              type="tel"
               inputMode="tel"
+              autoComplete="tel"
               placeholder="+7 (___) ___-__-__"
-              className="h-11 rounded-sm border border-[#D1D5DB] px-3.5 py-2.5 text-[13px] leading-[1.3] outline-none transition-colors placeholder:text-[13px] focus:border-primary"
+              className="h-12 rounded-sm border border-[#D1D5DB] px-3.5 py-2.5 text-[13px] leading-[1.3] outline-none transition-colors placeholder:text-[13px] focus:border-primary md:h-11"
             />
+
             </label>
             <input
               value={form.email}
@@ -532,7 +573,7 @@ export function CartPanel() {
               void submitOrder();
             }}
             disabled={ctaDisabled || submitting}
-            className="mt-5 flex w-full items-center justify-center gap-2 rounded-sm bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-all duration-200 enabled:hover:-translate-y-px enabled:hover:brightness-95 enabled:hover:shadow-[0_4px_12px_rgba(229,36,33,0.2)] enabled:active:translate-y-0 enabled:active:scale-[0.98] enabled:active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
+            className="mt-5 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-sm bg-primary px-4 py-3 text-[15px] font-semibold text-primary-foreground transition-all duration-200 enabled:hover:-translate-y-px enabled:hover:brightness-95 enabled:hover:shadow-[0_4px_12px_rgba(229,36,33,0.2)] enabled:active:translate-y-0 enabled:active:scale-[0.98] enabled:active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer md:text-sm"
           >
             {submitting && <Loader2 className="size-4 animate-spin" strokeWidth={2} />}
             {submitting
@@ -545,11 +586,12 @@ export function CartPanel() {
             type="button"
             onClick={download}
             disabled={!cartReady}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-sm border border-[#D1D5DB] px-4 py-3 text-sm font-semibold text-foreground transition-all duration-200 enabled:hover:-translate-y-px enabled:hover:border-primary enabled:hover:text-primary enabled:hover:shadow-[0_4px_12px_rgba(229,36,33,0.2)] enabled:active:translate-y-0 enabled:active:scale-[0.98] enabled:active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
+            className="mt-3 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-sm border border-[#D1D5DB] px-4 py-3 text-[15px] font-semibold text-foreground transition-all duration-200 enabled:hover:-translate-y-px enabled:hover:border-primary enabled:hover:text-primary enabled:hover:shadow-[0_4px_12px_rgba(229,36,33,0.2)] enabled:active:translate-y-0 enabled:active:scale-[0.98] enabled:active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer md:text-sm"
           >
             <FileDown className="size-4" strokeWidth={2} />
             {pendingQuote && lines.length ? "Считаем доставку…" : "Скачать PDF-счёт"}
           </button>
+
           {lines.length > 0 && (
             <button
               type="button"

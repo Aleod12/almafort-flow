@@ -77,7 +77,7 @@ export function SpecUpload({ compact = false }: { compact?: boolean }) {
         onClick={open}
         {...getRootProps({
           className:
-            "flex cursor-pointer items-center gap-2 rounded-sm border border-[#D1D5DB] bg-[#F3F4F6] px-4 py-2.5 text-sm font-semibold text-foreground transition-colors duration-200 hover:border-primary hover:text-primary",
+            "flex min-h-[48px] cursor-pointer items-center gap-2 rounded-sm border border-[#D1D5DB] bg-[#F3F4F6] px-4 py-2.5 text-sm font-semibold text-foreground transition-colors duration-200 hover:border-primary hover:text-primary",
         })}
       >
         <input {...getInputProps()} />
@@ -91,7 +91,7 @@ export function SpecUpload({ compact = false }: { compact?: boolean }) {
     <div
       {...getRootProps({
         className:
-          "flex cursor-pointer flex-col items-center justify-center gap-4 rounded-lg px-8 py-14 text-center transition-all duration-200",
+          "flex cursor-pointer flex-col items-center justify-center gap-4 rounded-lg px-5 py-10 text-center sm:px-8 sm:py-14 transition-all duration-200",
       })}
       style={{
         border: isDragActive ? "2px solid #E52421" : "2px dashed #D1D5DB",

@@ -313,3 +313,79 @@ blockquote {
   word-break: break-word;
   overflow-wrap: anywhere;
 }
+
+/* --- MOBILE-FIRST ПРОТОКОЛ ------------------------------------------- */
+
+/* iOS рисует собственные скругления/тени на полях и кнопках — отключаем. */
+input,
+textarea,
+select,
+button {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+}
+input[type="checkbox"],
+input[type="radio"] {
+  -webkit-appearance: auto;
+  appearance: auto;
+}
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 767px) {
+  /* < 16px в поле ввода = принудительный зум Safari iOS */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* Палец, а не курсор: зона касания 44×44 у всей интерактивной мелочи */
+  button,
+  a[role="button"],
+  [role="radio"],
+  summary {
+    min-height: 44px;
+  }
+  button.tap-sm,
+  a.tap-sm {
+    min-height: 0;
+  }
+
+  /* Нижняя панель Safari не должна съедать липкие CTA */
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Двойной тап по «+/−» не выделяет текст вокруг */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+/* Горизонтальная карусель фото со снапом и свайпом */
+@utility swipe-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+@utility swipe-slide {
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+}
+
+/* На смартфоне hover-состояний нет: гасим их, оставляя active */
+@media (hover: none) {
+  a:hover,
+  button:hover {
+    transform: none;
+  }
+}
+

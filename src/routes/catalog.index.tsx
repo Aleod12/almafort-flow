@@ -95,7 +95,7 @@ function CatalogPage() {
           <button
             type="button"
             onClick={() => setUpload((v) => !v)}
-            className="flex cursor-pointer items-center gap-2 rounded-sm border border-[#D1D5DB] bg-[#F3F4F6] px-4 py-2.5 text-sm font-semibold text-foreground transition-colors duration-200 hover:border-primary hover:text-primary"
+            className="flex min-h-[48px] w-full cursor-pointer items-center justify-center gap-2 rounded-sm border border-[#D1D5DB] bg-[#F3F4F6] px-4 py-2.5 sm:w-auto text-sm font-semibold text-foreground transition-colors duration-200 hover:border-primary hover:text-primary"
           >
             <FileSpreadsheet className="size-4" strokeWidth={1.75} />
             Загрузить спецификацию Excel
@@ -119,21 +119,22 @@ function CatalogPage() {
       </main>
 
       {cart.lines > 0 && (
-        <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full border border-border bg-card px-6 py-3 text-sm shadow-[0_16px_40px_oklch(0_0_0/0.12)]">
-          <span className="text-muted-foreground">Позиций в заказе: </span>
-          <span className="font-semibold text-foreground">{cart.lines}</span>
-          <span className="mx-3 text-border">|</span>
-          <span className="font-bold tabular-nums text-primary">
-            {formatPrice(cart.total)}
+        <div className="safe-bottom fixed inset-x-3 bottom-3 z-40 flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm shadow-[0_16px_40px_oklch(0_0_0/0.12)] sm:inset-x-auto sm:left-1/2 sm:bottom-6 sm:w-auto sm:-translate-x-1/2 sm:rounded-full sm:px-6">
+          <span className="min-w-0">
+            <span className="text-muted-foreground">Позиций: </span>
+            <span className="font-semibold text-foreground">{cart.lines}</span>
+            <span className="mx-2 text-border">|</span>
+            <span className="font-bold tabular-nums text-primary">{formatPrice(cart.total)}</span>
           </span>
           <a
             href="/cart"
-            className="ml-4 cursor-pointer rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90"
+            className="flex h-11 shrink-0 cursor-pointer items-center rounded-full bg-primary px-5 text-xs font-semibold text-primary-foreground hover:opacity-90"
           >
             Оформить счёт
           </a>
         </div>
       )}
+
 
       <ProductSheet product={product} onClose={() => setProduct(null)} />
     </div>
