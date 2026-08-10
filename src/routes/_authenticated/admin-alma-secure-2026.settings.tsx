@@ -8,6 +8,8 @@ import {
   adminSaveApiKey,
   adminSaveSetting,
   adminSetStaffRole,
+  adminErpJobs,
+  adminRetryErp,
 } from "@/lib/admin.functions";
 import { ROLE_LABEL, type AdminRole } from "@/lib/admin";
 import { VAULT_GROUPS } from "@/lib/admin-data";
@@ -23,6 +25,16 @@ function Settings() {
   const saveKey = useServerFn(adminSaveApiKey);
   const staffList = useServerFn(adminListStaff);
   const setRole = useServerFn(adminSetStaffRole);
+  const erpJobs = useServerFn(adminErpJobs);
+  const retryErp = useServerFn(adminRetryErp);
+
+  /** Человеческие названия статусов очереди обмена. */
+  const ERP_STATUS_LABEL: Record<string, string> = {
+    pending: "В очереди",
+    synced: "Синхронизирован",
+    sync_failed: "Ошибка, повтор через 15 мин",
+    failed: "Не доставлен, нужна проверка",
+  };
 
   const { data } = useQuery({ queryKey: ["admin-settings"], queryFn: () => get() });
   const { data: staff } = useQuery({ queryKey: ["admin-staff"], queryFn: () => staffList() });
@@ -208,7 +220,7 @@ function Settings() {
           </button>
         </div>
         <ul className="space-y-2 text-sm">
-          {(erp?.rows ?? []).map((j) => (
+          {(erp?.rows ?? []).map((j: (typeof erp)["rows"][number]) => (
             <li key={j.id} className="flex flex-wrap items-center gap-3 border-b pb-2">
               <span className="font-medium tabular-nums">{j.order_number}</span>
               <span
