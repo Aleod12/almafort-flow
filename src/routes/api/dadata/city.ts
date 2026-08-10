@@ -21,7 +21,8 @@ export const Route = createFileRoute("/api/dadata/city")({
         }
         if (query.length < 2) return json({ suggestions: [] });
 
-        const token = process.env["DADATA_API_KEY"];
+        const { secretValue } = await import("@/lib/vault.server");
+        const token = await secretValue("DADATA_API_KEY");
         if (token) {
           try {
             const res = await fetch(
