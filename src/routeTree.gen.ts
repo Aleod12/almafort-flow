@@ -40,6 +40,7 @@ import { Route as ApiCheckoutSubmitRouteImport } from './routes/api/checkout/sub
 import { Route as ApiConfiguratorSolveRouteImport } from './routes/api/configurator/solve'
 import { Route as ApiDadataCityRouteImport } from './routes/api/dadata/city'
 import { Route as ApiDadataPartyRouteImport } from './routes/api/dadata/party'
+import { Route as ApiLeadsBulkRouteImport } from './routes/api/leads/bulk'
 import { Route as ApiParserUploadRouteImport } from './routes/api/parser/upload'
 import { Route as ApiQuizSubmitRouteImport } from './routes/api/quiz/submit'
 import { Route as ApiUploadPresignedUrlRouteImport } from './routes/api/upload/presigned-url'
@@ -213,6 +214,11 @@ const ApiDadataPartyRoute = ApiDadataPartyRouteImport.update({
   path: '/api/dadata/party',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiLeadsBulkRoute = ApiLeadsBulkRouteImport.update({
+  id: '/api/leads/bulk',
+  path: '/api/leads/bulk',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiParserUploadRoute = ApiParserUploadRouteImport.update({
   id: '/api/parser/upload',
   path: '/api/parser/upload',
@@ -296,6 +302,7 @@ export interface FileRoutesByFullPath {
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/dadata/party': typeof ApiDadataPartyRoute
+  '/api/leads/bulk': typeof ApiLeadsBulkRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
   '/api/quiz/submit': typeof ApiQuizSubmitRoute
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
@@ -336,6 +343,7 @@ export interface FileRoutesByTo {
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/dadata/party': typeof ApiDadataPartyRoute
+  '/api/leads/bulk': typeof ApiLeadsBulkRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
   '/api/quiz/submit': typeof ApiQuizSubmitRoute
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
@@ -380,6 +388,7 @@ export interface FileRoutesById {
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/dadata/party': typeof ApiDadataPartyRoute
+  '/api/leads/bulk': typeof ApiLeadsBulkRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
   '/api/quiz/submit': typeof ApiQuizSubmitRoute
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
@@ -424,6 +433,7 @@ export interface FileRouteTypes {
     | '/api/configurator/solve'
     | '/api/dadata/city'
     | '/api/dadata/party'
+    | '/api/leads/bulk'
     | '/api/parser/upload'
     | '/api/quiz/submit'
     | '/api/upload/presigned-url'
@@ -464,6 +474,7 @@ export interface FileRouteTypes {
     | '/api/configurator/solve'
     | '/api/dadata/city'
     | '/api/dadata/party'
+    | '/api/leads/bulk'
     | '/api/parser/upload'
     | '/api/quiz/submit'
     | '/api/upload/presigned-url'
@@ -507,6 +518,7 @@ export interface FileRouteTypes {
     | '/api/configurator/solve'
     | '/api/dadata/city'
     | '/api/dadata/party'
+    | '/api/leads/bulk'
     | '/api/parser/upload'
     | '/api/quiz/submit'
     | '/api/upload/presigned-url'
@@ -541,6 +553,7 @@ export interface RootRouteChildren {
   ApiConfiguratorSolveRoute: typeof ApiConfiguratorSolveRoute
   ApiDadataCityRoute: typeof ApiDadataCityRoute
   ApiDadataPartyRoute: typeof ApiDadataPartyRoute
+  ApiLeadsBulkRoute: typeof ApiLeadsBulkRoute
   ApiParserUploadRoute: typeof ApiParserUploadRoute
   ApiQuizSubmitRoute: typeof ApiQuizSubmitRoute
   ApiUploadPresignedUrlRoute: typeof ApiUploadPresignedUrlRoute
@@ -771,6 +784,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDadataPartyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/leads/bulk': {
+      id: '/api/leads/bulk'
+      path: '/api/leads/bulk'
+      fullPath: '/api/leads/bulk'
+      preLoaderRoute: typeof ApiLeadsBulkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/parser/upload': {
       id: '/api/parser/upload'
       path: '/api/parser/upload'
@@ -927,6 +947,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiConfiguratorSolveRoute: ApiConfiguratorSolveRoute,
   ApiDadataCityRoute: ApiDadataCityRoute,
   ApiDadataPartyRoute: ApiDadataPartyRoute,
+  ApiLeadsBulkRoute: ApiLeadsBulkRoute,
   ApiParserUploadRoute: ApiParserUploadRoute,
   ApiQuizSubmitRoute: ApiQuizSubmitRoute,
   ApiUploadPresignedUrlRoute: ApiUploadPresignedUrlRoute,
