@@ -125,7 +125,7 @@ export function CartPanel() {
   const [triedSubmit, setTriedSubmit] = useState(false);
   const cartReady = Boolean(lines.length) && !pendingQuote;
   const unverified = authed && !verified;
-  const ctaDisabled = !cartReady || !consent || unverified;
+  const ctaDisabled = !cartReady || !consent || unverified || Boolean(party?.blocked);
 
   const [form, setForm] = useState({ name: "", phone: "", email: "", company: "", comment: "" });
   const [inn, setInn] = useState("");
