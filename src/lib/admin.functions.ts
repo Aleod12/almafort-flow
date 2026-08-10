@@ -771,9 +771,13 @@ export const adminSetBulkStatus = createServerFn({ method: "POST" })
       .update({ status: data.status })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
-    await logAdmin(context.supabase, context.userId, "bulk_request_status", {
-      id: data.id,
-      status: data.status,
-    });
+    await logAdmin(
+      context.userId,
+      (context.claims as { email?: string })?.email ?? null,
+      "bulk_request_status",
+      data.id,
+      null,
+      { status: data.status },
+    );
     return { ok: true };
   });
