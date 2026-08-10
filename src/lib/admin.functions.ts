@@ -537,6 +537,9 @@ export const adminSaveApiKey = createServerFn({ method: "POST" })
         { onConflict: "key" },
       );
     if (error) throw new Error(error.message);
+    // Сбрасываем кеш, чтобы интеграции подхватили новый ключ немедленно.
+    const { invalidateSecret } = await import("@/lib/vault.server");
+    invalidateSecret(data.name);
     await logAdmin(
       context.userId,
       (context.claims as { email?: string })?.email ?? null,
@@ -703,4 +706,36 @@ export const adminLinkAssetGroup = createServerFn({ method: "POST" })
       { slug: data.slug, skus: data.skus, images: data.images.length },
     );
     return { ok: true, groupId: gid as string, linked: data.skus.length };
+  });
+
+/** Очередь обмена с 1С: что не ушло и почему. */
+export const adminErpJobs = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireRole(context.supabase, context.userId, ["owner", "manager"]);
+    const { data, error } = await context.supabase
+      .from("erp_sync_jobs")
+      .select("id, order_number, status, attempts, last_error, next_attempt_at, created_at")
+      .order("created_at", { ascending: false })
+      .limit(30);
+    if (error) throw new Error(error.message);
+    return { rows: data ?? [] };
+  });
+
+/** Ручной прогон Retry Pattern из админки — без ожидания крона. */
+export const adminRetryErp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireRole(context.supabase, context.userId, ["owner", "manager"]);
+    const { retryPendingOrders } = await import("@/lib/erp-1c.server");
+    const result = await retryPendingOrders();
+    await logAdmin(
+      context.userId,
+      (context.claims as { email?: string })?.email ?? null,
+      "ERP_RETRY",
+      `обработано ${result.processed}, синхронизировано ${result.synced}`,
+      null,
+      result,
+    );
+    return result;
   });

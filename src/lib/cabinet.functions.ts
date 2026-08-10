@@ -107,13 +107,15 @@ export const addCompanyByInn = createServerFn({ method: "POST" })
           legal_address: party.legalAddress,
           ogrn: party.ogrn,
           director: party.director,
+          registry_status: party.status,
+          requisites_source: party.source,
         },
         { onConflict: "user_id,inn" },
       )
       .select()
       .single();
     if (error) throw new Error(error.message);
-    return { ...row, resolved: Boolean(party.name) };
+    return { ...row, resolved: Boolean(party.name), blocked: party.blocked };
   });
 
 

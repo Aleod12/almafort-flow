@@ -4,6 +4,7 @@
  * Если живого API нет (нет кредов) или он не ответил — отдаём тарифную модель,
  * чтобы интерфейс клиента никогда не блокировался.
  */
+import { secretValues } from "@/lib/vault.server";
 import {
   ORIGIN,
   type Destination,
@@ -102,8 +103,9 @@ async function cdekAuth(id: string, secret: string) {
 }
 
 async function cdekQuote(dest: Destination, parcel: Parcel): Promise<ShippingQuote> {
-  const id = process.env["CDEK_ACCOUNT"];
-  const secret = process.env["CDEK_SECURE_PASSWORD"];
+  const cfg = await secretValues(["CDEK_ACCOUNT", "CDEK_SECURE_PASSWORD"] as const);
+  const id = cfg.CDEK_ACCOUNT;
+  const secret = cfg.CDEK_SECURE_PASSWORD;
   if (!id || !secret) return cdekModel(dest, parcel);
 
   const token = await cdekAuth(id, secret);
@@ -150,7 +152,7 @@ async function cdekQuote(dest: Destination, parcel: Parcel): Promise<ShippingQuo
 /* --------------------------- Деловые Линии API --------------------------- */
 
 async function dlQuote(dest: Destination, parcel: Parcel): Promise<ShippingQuote> {
-  const key = process.env["DL_API_KEY"];
+  const key = (await secretValues(["DL_API_KEY"] as const)).DL_API_KEY;
   if (!key) return dlModel(dest, parcel);
 
   const res = await fetch("https://api.dellin.ru/v3/calculator.json", {

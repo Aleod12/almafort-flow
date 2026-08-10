@@ -1,3 +1,4 @@
+import { secretValues } from "@/lib/vault.server";
 // Генерация Pre-signed URL (AWS SigV4, query-подпись) для прямой загрузки
 // файлов клиентом в Yandex Object Storage минуя наш сервер.
 
@@ -55,8 +56,9 @@ export async function presignUpload(
     return { ok: false, status: 415, error: `Формат .${ext || "?"} не поддерживается` };
   }
 
-  const accessKey = process.env["S3_ACCESS_KEY_ID"];
-  const secretKey = process.env["S3_SECRET_ACCESS_KEY"];
+  const cfg = await secretValues(["S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"] as const);
+  const accessKey = cfg.S3_ACCESS_KEY_ID;
+  const secretKey = cfg.S3_SECRET_ACCESS_KEY;
   const bucket = process.env["S3_BUCKET"];
   if (!accessKey || !secretKey || !bucket) {
     return { ok: false, status: 503, error: "Хранилище не сконфигурировано" };

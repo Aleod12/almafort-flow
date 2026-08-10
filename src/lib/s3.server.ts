@@ -1,3 +1,4 @@
+import { secretValues } from "@/lib/vault.server";
 // Загрузка PDF-счёта в S3-совместимое хранилище (Yandex Object Storage)
 // напрямую подписью AWS SigV4 — без SDK, чтобы код работал в edge-рантайме.
 
@@ -44,8 +45,9 @@ export async function uploadObject(
   bytes: Uint8Array,
   contentType = "application/octet-stream",
 ): Promise<UploadResult> {
-  const accessKey = process.env["S3_ACCESS_KEY_ID"];
-  const secretKey = process.env["S3_SECRET_ACCESS_KEY"];
+  const cfg = await secretValues(["S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"] as const);
+  const accessKey = cfg.S3_ACCESS_KEY_ID;
+  const secretKey = cfg.S3_SECRET_ACCESS_KEY;
   const bucket = process.env["S3_BUCKET"];
   if (!accessKey || !secretKey || !bucket) {
     return { url: null, skipped: "S3 не сконфигурирован" };

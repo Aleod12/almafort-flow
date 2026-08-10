@@ -9,6 +9,13 @@ const schema = z.object({
     company: z.string().trim().max(160).optional(),
     comment: z.string().trim().max(2000).optional(),
   }),
+  // Реквизиты плательщика: 1С мэтчит контрагента именно по ИНН.
+  inn: z
+    .string()
+    .trim()
+    .regex(/^\d{10}(\d{2})?$/)
+    .nullish(),
+  kpp: z.string().trim().max(12).nullish(),
   city: z.string().trim().max(160).default(""),
   carrier: z.enum(["cdek", "dl", "pickup"]),
   deliveryPrice: z.number().min(0).max(1_000_000),
@@ -95,14 +102,40 @@ export const Route = createFileRoute("/api/checkout/submit")({
           items: parsed.items,
         });
 
+        const orderNumber = `AF-${stamp}`;
+        // Push в 1С: неудача не ломает чекаут — заказ уйдёт по Retry Pattern.
+        const { enqueueOrder } = await import("@/lib/erp-1c.server");
+        const erp = await enqueueOrder({
+          orderNumber,
+          inn: parsed.inn ?? null,
+          kpp: parsed.kpp ?? null,
+          companyName: parsed.customer.company ?? null,
+          customer: {
+            name: parsed.customer.name,
+            phone: parsed.customer.phone,
+            ...(parsed.customer.email ? { email: parsed.customer.email } : {}),
+          },
+          city: parsed.city,
+          carrier: CARRIER_LABEL[parsed.carrier],
+          deliveryPrice: parsed.deliveryPrice,
+          goodsPrice: parsed.goodsPrice,
+          total: parsed.total,
+          status: "new",
+          items: parsed.items,
+        }).catch((e) => {
+          console.error("[checkout] erp enqueue failed", e);
+          return { ok: false, detail: "Очередь 1С недоступна" };
+        });
+
         return Response.json({
           ok: true,
-          orderId: `AF-${stamp}`,
+          orderId: orderNumber,
           invoiceUrl,
           storageNote,
           crm: crm.crm,
           crmOk: crm.ok,
           crmDetail: crm.detail,
+          erpOk: erp.ok,
         });
       },
     },

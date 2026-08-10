@@ -7,6 +7,7 @@ import { scoreMatch } from "@/lib/fuzzy-search";
 import { useDebounce } from "@/hooks/use-debounce";
 import { CityInput } from "@/components/cart/city-input";
 import { SwipeToDelete } from "@/components/cart/swipe-to-delete";
+import { InnField, type Party } from "@/components/inn-field";
 
 import { formatPrice } from "@/lib/pricing";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
@@ -122,11 +123,13 @@ export function CartPanel() {
       (payloadKey !== debouncedKey || !quoteFor(carrier)));
   const [consent, setConsent] = useState(false);
   const [triedSubmit, setTriedSubmit] = useState(false);
+  const [form, setForm] = useState({ name: "", phone: "", email: "", company: "", comment: "" });
+  const [inn, setInn] = useState("");
+  const [party, setParty] = useState<Party | null>(null);
   const cartReady = Boolean(lines.length) && !pendingQuote;
   const unverified = authed && !verified;
-  const ctaDisabled = !cartReady || !consent || unverified;
+  const ctaDisabled = !cartReady || !consent || unverified || Boolean(party?.blocked);
 
-  const [form, setForm] = useState({ name: "", phone: "", email: "", company: "", comment: "" });
   const [submitting, setSubmitting] = useState(false);
   // Стратегическому партнёру доступна отгрузка с отсрочкой платежа 15–30 дней.
   const [deferred, setDeferred] = useState(false);
@@ -140,6 +143,12 @@ export function CartPanel() {
     }
     if (form.name.trim().length < 2 || form.phone.replace(/\D/g, "").length < 10) {
       toast.error("Укажите имя и телефон — менеджер должен знать, кому подтверждать отгрузку");
+      return;
+    }
+    if (party?.blocked) {
+      toast.error(
+        "Данное юридическое лицо ликвидировано или находится в стадии банкротства. Выставление счёта невозможно",
+      );
       return;
     }
     setSubmitting(true);
@@ -158,9 +167,11 @@ export function CartPanel() {
             name: form.name.trim(),
             phone: form.phone.trim(),
             email: form.email.trim(),
-            company: form.company.trim(),
+            company: (party?.name || form.company).trim(),
             comment: form.comment.trim(),
           },
+          ...(party?.inn ? { inn: party.inn } : {}),
+          ...(party?.kpp ? { kpp: party.kpp } : {}),
           city,
           carrier,
           deliveryPrice: delivery,
@@ -511,6 +522,20 @@ export function CartPanel() {
               className="h-11 rounded-sm border border-[#D1D5DB] px-3.5 py-2.5 text-[13px] leading-[1.3] outline-none transition-colors placeholder:text-[13px] focus:border-primary"
             />
           </div>
+
+          <div className="mt-3">
+            <InnField
+              value={inn}
+              onChange={setInn}
+              onParty={(p) => {
+                setParty(p);
+                // Название из реестра подставляем сами — снабженцу не нужно печатать ОПФ.
+                if (p?.name) setForm((f) => ({ ...f, company: p.name }));
+              }}
+              label="ИНН плательщика"
+            />
+          </div>
+
           <textarea
             value={form.comment}
             onChange={field("comment")}

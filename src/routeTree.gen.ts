@@ -39,12 +39,16 @@ import { Route as ApiAdminCatalogSyncRouteImport } from './routes/api/admin/cata
 import { Route as ApiCheckoutSubmitRouteImport } from './routes/api/checkout/submit'
 import { Route as ApiConfiguratorSolveRouteImport } from './routes/api/configurator/solve'
 import { Route as ApiDadataCityRouteImport } from './routes/api/dadata/city'
+import { Route as ApiDadataPartyRouteImport } from './routes/api/dadata/party'
 import { Route as ApiParserUploadRouteImport } from './routes/api/parser/upload'
 import { Route as ApiQuizSubmitRouteImport } from './routes/api/quiz/submit'
 import { Route as ApiUploadPresignedUrlRouteImport } from './routes/api/upload/presigned-url'
 import { Route as ApiVisionIdentifyRouteImport } from './routes/api/vision/identify'
 import { Route as AuthenticatedAdminAlmaSecure2026OrdersOrderIdRouteImport } from './routes/_authenticated/admin-alma-secure-2026.orders.$orderId'
 import { Route as ApiPublicCadSplatRouteImport } from './routes/api/public/cad/$'
+import { Route as ApiPublicErpRetryRouteImport } from './routes/api/public/erp/retry'
+import { Route as ApiPublicErpStatusRouteImport } from './routes/api/public/erp/status'
+import { Route as ApiPublicErpStockRouteImport } from './routes/api/public/erp/stock'
 import { Route as ApiPublicWebhooksCarrierRouteImport } from './routes/api/public/webhooks/carrier'
 
 const IndexRoute = IndexRouteImport.update({
@@ -204,6 +208,11 @@ const ApiDadataCityRoute = ApiDadataCityRouteImport.update({
   path: '/api/dadata/city',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDadataPartyRoute = ApiDadataPartyRouteImport.update({
+  id: '/api/dadata/party',
+  path: '/api/dadata/party',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiParserUploadRoute = ApiParserUploadRouteImport.update({
   id: '/api/parser/upload',
   path: '/api/parser/upload',
@@ -233,6 +242,21 @@ const AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute =
 const ApiPublicCadSplatRoute = ApiPublicCadSplatRouteImport.update({
   id: '/api/public/cad/$',
   path: '/api/public/cad/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicErpRetryRoute = ApiPublicErpRetryRouteImport.update({
+  id: '/api/public/erp/retry',
+  path: '/api/public/erp/retry',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicErpStatusRoute = ApiPublicErpStatusRouteImport.update({
+  id: '/api/public/erp/status',
+  path: '/api/public/erp/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicErpStockRoute = ApiPublicErpStockRouteImport.update({
+  id: '/api/public/erp/stock',
+  path: '/api/public/erp/stock',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicWebhooksCarrierRoute =
@@ -271,6 +295,7 @@ export interface FileRoutesByFullPath {
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
+  '/api/dadata/party': typeof ApiDadataPartyRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
   '/api/quiz/submit': typeof ApiQuizSubmitRoute
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
@@ -278,6 +303,9 @@ export interface FileRoutesByFullPath {
   '/admin-alma-secure-2026/': typeof AuthenticatedAdminAlmaSecure2026IndexRoute
   '/admin-alma-secure-2026/orders/$orderId': typeof AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
+  '/api/public/erp/retry': typeof ApiPublicErpRetryRoute
+  '/api/public/erp/status': typeof ApiPublicErpStatusRoute
+  '/api/public/erp/stock': typeof ApiPublicErpStockRoute
   '/api/public/webhooks/carrier': typeof ApiPublicWebhooksCarrierRoute
 }
 export interface FileRoutesByTo {
@@ -307,6 +335,7 @@ export interface FileRoutesByTo {
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
+  '/api/dadata/party': typeof ApiDadataPartyRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
   '/api/quiz/submit': typeof ApiQuizSubmitRoute
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
@@ -314,6 +343,9 @@ export interface FileRoutesByTo {
   '/admin-alma-secure-2026': typeof AuthenticatedAdminAlmaSecure2026IndexRoute
   '/admin-alma-secure-2026/orders/$orderId': typeof AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
+  '/api/public/erp/retry': typeof ApiPublicErpRetryRoute
+  '/api/public/erp/status': typeof ApiPublicErpStatusRoute
+  '/api/public/erp/stock': typeof ApiPublicErpStockRoute
   '/api/public/webhooks/carrier': typeof ApiPublicWebhooksCarrierRoute
 }
 export interface FileRoutesById {
@@ -347,6 +379,7 @@ export interface FileRoutesById {
   '/api/checkout/submit': typeof ApiCheckoutSubmitRoute
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
+  '/api/dadata/party': typeof ApiDadataPartyRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
   '/api/quiz/submit': typeof ApiQuizSubmitRoute
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
@@ -354,6 +387,9 @@ export interface FileRoutesById {
   '/_authenticated/admin-alma-secure-2026/': typeof AuthenticatedAdminAlmaSecure2026IndexRoute
   '/_authenticated/admin-alma-secure-2026/orders/$orderId': typeof AuthenticatedAdminAlmaSecure2026OrdersOrderIdRoute
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
+  '/api/public/erp/retry': typeof ApiPublicErpRetryRoute
+  '/api/public/erp/status': typeof ApiPublicErpStatusRoute
+  '/api/public/erp/stock': typeof ApiPublicErpStockRoute
   '/api/public/webhooks/carrier': typeof ApiPublicWebhooksCarrierRoute
 }
 export interface FileRouteTypes {
@@ -387,6 +423,7 @@ export interface FileRouteTypes {
     | '/api/checkout/submit'
     | '/api/configurator/solve'
     | '/api/dadata/city'
+    | '/api/dadata/party'
     | '/api/parser/upload'
     | '/api/quiz/submit'
     | '/api/upload/presigned-url'
@@ -394,6 +431,9 @@ export interface FileRouteTypes {
     | '/admin-alma-secure-2026/'
     | '/admin-alma-secure-2026/orders/$orderId'
     | '/api/public/cad/$'
+    | '/api/public/erp/retry'
+    | '/api/public/erp/status'
+    | '/api/public/erp/stock'
     | '/api/public/webhooks/carrier'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -423,6 +463,7 @@ export interface FileRouteTypes {
     | '/api/checkout/submit'
     | '/api/configurator/solve'
     | '/api/dadata/city'
+    | '/api/dadata/party'
     | '/api/parser/upload'
     | '/api/quiz/submit'
     | '/api/upload/presigned-url'
@@ -430,6 +471,9 @@ export interface FileRouteTypes {
     | '/admin-alma-secure-2026'
     | '/admin-alma-secure-2026/orders/$orderId'
     | '/api/public/cad/$'
+    | '/api/public/erp/retry'
+    | '/api/public/erp/status'
+    | '/api/public/erp/stock'
     | '/api/public/webhooks/carrier'
   id:
     | '__root__'
@@ -462,6 +506,7 @@ export interface FileRouteTypes {
     | '/api/checkout/submit'
     | '/api/configurator/solve'
     | '/api/dadata/city'
+    | '/api/dadata/party'
     | '/api/parser/upload'
     | '/api/quiz/submit'
     | '/api/upload/presigned-url'
@@ -469,6 +514,9 @@ export interface FileRouteTypes {
     | '/_authenticated/admin-alma-secure-2026/'
     | '/_authenticated/admin-alma-secure-2026/orders/$orderId'
     | '/api/public/cad/$'
+    | '/api/public/erp/retry'
+    | '/api/public/erp/status'
+    | '/api/public/erp/stock'
     | '/api/public/webhooks/carrier'
   fileRoutesById: FileRoutesById
 }
@@ -492,11 +540,15 @@ export interface RootRouteChildren {
   ApiCheckoutSubmitRoute: typeof ApiCheckoutSubmitRoute
   ApiConfiguratorSolveRoute: typeof ApiConfiguratorSolveRoute
   ApiDadataCityRoute: typeof ApiDadataCityRoute
+  ApiDadataPartyRoute: typeof ApiDadataPartyRoute
   ApiParserUploadRoute: typeof ApiParserUploadRoute
   ApiQuizSubmitRoute: typeof ApiQuizSubmitRoute
   ApiUploadPresignedUrlRoute: typeof ApiUploadPresignedUrlRoute
   ApiVisionIdentifyRoute: typeof ApiVisionIdentifyRoute
   ApiPublicCadSplatRoute: typeof ApiPublicCadSplatRoute
+  ApiPublicErpRetryRoute: typeof ApiPublicErpRetryRoute
+  ApiPublicErpStatusRoute: typeof ApiPublicErpStatusRoute
+  ApiPublicErpStockRoute: typeof ApiPublicErpStockRoute
   ApiPublicWebhooksCarrierRoute: typeof ApiPublicWebhooksCarrierRoute
 }
 
@@ -712,6 +764,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDadataCityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dadata/party': {
+      id: '/api/dadata/party'
+      path: '/api/dadata/party'
+      fullPath: '/api/dadata/party'
+      preLoaderRoute: typeof ApiDadataPartyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/parser/upload': {
       id: '/api/parser/upload'
       path: '/api/parser/upload'
@@ -752,6 +811,27 @@ declare module '@tanstack/react-router' {
       path: '/api/public/cad/$'
       fullPath: '/api/public/cad/$'
       preLoaderRoute: typeof ApiPublicCadSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/erp/retry': {
+      id: '/api/public/erp/retry'
+      path: '/api/public/erp/retry'
+      fullPath: '/api/public/erp/retry'
+      preLoaderRoute: typeof ApiPublicErpRetryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/erp/status': {
+      id: '/api/public/erp/status'
+      path: '/api/public/erp/status'
+      fullPath: '/api/public/erp/status'
+      preLoaderRoute: typeof ApiPublicErpStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/erp/stock': {
+      id: '/api/public/erp/stock'
+      path: '/api/public/erp/stock'
+      fullPath: '/api/public/erp/stock'
+      preLoaderRoute: typeof ApiPublicErpStockRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/webhooks/carrier': {
@@ -846,11 +926,15 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCheckoutSubmitRoute: ApiCheckoutSubmitRoute,
   ApiConfiguratorSolveRoute: ApiConfiguratorSolveRoute,
   ApiDadataCityRoute: ApiDadataCityRoute,
+  ApiDadataPartyRoute: ApiDadataPartyRoute,
   ApiParserUploadRoute: ApiParserUploadRoute,
   ApiQuizSubmitRoute: ApiQuizSubmitRoute,
   ApiUploadPresignedUrlRoute: ApiUploadPresignedUrlRoute,
   ApiVisionIdentifyRoute: ApiVisionIdentifyRoute,
   ApiPublicCadSplatRoute: ApiPublicCadSplatRoute,
+  ApiPublicErpRetryRoute: ApiPublicErpRetryRoute,
+  ApiPublicErpStatusRoute: ApiPublicErpStatusRoute,
+  ApiPublicErpStockRoute: ApiPublicErpStockRoute,
   ApiPublicWebhooksCarrierRoute: ApiPublicWebhooksCarrierRoute,
 }
 export const routeTree = rootRouteImport

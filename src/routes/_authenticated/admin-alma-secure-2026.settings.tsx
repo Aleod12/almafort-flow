@@ -8,12 +8,25 @@ import {
   adminSaveApiKey,
   adminSaveSetting,
   adminSetStaffRole,
+  adminErpJobs,
+  adminRetryErp,
 } from "@/lib/admin.functions";
 import { ROLE_LABEL, type AdminRole } from "@/lib/admin";
+import { VAULT_GROUPS } from "@/lib/admin-data";
 
 export const Route = createFileRoute("/_authenticated/admin-alma-secure-2026/settings")({
   component: Settings,
 });
+
+type ErpJobRow = {
+  id: string;
+  order_number: string;
+  status: string;
+  attempts: number;
+  last_error: string | null;
+  next_attempt_at: string;
+  created_at: string;
+};
 
 function Settings() {
   const qc = useQueryClient();
@@ -22,9 +35,32 @@ function Settings() {
   const saveKey = useServerFn(adminSaveApiKey);
   const staffList = useServerFn(adminListStaff);
   const setRole = useServerFn(adminSetStaffRole);
+  const erpJobs = useServerFn(adminErpJobs);
+  const retryErp = useServerFn(adminRetryErp);
+
+  /** Человеческие названия статусов очереди обмена. */
+  const ERP_STATUS_LABEL: Record<string, string> = {
+    pending: "В очереди",
+    synced: "Синхронизирован",
+    sync_failed: "Ошибка, повтор через 15 мин",
+    failed: "Не доставлен, нужна проверка",
+  };
 
   const { data } = useQuery({ queryKey: ["admin-settings"], queryFn: () => get() });
   const { data: staff } = useQuery({ queryKey: ["admin-staff"], queryFn: () => staffList() });
+  const { data: erp } = useQuery({
+    queryKey: ["admin-erp-jobs"],
+    queryFn: () => erpJobs() as Promise<{ rows: ErpJobRow[] }>,
+  });
+
+  const retryMutation = useMutation({
+    mutationFn: () => retryErp(),
+    onSuccess: (r) => {
+      setMsg(`Обмен с 1С: обработано ${r.processed}, синхронизировано ${r.synced}`);
+      qc.invalidateQueries({ queryKey: ["admin-erp-jobs"] });
+    },
+    onError: (e: Error) => setMsg(e.message),
+  });
 
   const [maintenance, setMaintenance] = useState({ enabled: false, message: "" });
   const [logistics, setLogistics] = useState({ fixed_rub: 0, percent: 0 });
@@ -136,30 +172,93 @@ function Settings() {
           <h2 className="mb-1 font-semibold">Хранилище API-ключей</h2>
           <p className="mb-4 text-xs text-muted-foreground">
             Значения шифруются AES-256-GCM перед записью и расшифровываются только в момент запроса
-            к сервису.
+            к сервису. Ключи в коде не хранятся — сменить их можно здесь без перезапуска.
           </p>
-          <div className="space-y-3">
-            {(data?.vault ?? []).map((k) => (
-              <div key={k.name} className="grid grid-cols-[130px_1fr_auto] items-center gap-2 text-sm">
-                <span>{k.label}</span>
-                <input
-                  value={keyDrafts[k.name] ?? ""}
-                  onChange={(e) => setKeyDrafts((d) => ({ ...d, [k.name]: e.target.value }))}
-                  placeholder={k.masked ?? "не задан"}
-                  className={`${input} w-full`}
-                />
-                <button
-                  disabled={!keyDrafts[k.name]}
-                  onClick={() => keyMutation.mutate({ name: k.name, value: keyDrafts[k.name]! })}
-                  className="rounded-md border px-3 py-2 text-xs transition-colors hover:bg-muted disabled:opacity-40"
-                >
-                  Сохранить
-                </button>
-              </div>
-            ))}
+          <div className="space-y-5">
+            {VAULT_GROUPS.map((groupName) => {
+              const rows = (data?.vault ?? []).filter((k) => k.group === groupName);
+              if (!rows.length) return null;
+              return (
+                <div key={groupName}>
+                  <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {groupName}
+                  </h3>
+                  <div className="space-y-2">
+                    {rows.map((k) => (
+                      <div
+                        key={k.name}
+                        className="grid grid-cols-[150px_1fr_auto] items-center gap-2 text-sm"
+                      >
+                        <span title={k.name}>{k.label}</span>
+                        <input
+                          type="password"
+                          autoComplete="new-password"
+                          value={keyDrafts[k.name] ?? ""}
+                          onChange={(e) =>
+                            setKeyDrafts((d) => ({ ...d, [k.name]: e.target.value }))
+                          }
+                          placeholder={k.masked ?? "не задан"}
+                          className={`${input} w-full`}
+                        />
+                        <button
+                          disabled={!keyDrafts[k.name]}
+                          onClick={() => keyMutation.mutate({ name: k.name, value: keyDrafts[k.name]! })}
+                          className="rounded-md border px-3 py-2 text-xs transition-colors hover:bg-muted disabled:opacity-40"
+                        >
+                          Сохранить
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
+
       </div>
+
+      <div className={card}>
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <h2 className="font-semibold">Обмен с 1С</h2>
+          <span className="text-xs text-muted-foreground">
+            Заказы уходят в 1С сразу; неудачные повторяются каждые 15 минут.
+          </span>
+          <button
+            className={`${btn} ml-auto`}
+            disabled={retryMutation.isPending}
+            onClick={() => retryMutation.mutate()}
+          >
+            {retryMutation.isPending ? "Отправляем…" : "Повторить сейчас"}
+          </button>
+        </div>
+        <ul className="space-y-2 text-sm">
+          {(erp?.rows ?? []).map((j) => (
+            <li key={j.id} className="flex flex-wrap items-center gap-3 border-b pb-2">
+              <span className="font-medium tabular-nums">{j.order_number}</span>
+              <span
+                className={`rounded border px-2 py-0.5 text-xs ${
+                  j.status === "synced"
+                    ? "border-emerald-300 text-emerald-700"
+                    : j.status === "failed"
+                      ? "border-red-300 text-red-700"
+                      : "border-amber-300 text-amber-700"
+                }`}
+              >
+                {ERP_STATUS_LABEL[j.status] ?? j.status}
+              </span>
+              <span className="text-xs text-muted-foreground">попыток: {j.attempts}</span>
+              {j.last_error && (
+                <span className="w-full text-xs text-muted-foreground">{j.last_error}</span>
+              )}
+            </li>
+          ))}
+          {!erp?.rows.length && (
+            <li className="text-xs text-muted-foreground">Очередь пуста — все заказы в 1С.</li>
+          )}
+        </ul>
+      </div>
+
 
       <div className={card}>
         <h2 className="mb-4 font-semibold">Персонал и права доступа</h2>

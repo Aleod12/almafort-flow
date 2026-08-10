@@ -24,13 +24,35 @@ export type ProductOverrideRow = {
   hidden?: boolean;
 };
 
-export const VAULT_KEYS = [
-  { name: "DADATA_API_KEY", label: "Dadata" },
-  { name: "OPENAI_API_KEY", label: "OpenAI / LLM" },
-  { name: "CDEK_CLIENT_SECRET", label: "СДЭК" },
-  { name: "DL_API_KEY", label: "Деловые Линии" },
-  { name: "SMS_GATEWAY_KEY", label: "SMS-шлюз" },
+export const VAULT_GROUPS = [
+  "Валидация и данные",
+  "Искусственный интеллект",
+  "Синхронизация с 1С (ERP)",
+  "Логистика",
+  "Инфраструктура и документы",
 ] as const;
+
+export type VaultGroup = (typeof VAULT_GROUPS)[number];
+
+/** Полный реестр внешних шлюзов. Значения хранятся только зашифрованными. */
+export const VAULT_KEYS = [
+  { name: "DADATA_API_KEY", label: "DaData API Token", group: "Валидация и данные" },
+  { name: "DADATA_SECRET_KEY", label: "DaData Secret Key", group: "Валидация и данные" },
+  { name: "OPENAI_API_KEY", label: "OpenAI / Anthropic API Key", group: "Искусственный интеллект" },
+  { name: "ERP_1C_URL", label: "1C Endpoint URL", group: "Синхронизация с 1С (ERP)" },
+  { name: "ERP_1C_LOGIN", label: "1C API Login", group: "Синхронизация с 1С (ERP)" },
+  { name: "ERP_1C_PASSWORD", label: "1C API Password", group: "Синхронизация с 1С (ERP)" },
+  { name: "ERP_1C_TOKEN", label: "Токен вебхуков 1С → сайт", group: "Синхронизация с 1С (ERP)" },
+  { name: "CDEK_ACCOUNT", label: "CDEK Account (логин)", group: "Логистика" },
+  { name: "CDEK_SECURE_PASSWORD", label: "CDEK Secure Password", group: "Логистика" },
+  { name: "DL_API_KEY", label: "Dellin API AppKey", group: "Логистика" },
+  { name: "S3_ACCESS_KEY_ID", label: "S3 Access Key", group: "Инфраструктура и документы" },
+  { name: "S3_SECRET_ACCESS_KEY", label: "S3 Secret Key", group: "Инфраструктура и документы" },
+  { name: "SMTP_HOST", label: "SMTP сервер", group: "Инфраструктура и документы" },
+  { name: "SMTP_USER", label: "SMTP логин", group: "Инфраструктура и документы" },
+  { name: "SMTP_PASSWORD", label: "SMTP пароль", group: "Инфраструктура и документы" },
+] as const satisfies ReadonlyArray<{ name: string; label: string; group: VaultGroup }>;
+
 
 const bySku = new Map(PRODUCTS.map((p) => [p.sku, p]));
 
