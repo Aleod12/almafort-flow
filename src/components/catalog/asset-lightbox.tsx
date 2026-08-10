@@ -221,9 +221,20 @@ export function AssetLightbox({
             </div>
 
             {group.description && (
-              <p className="mt-5 border-t border-border pt-5 text-sm leading-[1.65] text-foreground">
-                {group.description}
-              </p>
+              <>
+                {/* На смартфоне описание прячем под аккордеон, на десктопе — открыто */}
+                <details className="mt-5 border-t border-border pt-4 md:hidden">
+                  <summary className="flex cursor-pointer list-none items-center text-sm font-semibold text-foreground">
+                    Развернуть характеристики
+                  </summary>
+                  <p className="mt-3 text-sm leading-[1.65] text-foreground">
+                    {group.description}
+                  </p>
+                </details>
+                <p className="mt-5 hidden border-t border-border pt-5 text-sm leading-[1.65] text-foreground md:block">
+                  {group.description}
+                </p>
+              </>
             )}
 
             {product.sku.startsWith("ZGD-") && (
@@ -238,7 +249,7 @@ export function AssetLightbox({
                   id={`color-${product.sku}`}
                   value={colorChoice}
                   onChange={(e) => setColorChoice(e.target.value)}
-                  className="mt-1.5 w-full cursor-pointer rounded-sm border border-[#D1D5DB] bg-card px-3 py-2 text-sm outline-none transition-colors hover:border-foreground/50 focus:border-foreground"
+                  className="mt-1.5 h-12 w-full cursor-pointer rounded-sm border border-[#D1D5DB] bg-card px-3 text-sm outline-none transition-colors hover:border-foreground/50 focus:border-foreground"
                 >
                   {["Белый", "Чёрный", "Венге", "Дуб Сонома", "Бук", "Серый"].map((c) => (
                     <option key={c} value={c}>
@@ -254,34 +265,53 @@ export function AssetLightbox({
 
 
             {!onRequest && (
-              <div className="mt-6 flex gap-3">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={qty || ""}
-                  onChange={(e) => {
-                    const digits = e.target.value.replace(/[^0-9]/g, "").slice(0, 7);
-                    setQty(digits ? Number.parseInt(digits, 10) : 0);
-                  }}
-                  placeholder="0"
-                  aria-label={`Количество ${product.sku}`}
-                  className="w-28 rounded-sm border border-[#D1D5DB] bg-card px-3 py-2 text-right text-sm tabular-nums outline-none transition-colors focus:border-foreground"
-                />
+              <div className="safe-bottom sticky bottom-0 mt-6 flex gap-3 bg-card pt-3 md:static md:pt-0">
+                <div className="no-select flex shrink-0 items-stretch">
+                  <button
+                    type="button"
+                    aria-label="Уменьшить количество"
+                    onClick={() => setQty((v) => Math.max(0, v - 100))}
+                    className="grid h-12 w-11 place-items-center rounded-l-sm border border-r-0 border-[#D1D5DB] text-foreground active:scale-95 md:hidden"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={qty || ""}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/[^0-9]/g, "").slice(0, 7);
+                      setQty(digits ? Number.parseInt(digits, 10) : 0);
+                    }}
+                    placeholder="0"
+                    aria-label={`Количество ${product.sku}`}
+                    className="h-12 w-20 border border-[#D1D5DB] bg-card px-2 text-center tabular-nums outline-none transition-colors focus:border-foreground md:w-28 md:rounded-sm md:px-3 md:text-right"
+                  />
+                  <button
+                    type="button"
+                    aria-label="Увеличить количество"
+                    onClick={() => setQty((v) => Math.min(9_999_999, v + 100))}
+                    className="grid h-12 w-11 place-items-center rounded-r-sm border border-l-0 border-[#D1D5DB] text-foreground active:scale-95 md:hidden"
+                  >
+                    +
+                  </button>
+                </div>
                 <button
                   type="button"
                   onClick={() => void add()}
                   disabled={state === "loading"}
-                  className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-sm bg-[#DC2626] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#B91C1C] hover:shadow-md active:scale-[0.98] disabled:opacity-50"
+                  className="flex h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-sm bg-[#DC2626] px-4 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#B91C1C] hover:shadow-md active:scale-[0.98] disabled:opacity-50"
                 >
                   {state === "loading" ? (
                     <Loader2 className="size-4 animate-spin" strokeWidth={1.75} />
                   ) : (
                     <ShoppingCart className="size-4" strokeWidth={1.75} />
                   )}
-                  {qty > 0 ? formatPrice(lineTotal(product, qty)) : "Добавить в корзину"}
+                  {qty > 0 ? formatPrice(lineTotal(product, qty)) : "В корзину"}
                 </button>
               </div>
             )}
+
           </div>
         </div>
       </DialogContent>
