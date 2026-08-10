@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Clock, MapPin, Phone, UserRound, Menu } from "lucide-react";
+import { Clock, MapPin, Phone, UserRound, Menu, ShoppingCart, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useCart } from "@/store/cart-store";
 
 const NAV = [
   { label: "Каталог", href: "/catalog" },
@@ -16,6 +17,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   /** null — сессия ещё не прочитана (SSR-safe), иначе e-mail снабженца или "". */
   const [account, setAccount] = useState<string | null>(null);
+  const cartLines = useCart((s) => s.lines.length);
 
   useEffect(() => {
     const onScroll = () => setElevated(window.scrollY > 8);
@@ -23,6 +25,16 @@ export function SiteHeader() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Скролл страницы блокируется, пока открыто off-canvas меню
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
 
   useEffect(() => {
     let alive = true;
@@ -48,7 +60,7 @@ export function SiteHeader() {
       className="sticky top-0 z-50 bg-background"
       style={elevated ? { boxShadow: "var(--shadow-header)" } : undefined}
     >
-      <div className="mx-auto grid max-w-[1440px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 lg:flex lg:items-center lg:justify-between lg:gap-6 lg:px-10 xl:gap-10">
+      <div className="mx-auto grid max-w-[1440px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-3 lg:flex lg:items-center lg:justify-between lg:gap-6 lg:px-10 lg:py-4 xl:gap-10">
         <a href="/" className="flex min-w-0 shrink-0 items-center">
           <span className="text-xl font-extrabold tracking-tight text-primary">ALMAFORT</span>
         </a>
@@ -99,51 +111,89 @@ export function SiteHeader() {
         </div>
 
 
+        {/* Мобильная панель: корзина с бейджем + гамбургер, зоны касания 44px */}
         <div className="flex items-center gap-2 justify-self-end lg:hidden">
           <a
-            href="tel:+79029229734"
-            aria-label="Позвонить"
-            className="grid size-10 place-items-center rounded-sm border border-border text-foreground"
+            href="/cart"
+            aria-label={`Корзина: ${cartLines} позиций`}
+            className="relative grid size-11 place-items-center rounded-md border border-border text-foreground"
           >
-            <Phone className="size-4" strokeWidth={1.5} />
+            <ShoppingCart className="size-5" strokeWidth={1.6} />
+            {cartLines > 0 && (
+              <span className="absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-primary px-1 text-[11px] font-bold leading-5 text-primary-foreground">
+                {cartLines}
+              </span>
+            )}
           </a>
           <button
             type="button"
             aria-label="Меню"
             aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-            className="grid size-10 place-items-center rounded-sm border border-border text-foreground"
+            onClick={() => setOpen(true)}
+            className="grid size-11 place-items-center rounded-md border border-border text-foreground"
           >
-            <Menu className="size-4" strokeWidth={1.5} />
+            <Menu className="size-5" strokeWidth={1.6} />
           </button>
         </div>
       </div>
 
+      {/* Off-canvas меню на весь экран */}
       {open && (
-        <div className="border-t border-border px-5 py-4 lg:hidden">
-          <nav className="flex flex-col gap-3">
-            {NAV.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
+        <div className="fixed inset-0 z-[60] lg:hidden">
+          <button
+            type="button"
+            aria-label="Закрыть меню"
+            onClick={() => setOpen(false)}
+            className="absolute inset-0 bg-foreground/40"
+          />
+          <div className="safe-bottom absolute inset-y-0 right-0 flex w-[86%] max-w-[380px] flex-col overflow-y-auto bg-background px-5 py-4 shadow-[0_0_40px_oklch(0_0_0/0.25)]">
+            <div className="flex items-center justify-between">
+              <span className="text-lg font-extrabold tracking-tight text-primary">ALMAFORT</span>
+              <button
+                type="button"
+                aria-label="Закрыть"
                 onClick={() => setOpen(false)}
-                className="text-sm font-medium text-foreground"
+                className="grid size-11 place-items-center rounded-md border border-border text-foreground"
               >
-                {item.label}
-              </a>
-            ))}
-          </nav>
+                <X className="size-5" strokeWidth={1.6} />
+              </button>
+            </div>
+
+            <nav className="mt-6 flex flex-col">
+              {NAV.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className="flex min-h-[52px] items-center border-b border-border text-base font-medium text-foreground"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </nav>
+
             <a
               href={authed ? "/cabinet" : "/auth"}
               onClick={() => setOpen(false)}
-              className="mt-3 block text-sm font-semibold text-primary"
+              className="mt-6 flex h-14 items-center justify-center gap-2 rounded-md bg-primary text-base font-semibold text-primary-foreground"
             >
-              {authed ? "Мой кабинет" : "Вход для партнёров"}
+              <UserRound className="size-5" strokeWidth={1.75} />
+              {authed ? "Мой кабинет" : "B2B-Кабинет"}
             </a>
 
-          <p className="mt-4 text-xs text-muted-foreground">
-            Пн-Пт 08:00–19:00 (МСК+4) · г. Дивногорск, Нижний проезд, 15/1
-          </p>
+            <a
+              href="tel:+79029229734"
+              className="mt-3 flex h-14 items-center justify-center gap-2 rounded-md border border-border text-base font-semibold text-foreground"
+            >
+              <Phone className="size-5" strokeWidth={1.6} />
+              +7 (902) 922-97-34
+            </a>
+
+            <p className="mt-6 text-sm leading-[1.5] text-muted-foreground">
+              Пн-Пт 08:00–19:00 (МСК+4)
+              <br />г. Дивногорск, Нижний проезд, 15/1
+            </p>
+          </div>
         </div>
       )}
     </header>
