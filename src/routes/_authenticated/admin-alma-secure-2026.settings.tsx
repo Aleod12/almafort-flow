@@ -184,6 +184,48 @@ function Settings() {
       </div>
 
       <div className={card}>
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <h2 className="font-semibold">Обмен с 1С</h2>
+          <span className="text-xs text-muted-foreground">
+            Заказы уходят в 1С сразу; неудачные повторяются каждые 15 минут.
+          </span>
+          <button
+            className={`${btn} ml-auto`}
+            disabled={retryMutation.isPending}
+            onClick={() => retryMutation.mutate()}
+          >
+            {retryMutation.isPending ? "Отправляем…" : "Повторить сейчас"}
+          </button>
+        </div>
+        <ul className="space-y-2 text-sm">
+          {(erp?.rows ?? []).map((j) => (
+            <li key={j.id} className="flex flex-wrap items-center gap-3 border-b pb-2">
+              <span className="font-medium tabular-nums">{j.order_number}</span>
+              <span
+                className={`rounded border px-2 py-0.5 text-xs ${
+                  j.status === "synced"
+                    ? "border-emerald-300 text-emerald-700"
+                    : j.status === "failed"
+                      ? "border-red-300 text-red-700"
+                      : "border-amber-300 text-amber-700"
+                }`}
+              >
+                {ERP_STATUS_LABEL[j.status] ?? j.status}
+              </span>
+              <span className="text-xs text-muted-foreground">попыток: {j.attempts}</span>
+              {j.last_error && (
+                <span className="w-full text-xs text-muted-foreground">{j.last_error}</span>
+              )}
+            </li>
+          ))}
+          {!erp?.rows.length && (
+            <li className="text-xs text-muted-foreground">Очередь пуста — все заказы в 1С.</li>
+          )}
+        </ul>
+      </div>
+
+
+      <div className={card}>
         <h2 className="mb-4 font-semibold">Персонал и права доступа</h2>
         <div className="mb-4 flex flex-wrap gap-2">
           <input
