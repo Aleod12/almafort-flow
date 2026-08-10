@@ -22,7 +22,10 @@ export default defineConfig({
         filename: "sw.js",
         // Манифест лежит в public/ и обслуживается как есть.
         manifest: false,
+        // Клиентские ассеты собираются в dist/client — SW должен лежать рядом.
+        outDir: "dist/client",
         devOptions: { enabled: false },
+
         workbox: {
           globPatterns: ["**/*.{js,css,woff2,png,svg,webp,ico}"],
           navigateFallback: null,
