@@ -103,7 +103,7 @@ export function ProductSheet({
             "@type": "OfferShippingDetails",
             shippingRate: {
               "@type": "MonetaryAmount",
-              value: logistics[0]?.cost ?? 0,
+              value: logistics[0]?.price ?? 0,
               currency: "RUB",
             },
             shippingDestination: { "@type": "DefinedRegion", addressCountry: "RU" },
@@ -284,6 +284,12 @@ export function ProductSheet({
 
               </div>
             </div>
+
+            <BulkRequestDialog
+              product={product}
+              open={bulkOpen}
+              onClose={() => setBulkOpen(false)}
+            />
 
             <script
               type="application/ld+json"
