@@ -9,6 +9,13 @@ const schema = z.object({
     company: z.string().trim().max(160).optional(),
     comment: z.string().trim().max(2000).optional(),
   }),
+  // Реквизиты плательщика: 1С мэтчит контрагента именно по ИНН.
+  inn: z
+    .string()
+    .trim()
+    .regex(/^\d{10}(\d{2})?$/)
+    .nullish(),
+  kpp: z.string().trim().max(12).nullish(),
   city: z.string().trim().max(160).default(""),
   carrier: z.enum(["cdek", "dl", "pickup"]),
   deliveryPrice: z.number().min(0).max(1_000_000),
