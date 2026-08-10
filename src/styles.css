@@ -445,3 +445,12 @@ button {
   background-color: var(--card);
   will-change: transform;
 }
+
+/* Защита от авто-зума iOS Safari: поля ввода никогда не мельче 16px */
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
