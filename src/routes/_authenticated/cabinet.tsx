@@ -18,6 +18,7 @@ import { SiteHeader } from "@/components/site-header";
 import { BackLink } from "@/components/back-link";
 import { formatPrice } from "@/lib/pricing";
 import { innHint, isValidInn, sanitizeInn } from "@/lib/inn";
+import { InnField, type Party } from "@/components/inn-field";
 
 import { STAGES, TIER_META, stageIndex, tierProgress, type LoyaltyTier } from "@/lib/loyalty";
 import { addCompanyByInn, getCabinet, removeCompany, repeatOrder } from "@/lib/cabinet.functions";
