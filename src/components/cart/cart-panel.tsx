@@ -522,6 +522,20 @@ export function CartPanel() {
               className="h-11 rounded-sm border border-[#D1D5DB] px-3.5 py-2.5 text-[13px] leading-[1.3] outline-none transition-colors placeholder:text-[13px] focus:border-primary"
             />
           </div>
+
+          <div className="mt-3">
+            <InnField
+              value={inn}
+              onChange={setInn}
+              onParty={(p) => {
+                setParty(p);
+                // Название из реестра подставляем сами — снабженцу не нужно печатать ОПФ.
+                if (p?.name) setForm((f) => ({ ...f, company: p.name }));
+              }}
+              label="ИНН плательщика"
+            />
+          </div>
+
           <textarea
             value={form.comment}
             onChange={field("comment")}
