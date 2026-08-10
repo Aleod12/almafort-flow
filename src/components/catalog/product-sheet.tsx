@@ -1,10 +1,13 @@
-import { Suspense, lazy, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { Download, FileText, Layers, Ruler, Truck } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { Product } from "@/data/catalog";
 import { trackCadDownload } from "@/lib/metrika";
 import { CityInput, type CityValue } from "@/components/cart/city-input";
+import { BulkRequestDialog } from "@/components/catalog/bulk-request-dialog";
 import { useAssetGroups } from "@/lib/asset-groups";
+import { useDebounce } from "@/hooks/use-debounce";
+import type { ShippingQuote } from "@/lib/logistics";
 
 
 const CadViewer = lazy(() => import("@/components/catalog/cad-viewer"));
@@ -16,21 +19,67 @@ export function ProductSheet({
   product: Product | null;
   onClose: () => void;
 }) {
-  const [city, setCity] = useState<CityValue>({ city: "", fiasId: null });
+  const [city, setCity] = useState<CityValue>({ city: "Москва", fiasId: null });
+  const [batch, setBatch] = useState(1000);
+  const [quotes, setQuotes] = useState<ShippingQuote[]>([]);
+  const [calcState, setCalcState] = useState<"idle" | "loading" | "ready" | "failed">("idle");
   const assets = useAssetGroups();
   const assetGroup = product ? assets.get(product.sku) : undefined;
+  const [bulkOpen, setBulkOpen] = useState(false);
 
+  // Debounce: ручной ввод города не должен спамить API ТК.
+  const debouncedCity = useDebounce(city.city, 600);
 
+  const parcel = useMemo(
+    () => ({
+      totalWeight: +((product?.weight ?? 0) * batch).toFixed(3),
+      totalVolume: +((product?.volume ?? 0) * batch).toFixed(4),
+    }),
+    [product, batch],
+  );
 
-  const logistics = useMemo(() => {
-    if (!product) return [];
-    const batch = 1000;
-    const w = product.weight * batch;
-    return [
-      { name: "СДЭК (до двери)", days: "4 дня", cost: Math.round(900 + w * 9) },
-      { name: "Деловые Линии (до терминала)", days: "отгрузка в среду", cost: Math.round(500 + w * 5) },
-    ];
-  }, [product]);
+  useEffect(() => {
+    const dest = debouncedCity.trim();
+    if (!product || dest.length < 2) {
+      setQuotes([]);
+      setCalcState("idle");
+      return;
+    }
+    // Старые цены исчезают сразу — клиент видит, что система считает.
+    setQuotes([]);
+    setCalcState("loading");
+    const ctrl = new AbortController();
+    // Отказоустойчивость: молчание ТК дольше 3 с — расчёт уточнит менеджер.
+    const timer = setTimeout(() => ctrl.abort(), 3000);
+    (async () => {
+      try {
+        const res = await fetch("/api/shipping-calc", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            destination: { city: dest, fias_id: city.fiasId },
+            parcel,
+          }),
+          signal: ctrl.signal,
+        });
+        const json = (await res.json()) as { quotes?: ShippingQuote[] };
+        if (!res.ok || !json.quotes?.length) throw new Error("no quotes");
+        setQuotes(json.quotes);
+        setCalcState("ready");
+      } catch {
+        setCalcState("failed");
+      } finally {
+        clearTimeout(timer);
+      }
+    })();
+    return () => {
+      clearTimeout(timer);
+      ctrl.abort();
+    };
+  }, [debouncedCity, city.fiasId, parcel, product]);
+
+  const logistics = quotes;
+
 
   const jsonLd = product
     ? {
