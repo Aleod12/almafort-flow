@@ -367,7 +367,9 @@ export function CartPanel() {
                 <Trash2 className="size-4" strokeWidth={1.75} />
               </button>
             </div>
+            </SwipeToDelete>
           );
+
         })}
       </section>
 
