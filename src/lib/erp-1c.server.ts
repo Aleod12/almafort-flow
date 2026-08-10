@@ -150,7 +150,13 @@ export async function retryPendingOrders(limit = 25) {
 
 /** 1С → сайт: остатки и цены (ночная выгрузка). */
 export async function applyStockFeed(
-  rows: Array<{ sku: string; stock?: number; base_price?: number; opt1_price?: number; opt2_price?: number }>,
+  rows: Array<{
+    sku: string;
+    stock?: number | undefined;
+    base_price?: number | undefined;
+    opt1_price?: number | undefined;
+    opt2_price?: number | undefined;
+  }>,
 ) {
   const db = await admin();
   let updated = 0;
