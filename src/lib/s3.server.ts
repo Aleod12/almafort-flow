@@ -26,14 +26,23 @@ function hex(buf: ArrayBuffer) {
 
 export type UploadResult = { url: string | null; skipped?: string };
 
-/**
- * Кладёт файл в бакет и возвращает публичную ссылку.
- * Если ключи не заданы — возвращает { url: null, skipped } и не роняет чекаут.
- */
-export async function uploadInvoice(
+/** Счёт-фактура: тот же аплоад, но с префиксом invoices/. */
+export function uploadInvoice(
   fileName: string,
   bytes: Uint8Array,
   contentType = "application/pdf",
+): Promise<UploadResult> {
+  return uploadObject(`invoices/${fileName}`, bytes, contentType);
+}
+
+/**
+ * Кладёт файл в бакет по произвольному ключу и возвращает публичную ссылку.
+ * Если ключи не заданы — возвращает { url: null, skipped } и не роняет вызов.
+ */
+export async function uploadObject(
+  key: string,
+  bytes: Uint8Array,
+  contentType = "application/octet-stream",
 ): Promise<UploadResult> {
   const accessKey = process.env["S3_ACCESS_KEY_ID"];
   const secretKey = process.env["S3_SECRET_ACCESS_KEY"];
@@ -44,7 +53,6 @@ export async function uploadInvoice(
   const endpoint = process.env["S3_ENDPOINT"] ?? "storage.yandexcloud.net";
   const region = process.env["S3_REGION"] ?? "ru-central1";
   const host = `${bucket}.${endpoint}`;
-  const key = `invoices/${fileName}`;
   const url = `https://${host}/${key}`;
 
   const now = new Date();
