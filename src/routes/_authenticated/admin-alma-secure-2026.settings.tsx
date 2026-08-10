@@ -10,6 +10,7 @@ import {
   adminSetStaffRole,
 } from "@/lib/admin.functions";
 import { ROLE_LABEL, type AdminRole } from "@/lib/admin";
+import { VAULT_GROUPS } from "@/lib/admin-data";
 
 export const Route = createFileRoute("/_authenticated/admin-alma-secure-2026/settings")({
   component: Settings,
