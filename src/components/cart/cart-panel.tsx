@@ -484,10 +484,13 @@ export function CartPanel() {
             <input
               value={form.phone}
               onChange={field("phone")}
+              type="tel"
               inputMode="tel"
+              autoComplete="tel"
               placeholder="+7 (___) ___-__-__"
-              className="h-11 rounded-sm border border-[#D1D5DB] px-3.5 py-2.5 text-[13px] leading-[1.3] outline-none transition-colors placeholder:text-[13px] focus:border-primary"
+              className="h-12 rounded-sm border border-[#D1D5DB] px-3.5 py-2.5 text-[13px] leading-[1.3] outline-none transition-colors placeholder:text-[13px] focus:border-primary md:h-11"
             />
+
             </label>
             <input
               value={form.email}
