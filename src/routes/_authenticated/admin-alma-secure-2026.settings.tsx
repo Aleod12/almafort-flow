@@ -136,29 +136,50 @@ function Settings() {
           <h2 className="mb-1 font-semibold">Хранилище API-ключей</h2>
           <p className="mb-4 text-xs text-muted-foreground">
             Значения шифруются AES-256-GCM перед записью и расшифровываются только в момент запроса
-            к сервису.
+            к сервису. Ключи в коде не хранятся — сменить их можно здесь без перезапуска.
           </p>
-          <div className="space-y-3">
-            {(data?.vault ?? []).map((k) => (
-              <div key={k.name} className="grid grid-cols-[130px_1fr_auto] items-center gap-2 text-sm">
-                <span>{k.label}</span>
-                <input
-                  value={keyDrafts[k.name] ?? ""}
-                  onChange={(e) => setKeyDrafts((d) => ({ ...d, [k.name]: e.target.value }))}
-                  placeholder={k.masked ?? "не задан"}
-                  className={`${input} w-full`}
-                />
-                <button
-                  disabled={!keyDrafts[k.name]}
-                  onClick={() => keyMutation.mutate({ name: k.name, value: keyDrafts[k.name]! })}
-                  className="rounded-md border px-3 py-2 text-xs transition-colors hover:bg-muted disabled:opacity-40"
-                >
-                  Сохранить
-                </button>
-              </div>
-            ))}
+          <div className="space-y-5">
+            {VAULT_GROUPS.map((groupName) => {
+              const rows = (data?.vault ?? []).filter((k) => k.group === groupName);
+              if (!rows.length) return null;
+              return (
+                <div key={groupName}>
+                  <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {groupName}
+                  </h3>
+                  <div className="space-y-2">
+                    {rows.map((k) => (
+                      <div
+                        key={k.name}
+                        className="grid grid-cols-[150px_1fr_auto] items-center gap-2 text-sm"
+                      >
+                        <span title={k.name}>{k.label}</span>
+                        <input
+                          type="password"
+                          autoComplete="new-password"
+                          value={keyDrafts[k.name] ?? ""}
+                          onChange={(e) =>
+                            setKeyDrafts((d) => ({ ...d, [k.name]: e.target.value }))
+                          }
+                          placeholder={k.masked ?? "не задан"}
+                          className={`${input} w-full`}
+                        />
+                        <button
+                          disabled={!keyDrafts[k.name]}
+                          onClick={() => keyMutation.mutate({ name: k.name, value: keyDrafts[k.name]! })}
+                          className="rounded-md border px-3 py-2 text-xs transition-colors hover:bg-muted disabled:opacity-40"
+                        >
+                          Сохранить
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
+
       </div>
 
       <div className={card}>
