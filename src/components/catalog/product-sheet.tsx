@@ -1,10 +1,13 @@
-import { Suspense, lazy, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { Download, FileText, Layers, Ruler, Truck } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { Product } from "@/data/catalog";
 import { trackCadDownload } from "@/lib/metrika";
 import { CityInput, type CityValue } from "@/components/cart/city-input";
+import { BulkRequestDialog } from "@/components/catalog/bulk-request-dialog";
 import { useAssetGroups } from "@/lib/asset-groups";
+import { useDebounce } from "@/hooks/use-debounce";
+import type { ShippingQuote } from "@/lib/logistics";
 
 
 const CadViewer = lazy(() => import("@/components/catalog/cad-viewer"));
@@ -16,21 +19,67 @@ export function ProductSheet({
   product: Product | null;
   onClose: () => void;
 }) {
-  const [city, setCity] = useState<CityValue>({ city: "", fiasId: null });
+  const [city, setCity] = useState<CityValue>({ city: "Москва", fiasId: null });
+  const [batch, setBatch] = useState(1000);
+  const [quotes, setQuotes] = useState<ShippingQuote[]>([]);
+  const [calcState, setCalcState] = useState<"idle" | "loading" | "ready" | "failed">("idle");
   const assets = useAssetGroups();
   const assetGroup = product ? assets.get(product.sku) : undefined;
+  const [bulkOpen, setBulkOpen] = useState(false);
 
+  // Debounce: ручной ввод города не должен спамить API ТК.
+  const debouncedCity = useDebounce(city.city, 600);
 
+  const parcel = useMemo(
+    () => ({
+      totalWeight: +((product?.weight ?? 0) * batch).toFixed(3),
+      totalVolume: +((product?.volume ?? 0) * batch).toFixed(4),
+    }),
+    [product, batch],
+  );
 
-  const logistics = useMemo(() => {
-    if (!product) return [];
-    const batch = 1000;
-    const w = product.weight * batch;
-    return [
-      { name: "СДЭК (до двери)", days: "4 дня", cost: Math.round(900 + w * 9) },
-      { name: "Деловые Линии (до терминала)", days: "отгрузка в среду", cost: Math.round(500 + w * 5) },
-    ];
-  }, [product]);
+  useEffect(() => {
+    const dest = debouncedCity.trim();
+    if (!product || dest.length < 2) {
+      setQuotes([]);
+      setCalcState("idle");
+      return;
+    }
+    // Старые цены исчезают сразу — клиент видит, что система считает.
+    setQuotes([]);
+    setCalcState("loading");
+    const ctrl = new AbortController();
+    // Отказоустойчивость: молчание ТК дольше 3 с — расчёт уточнит менеджер.
+    const timer = setTimeout(() => ctrl.abort(), 3000);
+    (async () => {
+      try {
+        const res = await fetch("/api/shipping-calc", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            destination: { city: dest, fias_id: city.fiasId },
+            parcel,
+          }),
+          signal: ctrl.signal,
+        });
+        const json = (await res.json()) as { quotes?: ShippingQuote[] };
+        if (!res.ok || !json.quotes?.length) throw new Error("no quotes");
+        setQuotes(json.quotes);
+        setCalcState("ready");
+      } catch {
+        setCalcState("failed");
+      } finally {
+        clearTimeout(timer);
+      }
+    })();
+    return () => {
+      clearTimeout(timer);
+      ctrl.abort();
+    };
+  }, [debouncedCity, city.fiasId, parcel, product]);
+
+  const logistics = quotes;
+
 
   const jsonLd = product
     ? {
@@ -54,7 +103,7 @@ export function ProductSheet({
             "@type": "OfferShippingDetails",
             shippingRate: {
               "@type": "MonetaryAmount",
-              value: logistics[0]?.cost ?? 0,
+              value: logistics[0]?.price ?? 0,
               currency: "RUB",
             },
             shippingDestination: { "@type": "DefinedRegion", addressCountry: "RU" },
@@ -164,33 +213,83 @@ export function ProductSheet({
                 <div className="mt-6 rounded-lg border border-border p-4">
                   <div className="flex flex-col gap-2">
                     <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      <Truck className="size-4" strokeWidth={1.5} /> Логистика на партию 1 000 шт
+                      <Truck className="size-4" strokeWidth={1.5} /> Логистика на партию
                     </p>
-                    <CityInput value={city} onChange={setCity} />
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+                      <CityInput value={city} onChange={setCity} />
+                      <input
+                        value={batch}
+                        onChange={(e) =>
+                          setBatch(Math.max(1, Number(e.target.value.replace(/\D/g, "")) || 1))
+                        }
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        aria-label="Количество, шт"
+                        className="mt-3 h-11 w-[104px] shrink-0 rounded-sm border border-[#D1D5DB] px-3 text-base outline-none focus:border-foreground"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Расчётный груз: {parcel.totalWeight.toLocaleString("ru-RU")} кг ·{" "}
+                      {parcel.totalVolume.toLocaleString("ru-RU")} м³
+                    </p>
                   </div>
 
-                  <ul className="mt-3 space-y-2 text-sm">
-                    {logistics.map((l) => (
-                      <li key={l.name} className="flex justify-between gap-4">
-                        <span className="text-muted-foreground">
-                          {l.name} · {l.days}
-                        </span>
-                        <span className="font-medium tabular-nums text-foreground">
-                          {l.cost.toLocaleString("ru-RU")} ₽
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                  {calcState === "loading" && (
+                    <ul className="mt-3 space-y-2" aria-busy="true">
+                      {[0, 1].map((i) => (
+                        <li key={i} className="flex justify-between gap-4">
+                          <span className="h-4 w-2/3 animate-pulse rounded bg-muted" />
+                          <span className="h-4 w-16 animate-pulse rounded bg-muted" />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {calcState === "failed" && (
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Расчет недоступен. Стоимость уточнит менеджер.
+                    </p>
+                  )}
+
+                  {calcState === "ready" && (
+                    <ul className="mt-3 space-y-2 text-sm">
+                      {logistics.map((l) => (
+                        <li key={l.carrier} className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">
+                            {l.label} · {l.days} дн.
+                          </span>
+                          <span className="font-medium tabular-nums text-foreground">
+                            {l.price.toLocaleString("ru-RU")} ₽
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {calcState === "idle" && (
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Укажите город — рассчитаем доставку по реальным тарифам ТК.
+                    </p>
+                  )}
                 </div>
 
                 <button
                   type="button"
-                  className="mt-4 text-sm font-medium text-foreground underline-offset-4 hover:text-primary hover:underline"
+                  onClick={() => setBulkOpen(true)}
+                  className="mt-4 inline-flex min-h-[44px] cursor-pointer items-center rounded-sm px-1 text-left text-sm font-medium text-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
                 >
-                  Запросить спец. условия на партию от 50 000 шт →
+                  Запросить спец. условия на партию от{" "}
+                  {(product.tier2Qty || 50000).toLocaleString("ru-RU")} шт →
                 </button>
+
               </div>
             </div>
+
+            <BulkRequestDialog
+              product={product}
+              open={bulkOpen}
+              onClose={() => setBulkOpen(false)}
+            />
 
             <script
               type="application/ld+json"

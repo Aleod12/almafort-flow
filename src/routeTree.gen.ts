@@ -31,6 +31,7 @@ import { Route as SitemapProductsPageRouteImport } from './routes/sitemap-produc
 import { Route as AuthenticatedAdminAlmaSecure2026IndexRouteImport } from './routes/_authenticated/admin-alma-secure-2026.index'
 import { Route as AuthenticatedAdminAlmaSecure2026AiRouteImport } from './routes/_authenticated/admin-alma-secure-2026.ai'
 import { Route as AuthenticatedAdminAlmaSecure2026CompaniesRouteImport } from './routes/_authenticated/admin-alma-secure-2026.companies'
+import { Route as AuthenticatedAdminAlmaSecure2026LeadsRouteImport } from './routes/_authenticated/admin-alma-secure-2026.leads'
 import { Route as AuthenticatedAdminAlmaSecure2026LogsRouteImport } from './routes/_authenticated/admin-alma-secure-2026.logs'
 import { Route as AuthenticatedAdminAlmaSecure2026ProductsRouteImport } from './routes/_authenticated/admin-alma-secure-2026.products'
 import { Route as AuthenticatedAdminAlmaSecure2026SettingsRouteImport } from './routes/_authenticated/admin-alma-secure-2026.settings'
@@ -40,6 +41,7 @@ import { Route as ApiCheckoutSubmitRouteImport } from './routes/api/checkout/sub
 import { Route as ApiConfiguratorSolveRouteImport } from './routes/api/configurator/solve'
 import { Route as ApiDadataCityRouteImport } from './routes/api/dadata/city'
 import { Route as ApiDadataPartyRouteImport } from './routes/api/dadata/party'
+import { Route as ApiLeadsBulkRouteImport } from './routes/api/leads/bulk'
 import { Route as ApiParserUploadRouteImport } from './routes/api/parser/upload'
 import { Route as ApiQuizSubmitRouteImport } from './routes/api/quiz/submit'
 import { Route as ApiUploadPresignedUrlRouteImport } from './routes/api/upload/presigned-url'
@@ -164,6 +166,12 @@ const AuthenticatedAdminAlmaSecure2026CompaniesRoute =
     path: '/companies',
     getParentRoute: () => AuthenticatedAdminAlmaSecure2026Route,
   } as any)
+const AuthenticatedAdminAlmaSecure2026LeadsRoute =
+  AuthenticatedAdminAlmaSecure2026LeadsRouteImport.update({
+    id: '/leads',
+    path: '/leads',
+    getParentRoute: () => AuthenticatedAdminAlmaSecure2026Route,
+  } as any)
 const AuthenticatedAdminAlmaSecure2026LogsRoute =
   AuthenticatedAdminAlmaSecure2026LogsRouteImport.update({
     id: '/logs',
@@ -211,6 +219,11 @@ const ApiDadataCityRoute = ApiDadataCityRouteImport.update({
 const ApiDadataPartyRoute = ApiDadataPartyRouteImport.update({
   id: '/api/dadata/party',
   path: '/api/dadata/party',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLeadsBulkRoute = ApiLeadsBulkRouteImport.update({
+  id: '/api/leads/bulk',
+  path: '/api/leads/bulk',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiParserUploadRoute = ApiParserUploadRouteImport.update({
@@ -287,6 +300,7 @@ export interface FileRoutesByFullPath {
   '/catalog/': typeof CatalogIndexRoute
   '/admin-alma-secure-2026/ai': typeof AuthenticatedAdminAlmaSecure2026AiRoute
   '/admin-alma-secure-2026/companies': typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
+  '/admin-alma-secure-2026/leads': typeof AuthenticatedAdminAlmaSecure2026LeadsRoute
   '/admin-alma-secure-2026/logs': typeof AuthenticatedAdminAlmaSecure2026LogsRoute
   '/admin-alma-secure-2026/products': typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
   '/admin-alma-secure-2026/settings': typeof AuthenticatedAdminAlmaSecure2026SettingsRoute
@@ -296,6 +310,7 @@ export interface FileRoutesByFullPath {
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/dadata/party': typeof ApiDadataPartyRoute
+  '/api/leads/bulk': typeof ApiLeadsBulkRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
   '/api/quiz/submit': typeof ApiQuizSubmitRoute
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
@@ -327,6 +342,7 @@ export interface FileRoutesByTo {
   '/catalog': typeof CatalogIndexRoute
   '/admin-alma-secure-2026/ai': typeof AuthenticatedAdminAlmaSecure2026AiRoute
   '/admin-alma-secure-2026/companies': typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
+  '/admin-alma-secure-2026/leads': typeof AuthenticatedAdminAlmaSecure2026LeadsRoute
   '/admin-alma-secure-2026/logs': typeof AuthenticatedAdminAlmaSecure2026LogsRoute
   '/admin-alma-secure-2026/products': typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
   '/admin-alma-secure-2026/settings': typeof AuthenticatedAdminAlmaSecure2026SettingsRoute
@@ -336,6 +352,7 @@ export interface FileRoutesByTo {
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/dadata/party': typeof ApiDadataPartyRoute
+  '/api/leads/bulk': typeof ApiLeadsBulkRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
   '/api/quiz/submit': typeof ApiQuizSubmitRoute
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
@@ -371,6 +388,7 @@ export interface FileRoutesById {
   '/catalog/': typeof CatalogIndexRoute
   '/_authenticated/admin-alma-secure-2026/ai': typeof AuthenticatedAdminAlmaSecure2026AiRoute
   '/_authenticated/admin-alma-secure-2026/companies': typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
+  '/_authenticated/admin-alma-secure-2026/leads': typeof AuthenticatedAdminAlmaSecure2026LeadsRoute
   '/_authenticated/admin-alma-secure-2026/logs': typeof AuthenticatedAdminAlmaSecure2026LogsRoute
   '/_authenticated/admin-alma-secure-2026/products': typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
   '/_authenticated/admin-alma-secure-2026/settings': typeof AuthenticatedAdminAlmaSecure2026SettingsRoute
@@ -380,6 +398,7 @@ export interface FileRoutesById {
   '/api/configurator/solve': typeof ApiConfiguratorSolveRoute
   '/api/dadata/city': typeof ApiDadataCityRoute
   '/api/dadata/party': typeof ApiDadataPartyRoute
+  '/api/leads/bulk': typeof ApiLeadsBulkRoute
   '/api/parser/upload': typeof ApiParserUploadRoute
   '/api/quiz/submit': typeof ApiQuizSubmitRoute
   '/api/upload/presigned-url': typeof ApiUploadPresignedUrlRoute
@@ -415,6 +434,7 @@ export interface FileRouteTypes {
     | '/catalog/'
     | '/admin-alma-secure-2026/ai'
     | '/admin-alma-secure-2026/companies'
+    | '/admin-alma-secure-2026/leads'
     | '/admin-alma-secure-2026/logs'
     | '/admin-alma-secure-2026/products'
     | '/admin-alma-secure-2026/settings'
@@ -424,6 +444,7 @@ export interface FileRouteTypes {
     | '/api/configurator/solve'
     | '/api/dadata/city'
     | '/api/dadata/party'
+    | '/api/leads/bulk'
     | '/api/parser/upload'
     | '/api/quiz/submit'
     | '/api/upload/presigned-url'
@@ -455,6 +476,7 @@ export interface FileRouteTypes {
     | '/catalog'
     | '/admin-alma-secure-2026/ai'
     | '/admin-alma-secure-2026/companies'
+    | '/admin-alma-secure-2026/leads'
     | '/admin-alma-secure-2026/logs'
     | '/admin-alma-secure-2026/products'
     | '/admin-alma-secure-2026/settings'
@@ -464,6 +486,7 @@ export interface FileRouteTypes {
     | '/api/configurator/solve'
     | '/api/dadata/city'
     | '/api/dadata/party'
+    | '/api/leads/bulk'
     | '/api/parser/upload'
     | '/api/quiz/submit'
     | '/api/upload/presigned-url'
@@ -498,6 +521,7 @@ export interface FileRouteTypes {
     | '/catalog/'
     | '/_authenticated/admin-alma-secure-2026/ai'
     | '/_authenticated/admin-alma-secure-2026/companies'
+    | '/_authenticated/admin-alma-secure-2026/leads'
     | '/_authenticated/admin-alma-secure-2026/logs'
     | '/_authenticated/admin-alma-secure-2026/products'
     | '/_authenticated/admin-alma-secure-2026/settings'
@@ -507,6 +531,7 @@ export interface FileRouteTypes {
     | '/api/configurator/solve'
     | '/api/dadata/city'
     | '/api/dadata/party'
+    | '/api/leads/bulk'
     | '/api/parser/upload'
     | '/api/quiz/submit'
     | '/api/upload/presigned-url'
@@ -541,6 +566,7 @@ export interface RootRouteChildren {
   ApiConfiguratorSolveRoute: typeof ApiConfiguratorSolveRoute
   ApiDadataCityRoute: typeof ApiDadataCityRoute
   ApiDadataPartyRoute: typeof ApiDadataPartyRoute
+  ApiLeadsBulkRoute: typeof ApiLeadsBulkRoute
   ApiParserUploadRoute: typeof ApiParserUploadRoute
   ApiQuizSubmitRoute: typeof ApiQuizSubmitRoute
   ApiUploadPresignedUrlRoute: typeof ApiUploadPresignedUrlRoute
@@ -708,6 +734,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAlmaSecure2026CompaniesRouteImport
       parentRoute: typeof AuthenticatedAdminAlmaSecure2026Route
     }
+    '/_authenticated/admin-alma-secure-2026/leads': {
+      id: '/_authenticated/admin-alma-secure-2026/leads'
+      path: '/leads'
+      fullPath: '/admin-alma-secure-2026/leads'
+      preLoaderRoute: typeof AuthenticatedAdminAlmaSecure2026LeadsRouteImport
+      parentRoute: typeof AuthenticatedAdminAlmaSecure2026Route
+    }
     '/_authenticated/admin-alma-secure-2026/logs': {
       id: '/_authenticated/admin-alma-secure-2026/logs'
       path: '/logs'
@@ -769,6 +802,13 @@ declare module '@tanstack/react-router' {
       path: '/api/dadata/party'
       fullPath: '/api/dadata/party'
       preLoaderRoute: typeof ApiDadataPartyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/leads/bulk': {
+      id: '/api/leads/bulk'
+      path: '/api/leads/bulk'
+      fullPath: '/api/leads/bulk'
+      preLoaderRoute: typeof ApiLeadsBulkRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/parser/upload': {
@@ -847,6 +887,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminAlmaSecure2026RouteChildren {
   AuthenticatedAdminAlmaSecure2026AiRoute: typeof AuthenticatedAdminAlmaSecure2026AiRoute
   AuthenticatedAdminAlmaSecure2026CompaniesRoute: typeof AuthenticatedAdminAlmaSecure2026CompaniesRoute
+  AuthenticatedAdminAlmaSecure2026LeadsRoute: typeof AuthenticatedAdminAlmaSecure2026LeadsRoute
   AuthenticatedAdminAlmaSecure2026LogsRoute: typeof AuthenticatedAdminAlmaSecure2026LogsRoute
   AuthenticatedAdminAlmaSecure2026ProductsRoute: typeof AuthenticatedAdminAlmaSecure2026ProductsRoute
   AuthenticatedAdminAlmaSecure2026SettingsRoute: typeof AuthenticatedAdminAlmaSecure2026SettingsRoute
@@ -860,6 +901,8 @@ const AuthenticatedAdminAlmaSecure2026RouteChildren: AuthenticatedAdminAlmaSecur
       AuthenticatedAdminAlmaSecure2026AiRoute,
     AuthenticatedAdminAlmaSecure2026CompaniesRoute:
       AuthenticatedAdminAlmaSecure2026CompaniesRoute,
+    AuthenticatedAdminAlmaSecure2026LeadsRoute:
+      AuthenticatedAdminAlmaSecure2026LeadsRoute,
     AuthenticatedAdminAlmaSecure2026LogsRoute:
       AuthenticatedAdminAlmaSecure2026LogsRoute,
     AuthenticatedAdminAlmaSecure2026ProductsRoute:
@@ -927,6 +970,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiConfiguratorSolveRoute: ApiConfiguratorSolveRoute,
   ApiDadataCityRoute: ApiDadataCityRoute,
   ApiDadataPartyRoute: ApiDadataPartyRoute,
+  ApiLeadsBulkRoute: ApiLeadsBulkRoute,
   ApiParserUploadRoute: ApiParserUploadRoute,
   ApiQuizSubmitRoute: ApiQuizSubmitRoute,
   ApiUploadPresignedUrlRoute: ApiUploadPresignedUrlRoute,

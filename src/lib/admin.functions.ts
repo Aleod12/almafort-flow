@@ -739,3 +739,45 @@ export const adminRetryErp = createServerFn({ method: "POST" })
     );
     return result;
   });
+
+/* ── Оптовые заявки из карточек товара ───────────────────────────── */
+
+/** Список заявок на спеццену: что запросили и по какому артикулу. */
+export const adminBulkRequests = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireRole(context.supabase, context.userId, ["owner", "manager"]);
+    const { data, error } = await context.supabase
+      .from("bulk_requests")
+      .select(
+        "id, sku, product_name, base_price, qty, contact_name, phone, email, inn, comment, status, created_at",
+      )
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (error) throw new Error(error.message);
+    return { rows: data ?? [] };
+  });
+
+/** Пометить заявку обработанной. */
+export const adminSetBulkStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ id: uuid, status: z.enum(["new", "in_work", "done"]) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await requireRole(context.supabase, context.userId, ["owner", "manager"]);
+    const { error } = await context.supabase
+      .from("bulk_requests")
+      .update({ status: data.status })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    await logAdmin(
+      context.userId,
+      (context.claims as { email?: string })?.email ?? null,
+      "bulk_request_status",
+      data.id,
+      null,
+      { status: data.status },
+    );
+    return { ok: true };
+  });

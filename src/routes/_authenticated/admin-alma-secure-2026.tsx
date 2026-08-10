@@ -27,6 +27,7 @@ export const Route = createFileRoute("/_authenticated/admin-alma-secure-2026")({
 const TABS = [
   { key: "orders", to: ADMIN_BASE, label: "Заказы", exact: true },
   { key: "companies", to: `${ADMIN_BASE}/companies`, label: "Контрагенты" },
+  { key: "leads", to: `${ADMIN_BASE}/leads`, label: "Оптовые заявки" },
   { key: "products", to: `${ADMIN_BASE}/products`, label: "Каталог" },
   { key: "ai", to: `${ADMIN_BASE}/ai`, label: "ИИ" },
   { key: "settings", to: `${ADMIN_BASE}/settings`, label: "Настройки" },

@@ -98,6 +98,57 @@ export type Database = {
         }
         Relationships: []
       }
+      bulk_requests: {
+        Row: {
+          base_price: number
+          comment: string | null
+          contact_name: string
+          created_at: string
+          email: string | null
+          id: string
+          inn: string | null
+          phone: string
+          product_name: string
+          qty: number
+          sku: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          base_price?: number
+          comment?: string | null
+          contact_name: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          inn?: string | null
+          phone: string
+          product_name: string
+          qty?: number
+          sku: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          base_price?: number
+          comment?: string | null
+          contact_name?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          inn?: string | null
+          phone?: string
+          product_name?: string
+          qty?: number
+          sku?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           assigned_tier: number
