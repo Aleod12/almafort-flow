@@ -127,6 +127,8 @@ export function CartPanel() {
   const ctaDisabled = !cartReady || !consent || unverified;
 
   const [form, setForm] = useState({ name: "", phone: "", email: "", company: "", comment: "" });
+  const [inn, setInn] = useState("");
+  const [party, setParty] = useState<Party | null>(null);
   const [submitting, setSubmitting] = useState(false);
   // Стратегическому партнёру доступна отгрузка с отсрочкой платежа 15–30 дней.
   const [deferred, setDeferred] = useState(false);
