@@ -48,6 +48,7 @@ import { Route as AuthenticatedAdminAlmaSecure2026OrdersOrderIdRouteImport } fro
 import { Route as ApiPublicCadSplatRouteImport } from './routes/api/public/cad/$'
 import { Route as ApiPublicErpRetryRouteImport } from './routes/api/public/erp/retry'
 import { Route as ApiPublicErpStatusRouteImport } from './routes/api/public/erp/status'
+import { Route as ApiPublicErpStockRouteImport } from './routes/api/public/erp/stock'
 import { Route as ApiPublicWebhooksCarrierRouteImport } from './routes/api/public/webhooks/carrier'
 
 const IndexRoute = IndexRouteImport.update({
@@ -253,6 +254,11 @@ const ApiPublicErpStatusRoute = ApiPublicErpStatusRouteImport.update({
   path: '/api/public/erp/status',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicErpStockRoute = ApiPublicErpStockRouteImport.update({
+  id: '/api/public/erp/stock',
+  path: '/api/public/erp/stock',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWebhooksCarrierRoute =
   ApiPublicWebhooksCarrierRouteImport.update({
     id: '/api/public/webhooks/carrier',
@@ -299,6 +305,7 @@ export interface FileRoutesByFullPath {
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
   '/api/public/erp/retry': typeof ApiPublicErpRetryRoute
   '/api/public/erp/status': typeof ApiPublicErpStatusRoute
+  '/api/public/erp/stock': typeof ApiPublicErpStockRoute
   '/api/public/webhooks/carrier': typeof ApiPublicWebhooksCarrierRoute
 }
 export interface FileRoutesByTo {
@@ -338,6 +345,7 @@ export interface FileRoutesByTo {
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
   '/api/public/erp/retry': typeof ApiPublicErpRetryRoute
   '/api/public/erp/status': typeof ApiPublicErpStatusRoute
+  '/api/public/erp/stock': typeof ApiPublicErpStockRoute
   '/api/public/webhooks/carrier': typeof ApiPublicWebhooksCarrierRoute
 }
 export interface FileRoutesById {
@@ -381,6 +389,7 @@ export interface FileRoutesById {
   '/api/public/cad/$': typeof ApiPublicCadSplatRoute
   '/api/public/erp/retry': typeof ApiPublicErpRetryRoute
   '/api/public/erp/status': typeof ApiPublicErpStatusRoute
+  '/api/public/erp/stock': typeof ApiPublicErpStockRoute
   '/api/public/webhooks/carrier': typeof ApiPublicWebhooksCarrierRoute
 }
 export interface FileRouteTypes {
@@ -424,6 +433,7 @@ export interface FileRouteTypes {
     | '/api/public/cad/$'
     | '/api/public/erp/retry'
     | '/api/public/erp/status'
+    | '/api/public/erp/stock'
     | '/api/public/webhooks/carrier'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -463,6 +473,7 @@ export interface FileRouteTypes {
     | '/api/public/cad/$'
     | '/api/public/erp/retry'
     | '/api/public/erp/status'
+    | '/api/public/erp/stock'
     | '/api/public/webhooks/carrier'
   id:
     | '__root__'
@@ -505,6 +516,7 @@ export interface FileRouteTypes {
     | '/api/public/cad/$'
     | '/api/public/erp/retry'
     | '/api/public/erp/status'
+    | '/api/public/erp/stock'
     | '/api/public/webhooks/carrier'
   fileRoutesById: FileRoutesById
 }
@@ -536,6 +548,7 @@ export interface RootRouteChildren {
   ApiPublicCadSplatRoute: typeof ApiPublicCadSplatRoute
   ApiPublicErpRetryRoute: typeof ApiPublicErpRetryRoute
   ApiPublicErpStatusRoute: typeof ApiPublicErpStatusRoute
+  ApiPublicErpStockRoute: typeof ApiPublicErpStockRoute
   ApiPublicWebhooksCarrierRoute: typeof ApiPublicWebhooksCarrierRoute
 }
 
@@ -814,6 +827,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicErpStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/erp/stock': {
+      id: '/api/public/erp/stock'
+      path: '/api/public/erp/stock'
+      fullPath: '/api/public/erp/stock'
+      preLoaderRoute: typeof ApiPublicErpStockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/webhooks/carrier': {
       id: '/api/public/webhooks/carrier'
       path: '/api/public/webhooks/carrier'
@@ -914,6 +934,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCadSplatRoute: ApiPublicCadSplatRoute,
   ApiPublicErpRetryRoute: ApiPublicErpRetryRoute,
   ApiPublicErpStatusRoute: ApiPublicErpStatusRoute,
+  ApiPublicErpStockRoute: ApiPublicErpStockRoute,
   ApiPublicWebhooksCarrierRoute: ApiPublicWebhooksCarrierRoute,
 }
 export const routeTree = rootRouteImport
