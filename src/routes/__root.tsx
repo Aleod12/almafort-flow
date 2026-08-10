@@ -180,14 +180,23 @@ function MaintenanceGate() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const location = useLocation();
+  // В админке нижняя панель снабженца не нужна.
+  const hideTabBar = location.pathname.startsWith("/admin-alma-secure-2026");
+
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <MaintenanceGate />
+      {!hideTabBar && <MobileTabBar />}
       <Toaster />
     </QueryClientProvider>
   );
 }
+
 
