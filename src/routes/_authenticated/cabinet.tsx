@@ -321,33 +321,24 @@ function CabinetPage() {
                 </li>
               )}
             </ul>
-            <div className="mt-4 flex gap-2">
-              <input
+            <div className="mt-4">
+              <InnField
                 value={inn}
-                onChange={(e) => setInn(sanitizeInn(e.target.value))}
-                placeholder="ИНН — 10 цифр (юрлицо) или 12 (ИП)"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                autoComplete="off"
-                aria-invalid={inn.length > 0 && !isValidInn(inn)}
-                className={`h-12 w-full rounded-sm border px-3 text-base tabular-nums md:h-10 md:text-sm outline-none transition-colors focus:border-foreground ${
-                  inn.length > 0 && !isValidInn(inn) ? "border-primary" : "border-[#D1D5DB]"
-                }`}
-
+                onChange={setInn}
+                onParty={setParty}
+                label="ИНН — 10 цифр (юрлицо) или 12 (ИП)"
               />
               <button
                 type="button"
-                disabled={busy || !isValidInn(inn)}
+                disabled={busy || !isValidInn(inn) || Boolean(party?.blocked)}
                 onClick={onAddCompany}
-                className="inline-flex h-12 shrink-0 cursor-pointer items-center gap-1.5 md:h-10 rounded-sm bg-primary px-3 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-[#B91C1C] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-3 inline-flex h-12 w-full shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm bg-primary px-3 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-[#B91C1C] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 md:h-10"
               >
                 {busy ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
                 Добавить
               </button>
             </div>
-            {inn.length > 0 && !isValidInn(inn) && (
-              <p className="mt-2 text-xs leading-[1.5] text-primary">{innHint(inn)}</p>
-            )}
+
 
           </div>
         </aside>
