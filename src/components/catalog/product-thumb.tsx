@@ -16,7 +16,7 @@ export function ProductThumb({
       className={`grid aspect-square w-full place-items-center overflow-hidden rounded-[6px] bg-[#F3F4F6] ${className}`}
     >
       {src ? (
-        <img src={src} alt={alt} loading="lazy" className="h-full w-full object-cover" />
+        <SafeImage src={src} alt={alt} loading="lazy" className="h-full w-full object-cover" />
       ) : (
         <svg
           viewBox="0 0 48 48"
