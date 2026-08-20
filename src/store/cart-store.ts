@@ -280,6 +280,7 @@ export const useCart = create<State>()(
       partialize: (s) => ({
         lines: s.lines,
         pending: s.pending,
+        review: s.review,
         fileName: s.fileName,
         carrier: s.carrier,
         city: s.city,
