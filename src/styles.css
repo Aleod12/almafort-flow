@@ -572,7 +572,22 @@ select:focus {
 
 /* Видимый фокус для клавиатурной навигации по всему сайту */
 :focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
   border-radius: 3px;
 }
+
+/* В полях ввода обводка нейтральная и не мигает при наборе текста. */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible,
+[contenteditable="true"]:focus,
+[contenteditable="true"]:focus-visible {
+  outline: none;
+  border-color: var(--ring);
+  box-shadow: 0 0 0 1px var(--ring);
+}
+
