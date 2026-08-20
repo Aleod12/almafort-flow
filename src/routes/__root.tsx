@@ -129,6 +129,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 import { CartSync } from "@/components/cart-sync";
+import { NetworkWatcher } from "@/components/network-watcher";
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
@@ -139,6 +140,7 @@ function RootShell({ children }: { children: ReactNode }) {
       <body>
         {children}
         <CartSync />
+        <NetworkWatcher />
         <Scripts />
       </body>
     </html>
