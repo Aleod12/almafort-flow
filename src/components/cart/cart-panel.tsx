@@ -1,5 +1,5 @@
 import { formatPhone } from "@/lib/phone";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { AlertTriangle, FileDown, Loader2, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -133,12 +133,17 @@ export function CartPanel() {
   const ctaDisabled = !cartReady || !consent || unverified || Boolean(party?.blocked);
 
   const [submitting, setSubmitting] = useState(false);
+  const idemKey = useRef<string | null>(null);
   // Стратегическому партнёру доступна отгрузка с отсрочкой платежа 15–30 дней.
   const [deferred, setDeferred] = useState(false);
   const field = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const submitOrder = async () => {
+    // Идемпотентность: 5 кликов подряд — один заказ. Ключ живёт до успешной отправки.
+    if (submitting) return;
+    if (!idemKey.current) idemKey.current = `af-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const idempotencyKey = idemKey.current;
     if (!lines.length) {
       toast.error("Корзина пуста — добавьте позиции или загрузите спецификацию");
       return;
@@ -174,14 +179,14 @@ export function CartPanel() {
 
       const res = await fetch("/api/checkout/submit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
         body: JSON.stringify({
           customer: {
             name: form.name.trim(),
             phone: form.phone.trim(),
             email: form.email.trim(),
             company: (party?.name || form.company).trim(),
-            comment: form.comment.trim(),
+            comment: form.comment.trim().slice(0, 2000),
           },
           ...(party?.inn ? { inn: party.inn } : {}),
           ...(party?.kpp ? { kpp: party.kpp } : {}),
@@ -216,6 +221,7 @@ export function CartPanel() {
               city,
               deferred,
               invoiceUrl: json.invoiceUrl ?? null,
+              idempotencyKey,
             },
           });
         } catch (err) {
@@ -223,6 +229,7 @@ export function CartPanel() {
         }
       }
 
+      idemKey.current = null;
       trackPurchase(json.orderId ?? Date.now(), ecomItems, total);
 
       saveLastOrder({
@@ -555,6 +562,7 @@ export function CartPanel() {
           </div>
 
           <textarea
+            maxLength={2000}
             value={form.comment}
             onChange={field("comment")}
             rows={2}
