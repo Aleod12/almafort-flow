@@ -19,6 +19,32 @@ const ACCEPT = {
 
 const BAD_FORMAT = "Ошибка: Файл поврежден или имеет неверный формат. Загрузите корректный документ Excel";
 
+/**
+ * Проверка реального бинарного заголовка ещё до отправки: расширение и MIME подделываются
+ * переименованием, сигнатура — нет. malware.exe → smeta.xlsx отсекается прямо в браузере,
+ * трафик и время сервера на него не тратятся. Сервер повторяет проверку — фронту он не верит.
+ */
+async function signatureOk(file: File, ext: string): Promise<boolean> {
+  const head = new Uint8Array(await file.slice(0, 64).arrayBuffer());
+  if (head.length < 8) return false;
+
+  const isZip = head[0] === 0x50 && head[1] === 0x4b; // PK — xlsx/xlsm
+  const isCfb = head[0] === 0xd0 && head[1] === 0xcf && head[2] === 0x11 && head[3] === 0xe0; // xls
+  const isExe = head[0] === 0x4d && head[1] === 0x5a; // MZ
+  const isElf = head[0] === 0x7f && head[1] === 0x45 && head[2] === 0x4c && head[3] === 0x46;
+  if (isExe || isElf) return false;
+
+  if (ext === "csv") {
+    if (isZip || isCfb) return false;
+    // Скрипт под видом таблицы: <?php, <script, shebang, нулевые байты.
+    const text = new TextDecoder("utf-8").decode(head).trim().toLowerCase();
+    if (text.startsWith("<?php") || text.startsWith("<script") || text.startsWith("#!")) return false;
+    return !head.includes(0);
+  }
+  if (ext === "xls") return isCfb || isZip;
+  return isZip;
+}
+
 export function SpecUpload({ compact = false }: { compact?: boolean }) {
   const setParsing = useCart((s) => s.setParsing);
   const setReview = useCart((s) => s.setReview);
@@ -37,6 +63,10 @@ export function SpecUpload({ compact = false }: { compact?: boolean }) {
         toast.error(
           "Файл слишком велик. Максимальный размер — 10 МБ (до 5000 позиций). Разделите смету на две части",
         );
+        return;
+      }
+      if (!(await signatureOk(file, ext))) {
+        toast.error(BAD_FORMAT);
         return;
       }
       setParsing(true);
