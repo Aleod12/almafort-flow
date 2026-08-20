@@ -29,7 +29,7 @@ function TermsPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
-      <main className="flex-1 mx-auto w-full max-w-[820px] px-4 pb-20 pt-8 sm:px-5 lg:px-10">
+      <main className="w-full flex-1 mx-auto w-full max-w-[820px] px-4 pb-20 pt-8 sm:px-5 lg:px-10">
         <BackLink />
         <h1 className="mt-6 text-3xl font-extrabold tracking-tight text-foreground [overflow-wrap:anywhere] lg:text-[40px]">
           Пользовательское соглашение

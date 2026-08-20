@@ -75,6 +75,7 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [camError, setCamError] = useState<string | null>(null);
+  const [denied, setDenied] = useState(false);
   const [shake, setShake] = useState(false);
   const [size, setSize] = useState("");
   const [reverse, setReverse] = useState(false);
@@ -104,8 +105,14 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
     } catch (e) {
       // NotFoundError — камеры нет физически, NotAllowedError — доступ запрещён.
       const name = (e as { name?: string })?.name ?? "";
+      const denied = name === "NotAllowedError" || name === "SecurityError";
+      setDenied(denied);
       setCamError(
-        name === "NotAllowedError" ? "Доступ к камере запрещён" : "Камера не обнаружена",
+        denied
+          ? "Доступ к камере запрещён"
+          : name === "NotReadableError"
+            ? "Камера занята другим приложением"
+            : "Камера не обнаружена",
       );
     }
   }, []);
@@ -117,6 +124,7 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
       setCamError(null);
       setSize("");
       setReverse(false);
+      setDenied(false);
       return;
     }
     void start();
@@ -222,9 +230,31 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
             <CameraOff className="size-8" strokeWidth={1.5} />
           </span>
           <p className="max-w-[46ch] text-base leading-[1.6] text-white/85">
-            {camError}. Чтобы распознать деталь, разрешите доступ в настройках браузера или
-            загрузите фото из галереи.
+            {camError}. Загрузите фото из галереи — распознавание работает и по снимку.
           </p>
+          {denied && (
+            <div className="max-w-[46ch] rounded-md bg-white/10 p-4 text-left text-xs leading-[1.6] text-white/75">
+              <p className="mb-2 font-semibold text-white">Как включить камеру</p>
+              <p>
+                <b>iPhone (Safari):</b> «Настройки» → Safari → «Камера» → «Разрешить», затем
+                обновите страницу.
+              </p>
+              <p className="mt-1.5">
+                <b>Android (Chrome):</b> значок замка в адресной строке → «Разрешения» → «Камера»
+                → «Разрешить».
+              </p>
+              <p className="mt-1.5">
+                <b>Компьютер:</b> значок камеры справа в адресной строке → «Всегда разрешать».
+              </p>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => void start()}
+            className="min-h-[44px] cursor-pointer rounded-full border border-white/25 px-6 text-sm font-semibold text-white"
+          >
+            Повторить запрос доступа
+          </button>
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
@@ -299,8 +329,8 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
               <p className="flex items-start gap-2 text-sm leading-[1.5]">
                 <TriangleAlert className="mt-0.5 size-5 shrink-0" strokeWidth={2} />
                 <span>
-                  Объект не распознан. Пожалуйста, положите деталь на пустой стол, уберите пальцы
-                  из кадра и убедитесь, что освещения достаточно.
+                  Деталь не распознана. Протрите объектив, включите вспышку или положите деталь
+                  на контрастный однотонный фон, убрав пальцы из кадра.
                 </span>
               </p>
               <button

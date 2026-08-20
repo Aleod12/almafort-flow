@@ -4,6 +4,7 @@
 
 import { PRODUCTS, type Product } from "@/data/catalog";
 import { fromEnLayout, normalize } from "@/lib/fuzzy-search";
+import { parseQuery } from "@/lib/query-parse";
 
 export type SearchHit = {
   id: string;
@@ -108,6 +109,10 @@ function queryVariants(q: string) {
   const v = new Set<string>();
   const raw = q.trim().toLowerCase();
   if (raw) v.add(raw);
+  // Строка из сметы («болт м8 оцинк штук 100») чистится от количества и сленга.
+  const parsed = parseQuery(raw);
+  if (parsed.clean && parsed.clean.toLowerCase() !== raw) v.add(parsed.clean.toLowerCase());
+  if (parsed.entity) v.add([parsed.entity, parsed.size, parsed.finish].filter(Boolean).join(" ").toLowerCase());
   const layout = fromEnLayout(raw);
   if (layout && layout !== raw) v.add(layout);
   return [...v];

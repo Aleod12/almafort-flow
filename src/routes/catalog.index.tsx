@@ -57,7 +57,7 @@ function CatalogPage() {
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
 
-      <main className="flex-1 mx-auto max-w-[1440px] px-5 pb-24 pt-10 lg:px-10">
+      <main className="w-full flex-1 mx-auto max-w-[1440px] px-5 pb-24 pt-10 lg:px-10">
         <div className="mb-6">
           <BackLink fallback="/" label="Назад" />
         </div>

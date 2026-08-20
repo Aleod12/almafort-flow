@@ -4,6 +4,8 @@ import { CATEGORIES, PRODUCTS, type Product } from "@/data/catalog";
 import { scoreMatch } from "@/lib/fuzzy-search";
 import type { SearchHit } from "@/lib/search-index";
 import { PhotoScanner } from "@/components/catalog/photo-scanner";
+import { QuoteRequestModal } from "@/components/catalog/quote-request-modal";
+import { parseQuery } from "@/lib/query-parse";
 
 type Props = {
   query: string;
@@ -15,6 +17,7 @@ type Props = {
 export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
   const [open, setOpen] = useState(false);
   const [scan, setScan] = useState(false);
+  const [customOpen, setCustomOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -58,7 +61,8 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
   }, [query]);
 
   const results = useMemo(() => {
-    if (query.trim().length < 3) return { products: [], cats: [], docs: [] };
+    if (query.trim().length < 3)
+      return { products: [], cats: [], docs: [], alternatives: [], parsed: null };
     const bySku = new Map(PRODUCTS.map((p) => [p.sku, p]));
     const products = hits.length
       ? hits.map((h) => bySku.get(h.sku)).filter((p): p is Product => Boolean(p))
@@ -73,7 +77,25 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
 
     const cats = CATEGORIES.filter((c) => scoreMatch(c, query) > 0).slice(0, 4);
     const docs = products.slice(0, 3).map((p) => `Чертёж DWG · ${p.sku}`);
-    return { products, cats, docs };
+
+    // Zero-state: вместо пустой выдачи — близкие по сущности альтернативы.
+    const parsed = parseQuery(query);
+    const alternatives =
+      products.length > 0
+        ? []
+        : PRODUCTS.map((p) => ({
+            p,
+            s: Math.max(
+              parsed.entity ? scoreMatch(p.name, parsed.entity) : 0,
+              parsed.entity ? scoreMatch(p.category, parsed.entity) : 0,
+              scoreMatch(p.category, query),
+            ),
+          }))
+            .sort((a, b) => b.s - a.s)
+            .slice(0, 3)
+            .map((r) => r.p);
+
+    return { products, cats, docs, alternatives, parsed };
   }, [query, hits]);
 
   const startScan = () => {
@@ -125,12 +147,62 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
 
       {open && query.trim().length >= 3 && (
         <div className="absolute left-0 right-0 top-[calc(100%+8px)] grid gap-6 rounded-lg border border-border bg-card p-5 shadow-[0_16px_40px_oklch(0_0_0/0.08)] md:grid-cols-3">
+          {results.parsed && (results.parsed.entity || results.parsed.size || results.parsed.finish || results.parsed.quantity) && (
+            <ul className="flex flex-wrap gap-1.5 text-[11px] md:col-span-3">
+          {[
+            results.parsed.entity,
+            results.parsed.standard,
+            results.parsed.size,
+            results.parsed.finish,
+            results.parsed.quantity ? `${results.parsed.quantity} шт` : null,
+          ]
+            .filter(Boolean)
+            .map((chip) => (
+              <li
+                key={chip as string}
+                className="rounded-full bg-primary/10 px-2.5 py-1 font-semibold text-primary"
+              >
+                {chip}
+              </li>
+            ))}
+        </ul>
+      )}
           <div>
             <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <Package className="size-3.5" strokeWidth={1.75} /> Товары
             </p>
             {results.products.length === 0 && (
-              <p className="text-sm text-muted-foreground">Ничего не найдено</p>
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Точного совпадения нет. Похожие по назначению позиции:
+                </p>
+                <ul className="space-y-2">
+                  {results.alternatives.map((p) => (
+                    <li key={p.id}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onPick(p);
+                          setOpen(false);
+                        }}
+                        className="min-h-11 w-full truncate rounded-sm p-1.5 text-left text-sm text-foreground hover:bg-surface"
+                      >
+                        {p.name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomOpen(true);
+                    setOpen(false);
+                  }}
+                  className="min-h-11 w-full cursor-pointer rounded-sm bg-primary px-4 py-3 text-xs font-bold text-primary-foreground"
+                >
+                  Изготовим под заказ по вашим чертежам — оставить заявку
+                </button>
+              </div>
             )}
             <ul className="space-y-2">
               {results.products.map((p) => (
@@ -206,6 +278,13 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
       )}
 
       <PhotoScanner open={scan} onClose={stopScan} />
+      {customOpen && (
+        <QuoteRequestModal
+          sku="ПОД ЗАКАЗ"
+          name={query.trim() || "Изготовление по чертежу"}
+          onClose={() => setCustomOpen(false)}
+        />
+      )}
     </div>
   );
 }
