@@ -12,6 +12,7 @@ import {
   facetDescription,
   facetH1,
   facetProducts,
+  facetRobots,
   facetTitle,
   parseFacetPath,
   productJsonLd,
@@ -166,6 +167,7 @@ function FacetPage() {
       ? sizeFacets(facets.category.slug, facets.shape.slug)
       : [];
   const childColors = facets.size && !facets.color ? COLORS : [];
+  const page = Math.max(1, Number(Route.useSearch().page ?? 1) || 1);
   const base = facets.path;
 
   return (
@@ -192,9 +194,11 @@ function FacetPage() {
         <h1 className="text-3xl font-extrabold leading-[1.1] tracking-tight text-foreground lg:text-[40px]">
           {facetH1(facets)}
         </h1>
-        <p className="mt-3 max-w-[70ch] text-sm leading-[1.6] text-muted-foreground">
-          {facetDescription(facets, items)}
-        </p>
+        {page === 1 && (
+          <p className="mt-3 max-w-[70ch] text-sm leading-[1.6] text-muted-foreground">
+            {facetDescription(facets, items)}
+          </p>
+        )}
 
         {(childShapes.length > 0 || childSizes.length > 0 || childColors.length > 0) && (
           <div className="mt-8 flex flex-wrap gap-2">
@@ -208,6 +212,21 @@ function FacetPage() {
               </a>
             ))}
           </div>
+        )}
+
+        {items.length === 0 && (
+          <section className="mt-10 rounded-sm border border-border bg-card p-6" style={{ minHeight: 200 }}>
+            <h2 className="text-lg font-bold text-foreground">Позиции временно отсутствуют</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Раздел пуст — посмотрите родительскую категорию или закажите изготовление партии.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3 text-sm font-semibold">
+              <a className="text-primary" href={facets.category ? `/catalog/${facets.category.slug}` : "/catalog"}>
+                ← В родительскую категорию
+              </a>
+              <a className="text-primary" href="/catalog">Весь каталог</a>
+            </div>
+          </section>
         )}
 
         <section className="mt-10" style={{ minHeight: 320 }} aria-label="Позиции раздела">
