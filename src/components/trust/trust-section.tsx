@@ -1,3 +1,4 @@
+import { SafeImage } from "@/components/safe-image";
 import { useCallback, useEffect, useState } from "react";
 import { Check, MapPin, Search, Truck, X, Zap } from "lucide-react";
 import cert3dAsset from "@/assets/certificates/cert-3d-print.jpg.asset.json";
