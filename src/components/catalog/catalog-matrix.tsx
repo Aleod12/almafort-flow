@@ -36,6 +36,8 @@ function useRowState(p: Product, onAdd: Props["onAdd"]) {
       setQuote(true);
       return;
     }
+    // Защита от дребезга: серия быстрых тапов не создаёт дубликаты позиций
+    if (state !== "idle") return;
     if (qty <= 0) {
       toast.error("Укажите количество");
       return;
