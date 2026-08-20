@@ -150,9 +150,8 @@ export function TrustSection() {
   const expertDocs: Doc[] = [
     {
       alt: "Сертификат соответствия КРЕПСС РОСС RU.33163.OC01.00631",
-      caption: "Сертификат соответствия КРЕПСС (до 2029 г.)",
+      caption: "Сертификат соответствия КРЕПСС (до 11.03.2029)",
       src: krepssPreviewAsset.url,
-      pdf: krepssPdfAsset.url,
     },
     {
       alt: "Удостоверение АО «ЦАТ»: 3D-печать пластиком",
