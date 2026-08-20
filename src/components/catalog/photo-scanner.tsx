@@ -76,6 +76,7 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
   const [result, setResult] = useState<Result | null>(null);
   const [camError, setCamError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
+  const [facing, setFacing] = useState<"environment" | "user">("environment");
   const [shake, setShake] = useState(false);
   const [size, setSize] = useState("");
   const [reverse, setReverse] = useState(false);
@@ -87,6 +88,9 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
     streamRef.current = null;
   }, []);
 
+  const facingRef = useRef<"environment" | "user">("environment");
+  facingRef.current = facing;
+
   const start = useCallback(async () => {
     setCamError(null);
     try {
@@ -94,7 +98,7 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
         throw Object.assign(new Error("no api"), { name: "NotFoundError" });
       }
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 } },
+        video: { facingMode: { ideal: facingRef.current }, width: { ideal: 1920 } },
         audio: false,
       });
       streamRef.current = stream;
@@ -131,8 +135,42 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
       return;
     }
     void start();
-    return stop;
+
+    // Блокировка экрана обрывает трек: при возврате поднимаем поток заново,
+    // иначе вместо видео остаётся чёрный квадрат.
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      const live = streamRef.current?.getVideoTracks().some((t) => t.readyState === "live");
+      if (!live) {
+        stop();
+        void start();
+      } else {
+        void videoRef.current?.play().catch(() => undefined);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+
+    // Фон под полноэкранным сканером не прокручивается
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+      document.body.style.overflow = prevOverflow;
+      stop();
+    };
   }, [open, start, stop]);
+
+  /** Переключение основная ↔ фронтальная камера. */
+  const flipCamera = () => {
+    const next = facing === "environment" ? "user" : "environment";
+    setFacing(next);
+    facingRef.current = next;
+    stop();
+    void start();
+  };
 
   const analyze = async (image: string) => {
     setBusy(true);
@@ -219,6 +257,18 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
       >
         <X className="size-5" strokeWidth={2} />
       </button>
+
+      {showCamera && (
+        <button
+          type="button"
+          onClick={flipCamera}
+          aria-label="Переключить камеру"
+          className="absolute left-4 z-20 grid size-11 cursor-pointer place-items-center rounded-full bg-black/50 text-white"
+          style={{ top: "calc(1rem + env(safe-area-inset-top))" }}
+        >
+          <SwitchCamera className="size-5" strokeWidth={2} />
+        </button>
+      )}
 
       <input
         ref={fileRef}
