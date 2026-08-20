@@ -384,42 +384,96 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
         onChange={(e) => void pickFile(e.target.files?.[0])}
       />
 
-      {/* ПК без камеры: сразу зона Drag & Drop, никаких чёрных окон с поиском вебки. */}
+      {/* ПК без камеры: зона Drag & Drop, лоадер анализа и явный Error State. */}
       {cameraMode === false && !showSheet && (
         <div className="flex h-full w-full flex-col items-center justify-center gap-5 px-6 text-center">
-          <div className="w-full max-w-[560px] rounded-2xl border-2 border-dashed border-white/35 bg-white/5 px-8 py-14">
-            <Monitor className="mx-auto size-10 text-white/70" strokeWidth={1.5} />
-            <h2 className="mt-4 text-xl font-bold text-white">
-              Перетащите фото детали сюда или выберите файл на компьютере
-            </h2>
-            <p className="mx-auto mt-2 max-w-[46ch] text-sm leading-[1.6] text-white/70">
-              Подойдёт снимок с телефона: сожмём его прямо в браузере до 800×800 и отправим на
-              распознавание. JPG, PNG, WEBP, HEIC.
-            </p>
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              disabled={busy}
-              className="mt-6 inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.02] disabled:opacity-60"
-            >
-              {busy ? (
-                <Loader2 className="size-4 animate-spin" strokeWidth={2} />
-              ) : (
-                <ImageUp className="size-4" strokeWidth={1.75} />
+          {busy ? (
+            <div className="w-full max-w-[560px] rounded-2xl border border-white/15 bg-white/5 p-8">
+              {frozen && (
+                <img
+                  src={frozen}
+                  alt="Загруженный кадр детали"
+                  className="mx-auto mb-6 size-40 rounded-xl object-cover"
+                />
               )}
-              {busy ? "Нейросеть анализирует геометрию…" : "Выбрать файл на компьютере"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setWantCamera(true)}
-              className="mt-4 block w-full cursor-pointer text-xs text-white/55 underline underline-offset-4 hover:text-white"
-            >
-              У меня есть веб-камера — включить съёмку
-            </button>
-          </div>
-          {shake && <p className="max-w-[46ch] text-sm text-[#FCA5A5]">{shake}</p>}
+              <p className="flex items-center justify-center gap-3 text-base font-semibold text-white">
+                <Loader2 className="size-5 animate-spin" strokeWidth={2} />
+                Нейросеть анализирует геометрию…
+              </p>
+              <p className="mt-2 text-xs text-white/60">
+                Тяжёлые снимки обрабатываются дольше — не закрывайте окно.
+              </p>
+              <div className="mt-6 space-y-2" aria-hidden>
+                <span className="block h-3 w-full animate-pulse rounded bg-white/10" />
+                <span className="block h-3 w-4/5 animate-pulse rounded bg-white/10" />
+                <span className="block h-3 w-2/3 animate-pulse rounded bg-white/10" />
+              </div>
+            </div>
+          ) : desktopError ? (
+            <div className="w-full max-w-[560px] rounded-2xl border border-[#F59E0B]/60 bg-[#F59E0B]/12 p-8 text-left">
+              <p className="flex items-start gap-3 text-base font-semibold leading-[1.5] text-white">
+                <TriangleAlert className="mt-0.5 size-6 shrink-0 text-[#FBBF24]" strokeWidth={2} />
+                {desktopError}
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResult(null);
+                    setShake(null);
+                    setFatal(null);
+                    fileRef.current?.click();
+                  }}
+                  className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground"
+                >
+                  <ImageUp className="size-4" strokeWidth={1.75} />
+                  Загрузить другое фото
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResult(null);
+                    setShake(null);
+                    setFatal(null);
+                    setFrozen(null);
+                  }}
+                  className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full border border-white/30 px-6 text-sm font-semibold text-white"
+                >
+                  <RefreshCw className="size-4" strokeWidth={1.75} />
+                  Начать заново
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="w-full max-w-[560px] rounded-2xl border-2 border-dashed border-white/35 bg-white/5 px-8 py-14">
+              <Monitor className="mx-auto size-10 text-white/70" strokeWidth={1.5} />
+              <h2 className="mt-4 text-xl font-bold text-white">
+                Перетащите фото детали сюда или выберите файл на компьютере
+              </h2>
+              <p className="mx-auto mt-2 max-w-[46ch] text-sm leading-[1.6] text-white/70">
+                Подойдёт снимок с телефона: сожмём его прямо в браузере до 800×800 и отправим на
+                распознавание. JPG, PNG, WEBP, HEIC.
+              </p>
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="mt-6 inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.02]"
+              >
+                <ImageUp className="size-4" strokeWidth={1.75} />
+                Выбрать файл на компьютере
+              </button>
+              <button
+                type="button"
+                onClick={() => setWantCamera(true)}
+                className="mt-4 block w-full cursor-pointer text-xs text-white/55 underline underline-offset-4 hover:text-white"
+              >
+                У меня есть веб-камера — включить съёмку
+              </button>
+            </div>
+          )}
         </div>
       )}
+
 
       {cameraMode && camError && !showSheet && (
         <div className="flex h-full w-full flex-col items-center justify-center gap-5 px-6 text-center">
