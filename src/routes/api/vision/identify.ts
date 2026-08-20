@@ -56,9 +56,20 @@ export const Route = createFileRoute("/api/vision/identify")({
           const score = verdict.confidence;
           const category = verdictCategory(verdict);
 
+          // Плохие условия съёмки важнее вердикта: гадать по пикселям запрещено.
+          if (verdict.low_light && verdict.status !== "FOREIGN") {
+            void logVisionFail(image, verdict);
+            return Response.json({ scenario: "lowlight", verdict });
+          }
+
           if (verdict.status === "INVALID" || score < 0.1) {
             void logVisionFail(image, verdict);
             return Response.json({ scenario: "invalid", verdict });
+          }
+
+          if (verdict.status === "VALID" && score < 0.4) {
+            void logVisionFail(image, verdict);
+            return Response.json({ scenario: "lowlight", verdict });
           }
 
           if (verdict.status === "FOREIGN" || score < 0.5 || !category) {
@@ -67,6 +78,7 @@ export const Route = createFileRoute("/api/vision/identify")({
           }
 
           if (score >= 0.85) {
+            // Масштаб по фото не определяется: отдаём класс и весь размерный ряд.
             return Response.json({
               scenario: "exact",
               verdict,
@@ -75,10 +87,15 @@ export const Route = createFileRoute("/api/vision/identify")({
             });
           }
 
+          const matches = matchProducts(verdict, 3).map(brief);
+          const reinforced = matches.some((m) => /металл|усиленн/i.test(m.name));
           return Response.json({
             scenario: "ambiguous",
             verdict,
-            matches: matchProducts(verdict, 3).map(brief),
+            question: reinforced
+              ? "Вам требуется цельнопластиковый вариант или усиленный металлическим каркасом?"
+              : `Найдено ${matches.length} похожих варианта. Уточните, какой именно нужен:`,
+            matches,
           });
         } catch (e) {
           const message = e instanceof Error ? e.message : "Ошибка распознавания";
