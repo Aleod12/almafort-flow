@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { FileText } from "lucide-react";
 import {
   adminAttachDocument,
   adminGetOrder,
@@ -104,36 +105,57 @@ function OrderCard() {
         <div className="space-y-6">
           <div className="rounded-xl border bg-background p-6">
             <h2 className="mb-4 font-semibold">Состав спецификации</h2>
-            <div className="space-y-2">
-              {lines.map((l, i) => (
-                <div key={l.sku} className="flex items-center gap-3 border-b pb-2 text-sm">
-                  <div className="flex-1">
-                    <div className="font-medium">{l.name}</div>
-                    <div className="text-xs text-muted-foreground">{l.sku}</div>
-                  </div>
-                  <input
-                    type="number"
-                    min={1}
-                    value={l.quantity}
-                    onChange={(e) =>
-                      setLines((prev) =>
-                        prev.map((x, xi) =>
-                          xi === i ? { ...x, quantity: Math.max(1, Number(e.target.value) || 1) } : x,
-                        ),
-                      )
-                    }
-                    className="w-24 rounded-md border bg-background px-2 py-1 text-right tabular-nums"
-                  />
-                  <span className="w-32 text-right tabular-nums">{formatPrice(l.sum)}</span>
-                  <button
-                    onClick={() => setLines((prev) => prev.filter((_, xi) => xi !== i))}
-                    className="rounded-md border px-2 py-1 text-xs transition-colors hover:bg-red-50 hover:text-red-700"
+            {/* Жёсткий грид: шапка и строки живут на одном трек-листе и не разъезжаются. */}
+            <div className="min-w-0">
+              <div className="grid grid-cols-[minmax(0,1fr)_84px_110px_84px] gap-3 border-b pb-2 text-[11px] uppercase tracking-wide text-muted-foreground">
+                <span>Позиция</span>
+                <span className="text-right">Кол-во</span>
+                <span className="text-right">Сумма</span>
+                <span className="text-right">Действие</span>
+              </div>
+              <div className="space-y-2 pt-2">
+                {lines.map((l, i) => (
+                  <div
+                    key={l.sku}
+                    className="grid grid-cols-[minmax(0,1fr)_84px_110px_84px] items-center gap-3 border-b pb-2 text-sm"
                   >
-                    Удалить
-                  </button>
-                </div>
-              ))}
+                    <div className="min-w-0">
+                      <div className="truncate font-medium">{l.name}</div>
+                      <div className="truncate text-xs text-muted-foreground">{l.sku}</div>
+                    </div>
+                    <input
+                      type="number"
+                      min={1}
+                      aria-label={`Количество ${l.sku}`}
+                      value={l.quantity}
+                      onChange={(e) =>
+                        setLines((prev) =>
+                          prev.map((x, xi) =>
+                            xi === i
+                              ? { ...x, quantity: Math.max(1, Number(e.target.value) || 1) }
+                              : x,
+                          ),
+                        )
+                      }
+                      className="w-full rounded-md border bg-background px-2 py-1 text-right tabular-nums"
+                    />
+                    <span className="text-right tabular-nums">{formatPrice(l.sum)}</span>
+                    <button
+                      onClick={() => setLines((prev) => prev.filter((_, xi) => xi !== i))}
+                      className="cursor-pointer justify-self-end rounded-md border px-2 py-1 text-xs transition-all duration-200 hover:border-red-300 hover:bg-red-50 hover:text-red-700 active:scale-[0.98]"
+                    >
+                      Удалить
+                    </button>
+                  </div>
+                ))}
+                {!lines.length && (
+                  <p className="py-8 text-center text-sm text-muted-foreground">
+                    В заказе пока нет позиций. Добавьте товар из списка ниже.
+                  </p>
+                )}
+              </div>
             </div>
+
 
             <div className="mt-4 flex flex-wrap gap-2">
               <select
@@ -200,7 +222,18 @@ function OrderCard() {
                   </a>
                 </li>
               ))}
-              {!documents.length && <li className="text-muted-foreground">Пока пусто</li>}
+              {!documents.length && (
+                <li className="rounded-lg border border-dashed px-4 py-6 text-center">
+                  <FileText
+                    className="mx-auto mb-2 size-7 text-muted-foreground"
+                    strokeWidth={1.5}
+                  />
+                  <p className="font-medium">Здесь пока нет прикреплённых документов</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Нажмите «Прикрепить», чтобы добавить первый файл.
+                  </p>
+                </li>
+              )}
             </ul>
             <div className="grid gap-2 sm:grid-cols-[140px_1fr_1fr_auto]">
               <select

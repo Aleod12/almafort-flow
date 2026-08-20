@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import { PackageSearch } from "lucide-react";
 import {
   adminImportProductsCsv,
   adminListProducts,
@@ -30,8 +32,9 @@ function Pim() {
   const [errors, setErrors] = useState<string[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [linkOpen, setLinkOpen] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
-  const { data } = useQuery({ queryKey: ["admin-products"], queryFn: () => list() });
+  const { data, isLoading } = useQuery({ queryKey: ["admin-products"], queryFn: () => list() });
 
   const rows = useMemo(() => {
     const all = data?.rows ?? [];
@@ -85,10 +88,19 @@ function Pim() {
     mutationFn: (csv: string) => importCsv({ data: { csv } }),
     onSuccess: (r) => {
       setErrors(r.errors);
-      setMsg(r.ok ? `Импорт выполнен: ${r.updated} позиций` : "Импорт отклонён: проверьте ошибки");
-      if (r.ok) qc.invalidateQueries({ queryKey: ["admin-products"] });
+      if (r.ok) {
+        toast.success(`Успешно импортировано ${r.updated} товаров`);
+        setMsg(`Импорт выполнен: ${r.updated} позиций`);
+        qc.invalidateQueries({ queryKey: ["admin-products"] });
+      } else {
+        toast.error("Ошибка импорта: неверный формат колонок");
+        setMsg("Импорт отклонён: проверьте ошибки ниже");
+      }
     },
-    onError: (e: Error) => setMsg(e.message),
+    onError: (e: Error) => {
+      toast.error(`Ошибка импорта: ${e.message}`);
+      setMsg(e.message);
+    },
   });
 
   const dirty = Object.keys(draft).length;
@@ -103,19 +115,33 @@ function Pim() {
           placeholder="Поиск по SKU или названию"
           className="rounded-md border bg-background px-3 py-2 text-sm"
         />
-        <label className="cursor-pointer rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted">
-          Импорт CSV
-          <input
-            type="file"
-            accept=".csv,text/csv"
-            className="hidden"
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (file) csvMutation.mutate(await file.text());
-              e.target.value = "";
-            }}
-          />
-        </label>
+        <button
+          type="button"
+          disabled={csvMutation.isPending}
+          onClick={() => fileRef.current?.click()}
+          className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-muted hover:shadow-sm active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {csvMutation.isPending && (
+            <span className="size-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+          )}
+          {csvMutation.isPending ? "Импортируем…" : "Импорт CSV"}
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".csv,text/csv"
+          className="hidden"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (!file) return;
+            if (!/\.csv$/i.test(file.name)) {
+              toast.error("Ошибка импорта: нужен файл формата *.csv");
+              return;
+            }
+            csvMutation.mutate(await file.text());
+          }}
+        />
         <button
           disabled={selected.length === 0}
           onClick={() => setLinkOpen(true)}
@@ -159,7 +185,34 @@ function Pim() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => {
+            {(isLoading || csvMutation.isPending) &&
+              Array.from({ length: 6 }).map((_, i) => (
+                <tr key={`sk-${i}`} className="border-t">
+                  <td className="px-3 py-3" colSpan={8}>
+                    <span className="block h-5 w-full animate-pulse rounded bg-muted" />
+                  </td>
+                </tr>
+              ))}
+            {!isLoading && !csvMutation.isPending && rows.length === 0 && (
+              <tr className="border-t">
+                <td colSpan={8} className="px-3 py-14 text-center">
+                  <PackageSearch
+                    className="mx-auto mb-3 size-8 text-muted-foreground"
+                    strokeWidth={1.5}
+                  />
+                  <p className="font-medium">
+                    {q ? "По запросу ничего не найдено" : "Товарная матрица пуста"}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {q
+                      ? "Измените запрос или очистите поиск."
+                      : "Нажмите «Импорт CSV», чтобы загрузить первый прайс-лист."}
+                  </p>
+                </td>
+              </tr>
+            )}
+            {!csvMutation.isPending &&
+              rows.map((r) => {
               const d = draft[r.sku];
               const cell = (field: "base_price" | "opt1_price" | "opt2_price" | "stock") => (
                 <td className="px-3 py-2 text-right">

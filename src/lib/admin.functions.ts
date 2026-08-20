@@ -18,6 +18,7 @@ import {
   parseProductCsv,
   priceItems,
   VAULT_KEYS,
+  VAULT_CUSTOM_GROUP,
   type AdminOrderItem,
 } from "@/lib/admin-data";
 
@@ -458,18 +459,39 @@ export const adminGetSettings = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase.from("app_settings").select("*");
     if (error) throw new Error(error.message);
     const map = Object.fromEntries((data ?? []).map((r) => [r.key, r.value]));
-    const vault = VAULT_KEYS.map((k) => {
-      const stored = map[`vault:${k.name}`] as { cipher?: string } | undefined;
-      let masked: string | null = null;
-      if (stored?.cipher) {
-        try {
-          masked = maskSecret(decryptSecret(stored.cipher));
-        } catch {
-          masked = "ошибка расшифровки";
-        }
+    const maskOf = (cipher?: string) => {
+      if (!cipher) return null;
+      try {
+        return maskSecret(decryptSecret(cipher));
+      } catch {
+        return "ошибка расшифровки";
       }
-      return { ...k, masked };
-    });
+    };
+    const vault: Array<{
+      name: string;
+      label: string;
+      group: string;
+      masked: string | null;
+      custom?: boolean;
+    }> = VAULT_KEYS.map((k) => ({
+      ...k,
+      masked: maskOf((map[`vault:${k.name}`] as { cipher?: string } | undefined)?.cipher),
+    }));
+
+    // Пользовательские интеграции: реестр живёт в БД, а не в коде страницы.
+    const custom =
+      ((map["vault_custom"] as { list?: Array<{ name: string; label: string }> } | undefined)
+        ?.list ?? []);
+    for (const c of custom) {
+      vault.push({
+        name: c.name,
+        label: c.label,
+        group: VAULT_CUSTOM_GROUP,
+        masked: maskOf((map[`vault:${c.name}`] as { cipher?: string } | undefined)?.cipher),
+        custom: true,
+      });
+    }
+
     return {
       maintenance: (map["maintenance_mode"] as { enabled: boolean; message: string }) ?? {
         enabled: false,
@@ -525,11 +547,44 @@ export const adminSaveSetting = createServerFn({ method: "POST" })
 export const adminSaveApiKey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z.object({ name: z.string().max(60), value: z.string().min(4).max(4000) }).parse(input),
+    z
+      .object({
+        name: z.string().trim().min(3).max(60),
+        value: z.string().min(4).max(4000),
+        /** Заполняется только при добавлении новой (пользовательской) интеграции. */
+        label: z.string().trim().max(80).optional(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     await requireRole(context.supabase, context.userId, ["owner"]);
-    if (!VAULT_KEYS.some((k) => k.name === data.name)) throw new Error("Неизвестный ключ");
+    const known = VAULT_KEYS.some((k) => k.name === data.name);
+
+    if (!known) {
+      // Динамическая интеграция: имя ключа нормализуем до безопасного ENV-формата.
+      if (!/^[A-Z0-9_]{3,60}$/.test(data.name)) {
+        throw new Error("Имя ключа: только латиница в верхнем регистре, цифры и «_»");
+      }
+      const { data: reg } = await context.supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "vault_custom")
+        .maybeSingle();
+      const list =
+        ((reg?.value as { list?: Array<{ name: string; label: string }> } | null)?.list ?? []);
+      if (!list.some((c) => c.name === data.name)) {
+        if (list.length >= 40) throw new Error("Достигнут лимит пользовательских интеграций (40)");
+        list.push({ name: data.name, label: data.label?.trim() || data.name });
+        const { error: regErr } = await context.supabase
+          .from("app_settings")
+          .upsert(
+            { key: "vault_custom", value: { list } as never, is_public: false } as never,
+            { onConflict: "key" },
+          );
+        if (regErr) throw new Error(regErr.message);
+      }
+    }
+
     const { error } = await context.supabase
       .from("app_settings")
       .upsert(
@@ -547,6 +602,44 @@ export const adminSaveApiKey = createServerFn({ method: "POST" })
       data.name,
       null,
       { masked: maskSecret(data.value) },
+    );
+    return { ok: true };
+  });
+
+/** Удаление пользовательской интеграции: и значение, и запись в реестре. */
+export const adminDeleteApiKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ name: z.string().trim().min(3).max(60) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await requireRole(context.supabase, context.userId, ["owner"]);
+    if (VAULT_KEYS.some((k) => k.name === data.name)) {
+      throw new Error("Системный ключ удалить нельзя — очистите значение вручную");
+    }
+    const { data: reg } = await context.supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "vault_custom")
+      .maybeSingle();
+    const list = ((reg?.value as { list?: Array<{ name: string; label: string }> } | null)?.list ??
+      []).filter((c) => c.name !== data.name);
+    await context.supabase
+      .from("app_settings")
+      .upsert(
+        { key: "vault_custom", value: { list } as never, is_public: false } as never,
+        { onConflict: "key" },
+      );
+    await context.supabase.from("app_settings").delete().eq("key", `vault:${data.name}`);
+    const { invalidateSecret } = await import("@/lib/vault.server");
+    invalidateSecret(data.name);
+    await logAdmin(
+      context.userId,
+      (context.claims as { email?: string })?.email ?? null,
+      "DELETE_API_KEY",
+      data.name,
+      null,
+      null,
     );
     return { ok: true };
   });
