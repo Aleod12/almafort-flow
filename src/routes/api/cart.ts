@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { rateLimit } from "@/lib/rate-limit.server";
 import { PRODUCTS, tierOf } from "@/data/catalog";
 import { lineTotal, unitPriceOf } from "@/lib/pricing";
 
@@ -7,6 +8,8 @@ export const Route = createFileRoute("/api/cart")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const limited = rateLimit(request, "cart", { limit: 60, windowMs: 60_000 });
+        if (limited) return limited;
         let body: unknown;
         try {
           body = await request.json();

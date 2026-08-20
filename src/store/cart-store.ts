@@ -183,7 +183,7 @@ export const useCart = create<State>()(
 
   setQuantity: (sku, quantity) =>
     set((s) => ({
-      lines: s.lines.map((l) => (l.sku === sku ? { ...l, quantity: Math.max(0, quantity) } : l)),
+      lines: s.lines.map((l) => (l.sku === sku ? { ...l, quantity: Math.max(0, Math.floor(Number(quantity) || 0)) } : l)),
     })),
 
   removeLine: (sku) => set((s) => ({ lines: s.lines.filter((l) => l.sku !== sku) })),

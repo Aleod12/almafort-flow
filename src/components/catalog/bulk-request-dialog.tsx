@@ -30,6 +30,7 @@ export function BulkRequestDialog({
   const [comment, setComment] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [error, setError] = useState("");
+  const [exceeds, setExceeds] = useState(false);
 
   // Авторизованному снабженцу не нужно вводить контакты заново.
   useEffect(() => {
@@ -88,8 +89,9 @@ export function BulkRequestDialog({
           comment: comment.trim(),
         }),
       });
-      const json = (await res.json()) as { error?: string };
+      const json = (await res.json()) as { error?: string; exceedsStock?: boolean };
       if (!res.ok) throw new Error(json.error ?? "Ошибка отправки");
+      setExceeds(Boolean(json.exceedsStock));
       setState("done");
     } catch (e) {
       setState("error");
@@ -111,6 +113,12 @@ export function BulkRequestDialog({
               Отдел оптовых продаж пришлёт расчёт по {product.name} ({product.sku}) в течение
               рабочего дня.
             </p>
+            {exceeds && (
+              <p className="rounded-sm bg-primary/10 p-3 text-xs leading-[1.5] font-semibold text-primary">
+                Объём превышает текущий складской остаток — партия будет размещена в производство,
+                менеджер согласует срок изготовления.
+              </p>
+            )}
             <button type="button" onClick={onClose} className="h-12 w-full rounded-sm bg-foreground text-sm font-semibold text-background">
               Закрыть
             </button>
@@ -130,7 +138,8 @@ export function BulkRequestDialog({
               </span>
               <input
                 value={qty}
-                onChange={(e) => setQty(e.target.value)}
+                onChange={(e) => setQty(e.target.value.replace(/[^0-9]/g, "").slice(0, 9))}
+                onBlur={() => setQty(String(Math.max(minQty, Number(qty.replace(/\D/g, "")) || minQty)))}
                 inputMode="numeric"
                 pattern="[0-9]*"
                 className={field}

@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { Download, FileText, Layers, Ruler, Truck } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { Product } from "@/data/catalog";
-import { trackCadDownload } from "@/lib/metrika";
+import { trackCadDownload, trackViewItem } from "@/lib/metrika";
 import { CityInput, type CityValue } from "@/components/cart/city-input";
 import { BulkRequestDialog } from "@/components/catalog/bulk-request-dialog";
 import { useAssetGroups } from "@/lib/asset-groups";
@@ -26,6 +26,12 @@ export function ProductSheet({
   const assets = useAssetGroups();
   const assetGroup = product ? assets.get(product.sku) : undefined;
   const [bulkOpen, setBulkOpen] = useState(false);
+
+  // Просмотр карточки — событие view_item для e-commerce отчётов Метрики.
+  useEffect(() => {
+    if (!product) return;
+    trackViewItem({ sku: product.sku, name: product.name, price: product.price });
+  }, [product]);
 
   // Debounce: ручной ввод города не должен спамить API ТК.
   const debouncedCity = useDebounce(city.city, 600);

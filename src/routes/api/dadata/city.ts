@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { rateLimit } from "@/lib/rate-limit.server";
 import { searchCities } from "@/data/cities";
 
 const json = (data: unknown, status = 200) =>
@@ -12,6 +13,8 @@ export const Route = createFileRoute("/api/dadata/city")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const limited = rateLimit(request, "city", { limit: 90, windowMs: 60_000 });
+        if (limited) return limited;
         let query = "";
         try {
           const body = (await request.json()) as { query?: unknown };
