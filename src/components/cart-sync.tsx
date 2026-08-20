@@ -47,6 +47,17 @@ export function CartSync() {
     return () => sub.subscription.unsubscribe();
   }, [merge, applyMerged]);
 
+  // Кросс-таб синхронизация: снабженец держит 15 вкладок с карточками.
+  // Добавил товар во вкладке 2 — счётчик и сумма в шапке вкладки 1 обновятся сразу.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key && e.key !== "almafort:cart:v5") return;
+      void useCart.persist.rehydrate();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
   // Зеркалим изменения корзины в профиль — не чаще раза в 2 секунды.
   useEffect(() => {
     if (!signedIn.current) return;
