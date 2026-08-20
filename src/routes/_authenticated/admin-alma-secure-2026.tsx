@@ -57,8 +57,11 @@ function AdminLayout() {
                 <Link
                   key={t.key}
                   to={t.to}
-                  className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
-                    active ? "bg-foreground text-background" : "hover:bg-muted"
+                  aria-current={active ? "page" : undefined}
+                  className={`cursor-pointer rounded-md px-3 py-1.5 text-sm transition-all duration-200 ${
+                    active
+                      ? "bg-foreground font-semibold text-background shadow-sm"
+                      : "font-medium text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm"
                   }`}
                 >
                   {t.label}

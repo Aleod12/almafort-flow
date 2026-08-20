@@ -30,7 +30,11 @@ export const VAULT_GROUPS = [
   "Синхронизация с 1С (ERP)",
   "Логистика",
   "Инфраструктура и документы",
+  "Пользовательские интеграции",
 ] as const;
+
+/** Группа для ключей, добавленных владельцем бизнеса без участия разработчика. */
+export const VAULT_CUSTOM_GROUP = "Пользовательские интеграции";
 
 export type VaultGroup = (typeof VAULT_GROUPS)[number];
 

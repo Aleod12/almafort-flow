@@ -6,6 +6,7 @@ import {
   adminGetSettings,
   adminListStaff,
   adminSaveApiKey,
+  adminDeleteApiKey,
   adminSaveSetting,
   adminSetStaffRole,
   adminErpJobs,
@@ -13,6 +14,7 @@ import {
 } from "@/lib/admin.functions";
 import { ROLE_LABEL, type AdminRole } from "@/lib/admin";
 import { VAULT_GROUPS } from "@/lib/admin-data";
+import { Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin-alma-secure-2026/settings")({
   component: Settings,
@@ -33,6 +35,7 @@ function Settings() {
   const get = useServerFn(adminGetSettings);
   const saveSetting = useServerFn(adminSaveSetting);
   const saveKey = useServerFn(adminSaveApiKey);
+  const deleteKey = useServerFn(adminDeleteApiKey);
   const staffList = useServerFn(adminListStaff);
   const setRole = useServerFn(adminSetStaffRole);
   const erpJobs = useServerFn(adminErpJobs);
@@ -65,6 +68,9 @@ function Settings() {
   const [maintenance, setMaintenance] = useState({ enabled: false, message: "" });
   const [logistics, setLogistics] = useState({ fixed_rub: 0, percent: 0 });
   const [keyDrafts, setKeyDrafts] = useState<Record<string, string>>({});
+  const [shown, setShown] = useState<Record<string, boolean>>({});
+  const [addOpen, setAddOpen] = useState(false);
+  const [newKey, setNewKey] = useState({ label: "", name: "", value: "" });
   const [email, setEmail] = useState("");
   const [role, setRoleValue] = useState<AdminRole>("manager");
   const [msg, setMsg] = useState<string | null>(null);
@@ -87,10 +93,21 @@ function Settings() {
   });
 
   const keyMutation = useMutation({
-    mutationFn: (v: { name: string; value: string }) => saveKey({ data: v }),
+    mutationFn: (v: { name: string; value: string; label?: string }) => saveKey({ data: v }),
     onSuccess: () => {
       setMsg("Ключ зашифрован (AES-256-GCM) и сохранён");
       setKeyDrafts({});
+      setNewKey({ label: "", name: "", value: "" });
+      setAddOpen(false);
+      qc.invalidateQueries({ queryKey: ["admin-settings"] });
+    },
+    onError: (e: Error) => setMsg(e.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (v: { name: string }) => deleteKey({ data: v }),
+    onSuccess: () => {
+      setMsg("Интеграция удалена");
       qc.invalidateQueries({ queryKey: ["admin-settings"] });
     },
     onError: (e: Error) => setMsg(e.message),
@@ -107,9 +124,11 @@ function Settings() {
   });
 
   const card = "rounded-xl border bg-background p-6";
-  const input = "rounded-md border bg-background px-3 py-2 text-sm focus:border-[#DC2626] focus:outline-none";
+  const input = "rounded-md border bg-background px-3 py-2 text-sm focus:border-ring focus:outline-none";
   const btn =
-    "rounded-md bg-[#DC2626] px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-[#B91C1C] hover:shadow-md active:scale-[0.98] disabled:opacity-40";
+    "cursor-pointer rounded-md bg-[#DC2626] px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:bg-[#B91C1C] hover:shadow-md active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40";
+  const ghostBtn =
+    "cursor-pointer rounded-md border px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-muted hover:shadow-sm active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40";
 
   return (
     <section className="space-y-6">
@@ -187,26 +206,56 @@ function Settings() {
                     {rows.map((k) => (
                       <div
                         key={k.name}
-                        className="grid grid-cols-[150px_1fr_auto] items-center gap-2 text-sm"
+                        className="grid grid-cols-[150px_minmax(0,1fr)_auto] items-center gap-2 text-sm"
                       >
-                        <span title={k.name}>{k.label}</span>
-                        <input
-                          type="password"
-                          autoComplete="new-password"
-                          value={keyDrafts[k.name] ?? ""}
-                          onChange={(e) =>
-                            setKeyDrafts((d) => ({ ...d, [k.name]: e.target.value }))
-                          }
-                          placeholder={k.masked ?? "не задан"}
-                          className={`${input} w-full`}
-                        />
-                        <button
-                          disabled={!keyDrafts[k.name]}
-                          onClick={() => keyMutation.mutate({ name: k.name, value: keyDrafts[k.name]! })}
-                          className="rounded-md border px-3 py-2 text-xs transition-colors hover:bg-muted disabled:opacity-40"
-                        >
-                          Сохранить
-                        </button>
+                        <span className="truncate" title={k.name}>
+                          {k.label}
+                        </span>
+                        <span className="relative block w-full">
+                          <input
+                            type={shown[k.name] ? "text" : "password"}
+                            autoComplete="new-password"
+                            value={keyDrafts[k.name] ?? ""}
+                            onChange={(e) =>
+                              setKeyDrafts((d) => ({ ...d, [k.name]: e.target.value }))
+                            }
+                            placeholder={k.masked ?? "не задан"}
+                            className={`${input} w-full pr-10`}
+                          />
+                          <button
+                            type="button"
+                            aria-label={shown[k.name] ? "Скрыть ключ" : "Показать ключ"}
+                            title={shown[k.name] ? "Скрыть ключ" : "Показать ключ"}
+                            onClick={() => setShown((s) => ({ ...s, [k.name]: !s[k.name] }))}
+                            className="absolute inset-y-0 right-0 grid w-10 cursor-pointer place-items-center rounded-r-md text-muted-foreground transition-colors hover:text-foreground"
+                          >
+                            {shown[k.name] ? (
+                              <EyeOff className="size-4" strokeWidth={1.75} />
+                            ) : (
+                              <Eye className="size-4" strokeWidth={1.75} />
+                            )}
+                          </button>
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <button
+                            disabled={!keyDrafts[k.name] || keyMutation.isPending}
+                            onClick={() =>
+                              keyMutation.mutate({ name: k.name, value: keyDrafts[k.name]! })
+                            }
+                            className={ghostBtn}
+                          >
+                            Сохранить
+                          </button>
+                          {"custom" in k && k.custom && (
+                            <button
+                              aria-label={`Удалить интеграцию ${k.label}`}
+                              onClick={() => deleteMutation.mutate({ name: k.name })}
+                              className="grid size-9 cursor-pointer place-items-center rounded-md border text-muted-foreground transition-all duration-200 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
+                            >
+                              <Trash2 className="size-4" strokeWidth={1.75} />
+                            </button>
+                          )}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -214,7 +263,68 @@ function Settings() {
               );
             })}
           </div>
+
+          {/* Масштабирование без разработчика: новая интеграция добавляется прямо здесь. */}
+          <div className="mt-5 border-t pt-4">
+            {addOpen ? (
+              <div className="space-y-2">
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <input
+                    value={newKey.label}
+                    onChange={(e) => setNewKey((n) => ({ ...n, label: e.target.value }))}
+                    placeholder="Название сервиса (например, SMS-шлюз)"
+                    className={`${input} w-full`}
+                  />
+                  <input
+                    value={newKey.name}
+                    onChange={(e) =>
+                      setNewKey((n) => ({
+                        ...n,
+                        name: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "_"),
+                      }))
+                    }
+                    placeholder="Имя переменной: SMS_API_KEY"
+                    className={`${input} w-full font-mono`}
+                  />
+                </div>
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={newKey.value}
+                  onChange={(e) => setNewKey((n) => ({ ...n, value: e.target.value }))}
+                  placeholder="API-ключ"
+                  className={`${input} w-full`}
+                />
+                <div className="flex gap-2">
+                  <button
+                    className={btn}
+                    disabled={
+                      newKey.name.length < 3 || newKey.value.length < 4 || keyMutation.isPending
+                    }
+                    onClick={() =>
+                      keyMutation.mutate({
+                        name: newKey.name,
+                        value: newKey.value,
+                        label: newKey.label,
+                      })
+                    }
+                  >
+                    {keyMutation.isPending ? "Шифруем…" : "Сохранить интеграцию"}
+                  </button>
+                  <button className={ghostBtn} onClick={() => setAddOpen(false)}>
+                    Отмена
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button className={ghostBtn} onClick={() => setAddOpen(true)}>
+                <Plus className="mr-1 inline size-4 align-[-3px]" strokeWidth={2} />
+                Добавить интеграцию
+              </button>
+            )}
+          </div>
         </div>
+
 
       </div>
 
