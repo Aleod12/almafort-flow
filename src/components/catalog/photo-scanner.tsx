@@ -79,6 +79,7 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
   const [denied, setDenied] = useState(false);
   const [facing, setFacing] = useState<"environment" | "user">("environment");
   const swipe = useSwipeClose(() => setResult(null));
+  const [dragOver, setDragOver] = useState(false);
   const [shake, setShake] = useState(false);
   const [size, setSize] = useState("");
   const [reverse, setReverse] = useState(false);
@@ -256,7 +257,31 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
   const showCamera = !camError && (!result || result.scenario === "invalid");
 
   return (
-    <div className="fixed inset-0 z-50 bg-[oklch(0.16_0.01_264)]">
+    <div
+      className="fixed inset-0 z-50 bg-[oklch(0.16_0.01_264)]"
+      // В офисе веб-камеры обычно нет: фото детали перетаскивают мышью с рабочего стола.
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
+      onDragLeave={(e) => {
+        if (e.currentTarget === e.target) setDragOver(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+        void pickFile(e.dataTransfer.files?.[0]);
+      }}
+    >
+      {dragOver && (
+        <div className="pointer-events-none absolute inset-6 z-40 grid place-items-center rounded-2xl border-2 border-dashed border-white/70 bg-black/50 text-center text-white">
+          <div>
+            <ImageUp className="mx-auto size-8" strokeWidth={1.5} />
+            <p className="mt-2 text-sm font-semibold">Отпустите фото — распознаем деталь</p>
+            <p className="text-xs text-white/70">JPG, PNG, WEBP · сжимаем на вашем компьютере</p>
+          </div>
+        </div>
+      )}
       <button
         type="button"
         onClick={onClose}
@@ -434,6 +459,9 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
                 <ImageUp className="size-4" strokeWidth={1.75} />
                 Фото из галереи
               </button>
+              <p className="hidden w-full text-center text-xs text-white/60 lg:block">
+                Или перетащите файл фотографии детали прямо в это окно
+              </p>
             </div>
           </div>
         </>
