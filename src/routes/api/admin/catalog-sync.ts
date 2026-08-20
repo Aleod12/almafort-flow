@@ -1,6 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { FeedRow } from "@/lib/catalog-sync.server";
 
+/** Просим Яндекс.Вебмастер и Google переобойти карту сайта после обновления каталога. */
+async function pingSitemap() {
+  try {
+    const { pingSearchEngines } = await import("@/lib/seo-ping.server");
+    await pingSearchEngines();
+  } catch {
+    // Пинг необязателен — сбой не должен ломать импорт.
+  }
+}
+
 /**
  * Защищённый эндпоинт импорта фида из учётной системы (1С / МойСклад).
  * Авторизация: заголовок `x-admin-token` = секрет CATALOG_SYNC_TOKEN.
@@ -30,7 +40,9 @@ export const Route = createFileRoute("/api/admin/catalog-sync")({
             const body = (await request.json()) as { rows?: FeedRow[]; hideMissing?: boolean } | FeedRow[];
             rows = Array.isArray(body) ? body : (body.rows ?? []);
             const hideMissing = !Array.isArray(body) && body.hideMissing === true;
-            return Response.json(applyFeed(rows, { hideMissing }));
+            const result = applyFeed(rows, { hideMissing });
+            await pingSitemap();
+            return Response.json(result);
           }
           rows = parseCsvFeed(await request.text());
         } catch (e) {
@@ -42,7 +54,9 @@ export const Route = createFileRoute("/api/admin/catalog-sync")({
         if (rows.length === 0) {
           return Response.json({ error: "Фид пуст или формат не распознан" }, { status: 400 });
         }
-        return Response.json(applyFeed(rows, { hideMissing: true }));
+        const result = applyFeed(rows, { hideMissing: true });
+        await pingSitemap();
+        return Response.json(result);
       },
     },
   },
