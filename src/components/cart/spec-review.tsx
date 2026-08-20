@@ -3,10 +3,10 @@
 import { useMemo, useState } from "react";
 import { AlertTriangle, Check, CircleAlert, Factory, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
-import { PRODUCTS, productBySku } from "@/data/catalog";
+import { PRODUCTS } from "@/data/catalog";
 import { formatPrice } from "@/lib/pricing";
 import { applyPack } from "@/lib/spec-sanitize";
-import { linePrice, useCart, type ReviewRow } from "@/store/cart-store";
+import { linePrice, productBySku, useCart, type ReviewRow } from "@/store/cart-store";
 import { BulkRequestDialog } from "@/components/catalog/bulk-request-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
