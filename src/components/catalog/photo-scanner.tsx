@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CameraOff, ImageUp, Loader2, RefreshCw, TriangleAlert, X } from "lucide-react";
+import { CameraOff, ImageUp, Loader2, RefreshCw, SwitchCamera, TriangleAlert, X } from "lucide-react";
+import { useSwipeClose } from "@/lib/use-swipe-close";
 import { toast } from "sonner";
 import { useCart } from "@/store/cart-store";
 import { formatPrice } from "@/lib/pricing";
@@ -77,6 +78,7 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
   const [camError, setCamError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
   const [facing, setFacing] = useState<"environment" | "user">("environment");
+  const swipe = useSwipeClose(() => setResult(null));
   const [shake, setShake] = useState(false);
   const [size, setSize] = useState("");
   const [reverse, setReverse] = useState(false);
