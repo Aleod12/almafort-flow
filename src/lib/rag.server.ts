@@ -225,15 +225,29 @@ async function streamResponsesText(
   body: unknown,
   apiKey: string,
 ): Promise<{ text: string; usage: LlmUsage }> {
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Lovable-API-Key": apiKey,
-      "X-Lovable-AIG-SDK": "fetch",
-    },
-    body: JSON.stringify(body),
-  });
+  // Жёсткий таймаут: нерешаемая задача не должна держать воркер бесконечно.
+  const AI_TIMEOUT_MS = 15_000;
+  let res: Response;
+  try {
+    res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Lovable-API-Key": apiKey,
+        "X-Lovable-AIG-SDK": "fetch",
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(AI_TIMEOUT_MS),
+    });
+  } catch (e) {
+    const aborted = e instanceof DOMException && e.name === "TimeoutError";
+    if (aborted || (e as Error)?.name === "TimeoutError" || (e as Error)?.name === "AbortError") {
+      throw new Error(
+        "Анализ занимает слишком много времени. Упростите запрос или обратитесь к менеджеру.",
+      );
+    }
+    throw new Error("Сервис конфигуратора временно недоступен. Повторите через минуту.");
+  }
 
   if (!res.ok || !res.body) {
     const detail = await res.text().catch(() => "");
