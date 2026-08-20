@@ -110,7 +110,7 @@ const TRASH_TAIL =
 export function splitMixedCell(text: string): { name: string; qty: number | null; note: string | null } {
   const src = text.replace(NBSP, " ").trim();
   const qtyRe =
-    /(?:^|[-–—,;:]|\s)(\d[\d\s]*(?:[.,]\d+)?|\d+(?:[.,]\d+)?\s*тыс\.?)\s*(шт\.?|штук[аи]?|штук|тыс\.?|pcs|ед\.?)/i;
+    /(?:^|[-–—,;:]|\s)(\d[\d\s]*(?:[.,]\d+)?|\d+(?:[.,]\d+)?\s*тыс\.?)\s*(штук[аи]?|штуки|шт\.?|тыс\.?|pcs|ед\.?)/i;
   const m = src.match(qtyRe);
   if (!m) return { name: src.replace(TRASH_TAIL, "").replace(/\s+/g, " ").trim(), qty: null, note: null };
   const parsed = parseQuantity(`${m[1]} ${m[2]}`);

@@ -235,7 +235,7 @@ function walk(wb: XLSX.WorkBook): ParseResult {
       let label = [nameRaw, skuRaw].filter(Boolean).join(" ").trim();
       if (!label) continue;
       // Шапка с логотипом, разделы и итоговая строка — не товар.
-      if (/^(итого|всего|сумма|раздел|подраздел|№|n\/n|подпись|заказчик|поставщик)\b/i.test(label)) continue;
+      if (/^(итого|всего|сумма|раздел|подраздел|№|n\/n|подпись|заказчик|поставщик)(?![а-яёa-z])/i.test(label)) continue;
 
       const qtyCell = cols.qty >= 0 ? row[cols.qty] : "";
       const qtyRaw = cellText(qtyCell);
@@ -303,8 +303,8 @@ function walk(wb: XLSX.WorkBook): ParseResult {
         quantityRaw: qtyRaw,
         status: error ? "ERROR" : verdict.status,
         score: verdict.score,
-        sku: error ? null : verdict.sku,
-        name: error ? null : verdict.name,
+        sku: verdict.sku,
+        name: verdict.name,
         notes,
         error,
         candidates: verdict.candidates,
