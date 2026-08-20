@@ -101,6 +101,8 @@ type State = {
   setParsing: (v: boolean) => void;
   applyParse: (payload: ParsePayload) => void;
   addLine: (sku: string, quantity: number, originalName?: string) => void;
+  /** Применяет корзину, слитую на сервере при входе в кабинет. */
+  applyMergedLines: (rows: Array<{ sku: string; quantity: number }>) => void;
   setQuantity: (sku: string, quantity: number) => void;
   removeLine: (sku: string) => void;
   resolvePending: (id: string, sku: string) => void;
@@ -180,6 +182,16 @@ export const useCart = create<State>()(
       else lines.push({ sku, name: p.name, quantity, originalName });
       return { lines };
     }),
+
+  applyMergedLines: (rows) =>
+    set(() => ({
+      lines: rows
+        .map((r) => {
+          const p = productBySku(r.sku);
+          return p ? { sku: r.sku, name: p.name, quantity: Math.max(1, Math.floor(r.quantity)) } : null;
+        })
+        .filter((l): l is CartLine => Boolean(l)),
+    })),
 
   setQuantity: (sku, quantity) =>
     set((s) => ({
