@@ -111,11 +111,13 @@ export function CartPanel() {
         if ((e as Error).name !== "AbortError" && alive)
           setQuoteError(e instanceof Error ? e.message : "Ошибка расчёта доставки");
       } finally {
+        window.clearTimeout(offlineTimer);
         if (alive) setQuoting(false);
       }
     })();
     return () => {
       alive = false;
+      window.clearTimeout(offlineTimer);
       ctrl.abort();
     };
   }, [debouncedKey, setQuotes, setQuoting, setQuoteError]);
