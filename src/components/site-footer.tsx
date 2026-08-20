@@ -99,7 +99,7 @@ export function SiteFooter() {
 
           <a
             href={COMPANY.phoneHref}
-            className="mt-8 block text-[26px] font-extrabold tracking-tight text-white tabular-nums lg:text-[32px]"
+            className="mt-8 inline-flex min-h-11 items-center text-[26px] font-extrabold tracking-tight text-white tabular-nums lg:text-[32px]"
           >
             {COMPANY.phone}
           </a>
