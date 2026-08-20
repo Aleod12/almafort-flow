@@ -408,8 +408,10 @@ export type Database = {
           delivery_price: number
           goods_price: number
           id: string
+          idempotency_key: string | null
           items: Json
           number: string
+          offer_version: string
           pvz_address: string | null
           status: string
           storage_until: string | null
@@ -429,8 +431,10 @@ export type Database = {
           delivery_price?: number
           goods_price?: number
           id?: string
+          idempotency_key?: string | null
           items?: Json
           number: string
+          offer_version?: string
           pvz_address?: string | null
           status?: string
           storage_until?: string | null
@@ -450,8 +454,10 @@ export type Database = {
           delivery_price?: number
           goods_price?: number
           id?: string
+          idempotency_key?: string | null
           items?: Json
           number?: string
+          offer_version?: string
           pvz_address?: string | null
           status?: string
           storage_until?: string | null
@@ -577,6 +583,24 @@ export type Database = {
           manager_whatsapp?: string
           phone?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      saved_carts: {
+        Row: {
+          lines: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          lines?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          lines?: Json
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
