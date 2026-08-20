@@ -332,8 +332,9 @@ export function CartPanel() {
           return (
             <SwipeToDelete key={l.sku} onDelete={() => removeLine(l.sku)}>
             <div
-              className={`border-b border-border px-4 py-4 last:border-b-0 md:grid md:items-center md:gap-3 md:px-5 md:py-3 ${CART_GRID}`}
+              className="cart-table-grid border-b border-border px-4 py-4 last:border-b-0 md:px-5 md:py-3"
             >
+
 
               <div className="flex min-w-0 items-center gap-3">
                 <span className="block w-10 shrink-0">
