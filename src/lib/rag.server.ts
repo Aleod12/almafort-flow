@@ -536,6 +536,18 @@ export async function solveConfiguration(
 
   const items = priceItems(capped);
 
+  // Торг «дайте дешевле»: показываем реальный системный минимум (Опт 2).
+  const asked = dictatedPrice(rawQuery);
+  if (asked !== null) {
+    for (const it of items) {
+      const p = PRODUCTS.find((x) => x.sku === it.sku);
+      if (!p || isOnRequest(p) || asked >= p.price5000) continue;
+      warnings.push(
+        `Цену ${asked.toLocaleString("ru-RU", { minimumFractionDigits: 2 })} ₽ установить программно нельзя. Минимальная системная цена ${p.sku} при объёме от ${p.tier2Qty} шт (Опт 2) — ${p.price5000.toLocaleString("ru-RU", { minimumFractionDigits: 2 })} ₽/шт. Эксклюзивную проектную скидку согласует руководитель — нажмите «Запросить расчёт».`,
+      );
+    }
+  }
+
   if (items.length === 0) {
     throw new Error("Не удалось подобрать позиции из каталога под эту задачу.");
   }
