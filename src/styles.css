@@ -90,7 +90,8 @@
   --destructive-foreground: oklch(1 0 0);
   --border: oklch(0.936 0.003 247.9);
   --input: oklch(0.936 0.003 247.9);
-  --ring: oklch(0.573 0.221 27.5);
+  /* Нейтральный фокус: красная обводка на вводе текста воспринимается как ошибка. */
+  --ring: oklch(0.62 0.02 255);
   --surface: oklch(0.984 0.002 247.9);
   --dashed: oklch(0.872 0.008 264);
   --placeholder: oklch(0.919 0.004 264);
@@ -571,7 +572,22 @@ select:focus {
 
 /* Видимый фокус для клавиатурной навигации по всему сайту */
 :focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
   border-radius: 3px;
 }
+
+/* В полях ввода обводка нейтральная и не мигает при наборе текста. */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible,
+[contenteditable="true"]:focus,
+[contenteditable="true"]:focus-visible {
+  outline: none;
+  border-color: var(--ring);
+  box-shadow: 0 0 0 1px var(--ring);
+}
+

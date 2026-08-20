@@ -33,8 +33,14 @@ export const Route = createFileRoute("/api/vision/identify")({
           }
           const image = clean.dataUrl;
 
-          const { identifyPart, matchProducts, classVariants, logVisionFail, verdictCategory } =
-            await import("@/lib/vision.server");
+          const {
+            identifyPart,
+            matchProducts,
+            classVariants,
+            candidateCategories,
+            logVisionFail,
+            verdictCategory,
+          } = await import("@/lib/vision.server");
           const verdict = await identifyPart(image);
 
           const brief = (p: {
@@ -87,16 +93,32 @@ export const Route = createFileRoute("/api/vision/identify")({
             });
           }
 
-          const matches = matchProducts(verdict, 3).map(brief);
-          const reinforced = matches.some((m) => /металл|усиленн/i.test(m.name));
+          if (score >= 0.75) {
+            const matches = matchProducts(verdict, 3).map(brief);
+            const reinforced = matches.some((m) => /металл|усиленн/i.test(m.name));
+            return Response.json({
+              scenario: "ambiguous",
+              verdict,
+              question: reinforced
+                ? "Вам требуется цельнопластиковый вариант или усиленный металлическим каркасом?"
+                : `Найдено ${matches.length} похожих варианта. Уточните, какой именно нужен:`,
+              matches,
+            });
+          }
+
+          // < 0.75 — ложный артикул выдавать запрещено: спрашиваем человека.
+          void logVisionFail(image, verdict);
           return Response.json({
-            scenario: "ambiguous",
+            scenario: "clarify",
             verdict,
-            question: reinforced
-              ? "Вам требуется цельнопластиковый вариант или усиленный металлическим каркасом?"
-              : `Найдено ${matches.length} похожих варианта. Уточните, какой именно нужен:`,
-            matches,
+            question:
+              "Деталь распознана неточно. Уточните категорию — артикул подберём после вашего выбора:",
+            groups: candidateCategories(verdict, 3).map((g) => ({
+              category: g.category,
+              items: g.items.map(brief),
+            })),
           });
+
         } catch (e) {
           const message = e instanceof Error ? e.message : "Ошибка распознавания";
           console.error("[vision]", message);

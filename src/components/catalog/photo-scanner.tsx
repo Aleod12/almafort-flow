@@ -42,6 +42,12 @@ type Verdict = {
 type Result =
   | { scenario: "exact"; verdict: Verdict; category: string; variants: Item[] }
   | { scenario: "ambiguous"; verdict: Verdict; question?: string; matches: Item[] }
+  | {
+      scenario: "clarify";
+      verdict: Verdict;
+      question?: string;
+      groups: Array<{ category: string; items: Item[] }>;
+    }
   | { scenario: "foreign"; verdict: Verdict }
   | { scenario: "lowlight"; verdict: Verdict }
   | { scenario: "invalid"; verdict: Verdict };
@@ -68,6 +74,10 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
   const swipe = useSwipeClose(() => setResult(null));
   const [dragOver, setDragOver] = useState(false);
   const [shake, setShake] = useState<string | null>(null);
+  /** Сетевая/серверная ошибка: без явного текста экран выглядит «зависшим». */
+  const [fatal, setFatal] = useState<string | null>(null);
+  /** Выбранная клиентом категория в сценарии ручного уточнения. */
+  const [clarified, setClarified] = useState<string | null>(null);
   const [size, setSize] = useState("");
   const [reverse, setReverse] = useState(false);
   /** Замороженный кадр: показываем поверх видео, пока думает нейросеть. */
@@ -220,6 +230,9 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
 
   const analyze = async (image: string) => {
     setBusy(true);
+    setFatal(null);
+    setShake(null);
+    setClarified(null);
     try {
       const res = await fetch("/api/vision/identify", {
         method: "POST",
@@ -236,7 +249,9 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
       else setFrozen(null);
     } catch (e) {
       setFrozen(null);
-      toast.error(e instanceof Error ? e.message : "Ошибка распознавания");
+      const message = e instanceof Error ? e.message : "Ошибка распознавания";
+      setFatal(`${message}. Попробуйте загрузить другое фото или повторить попытку.`);
+      toast.error(message);
     } finally {
       setBusy(false);
     }
@@ -245,20 +260,26 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
   /** Загрузка картинки с диска/галереи — основной сценарий для ПК и для отказа в доступе. */
   const pickFile = async (file: File | undefined | null) => {
     if (!file) return;
+    setFatal(null);
+    setShake(null);
+    setResult(null);
     const heic = /hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
     if (!file.type.startsWith("image/") && !heic) {
-      toast.error("Нужен файл изображения: JPG, PNG, WEBP или HEIC");
+      const m = "Нужен файл изображения: JPG, PNG, WEBP или HEIC";
+      setFatal(m);
+      toast.error(m);
       return;
     }
     const decoded = await decodeImageFile(file);
     if (!decoded) {
-      toast.error(
-        heic
-          ? "Браузер не открывает HEIC. Сохраните фото в JPG (Настройки → Камера → «Наиболее совместимый») и повторите"
-          : "Не удалось прочитать изображение",
-      );
+      const m = heic
+        ? "Браузер не открывает HEIC. Сохраните фото в JPG (Настройки → Камера → «Наиболее совместимый») и повторите"
+        : "Не удалось прочитать изображение";
+      setFatal(m);
+      toast.error(m);
       return;
     }
+
     // Сжимаем на клиенте: 800×800 WebP вместо 4K/8 МБ — иначе на 3G ответа не дождаться.
     const prepared = compress(decoded.source, decoded.width, decoded.height);
     setFrozen(prepared.dataUrl);
@@ -328,6 +349,15 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
     !camError &&
     (!result || result.scenario === "invalid" || result.scenario === "lowlight");
   const showSheet = result && result.scenario !== "invalid" && result.scenario !== "lowlight";
+  /** Явный Error State для ПК: «тихий» сброс к дропзоне запрещён. */
+  const desktopError =
+    fatal ??
+    shake ??
+    (result?.scenario === "invalid"
+      ? "На фото не обнаружена фурнитура. Распознан посторонний объект. Пожалуйста, загрузите фото крепежа крупным планом."
+      : result?.scenario === "lowlight"
+        ? "Деталь сливается с фоном или снимок слишком тёмный. Положите деталь на светлый лист бумаги и загрузите фото ещё раз."
+        : null);
 
   return (
     <div
@@ -384,42 +414,96 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
         onChange={(e) => void pickFile(e.target.files?.[0])}
       />
 
-      {/* ПК без камеры: сразу зона Drag & Drop, никаких чёрных окон с поиском вебки. */}
+      {/* ПК без камеры: зона Drag & Drop, лоадер анализа и явный Error State. */}
       {cameraMode === false && !showSheet && (
         <div className="flex h-full w-full flex-col items-center justify-center gap-5 px-6 text-center">
-          <div className="w-full max-w-[560px] rounded-2xl border-2 border-dashed border-white/35 bg-white/5 px-8 py-14">
-            <Monitor className="mx-auto size-10 text-white/70" strokeWidth={1.5} />
-            <h2 className="mt-4 text-xl font-bold text-white">
-              Перетащите фото детали сюда или выберите файл на компьютере
-            </h2>
-            <p className="mx-auto mt-2 max-w-[46ch] text-sm leading-[1.6] text-white/70">
-              Подойдёт снимок с телефона: сожмём его прямо в браузере до 800×800 и отправим на
-              распознавание. JPG, PNG, WEBP, HEIC.
-            </p>
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              disabled={busy}
-              className="mt-6 inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.02] disabled:opacity-60"
-            >
-              {busy ? (
-                <Loader2 className="size-4 animate-spin" strokeWidth={2} />
-              ) : (
-                <ImageUp className="size-4" strokeWidth={1.75} />
+          {busy ? (
+            <div className="w-full max-w-[560px] rounded-2xl border border-white/15 bg-white/5 p-8">
+              {frozen && (
+                <img
+                  src={frozen}
+                  alt="Загруженный кадр детали"
+                  className="mx-auto mb-6 size-40 rounded-xl object-cover"
+                />
               )}
-              {busy ? "Нейросеть анализирует геометрию…" : "Выбрать файл на компьютере"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setWantCamera(true)}
-              className="mt-4 block w-full cursor-pointer text-xs text-white/55 underline underline-offset-4 hover:text-white"
-            >
-              У меня есть веб-камера — включить съёмку
-            </button>
-          </div>
-          {shake && <p className="max-w-[46ch] text-sm text-[#FCA5A5]">{shake}</p>}
+              <p className="flex items-center justify-center gap-3 text-base font-semibold text-white">
+                <Loader2 className="size-5 animate-spin" strokeWidth={2} />
+                Нейросеть анализирует геометрию…
+              </p>
+              <p className="mt-2 text-xs text-white/60">
+                Тяжёлые снимки обрабатываются дольше — не закрывайте окно.
+              </p>
+              <div className="mt-6 space-y-2" aria-hidden>
+                <span className="block h-3 w-full animate-pulse rounded bg-white/10" />
+                <span className="block h-3 w-4/5 animate-pulse rounded bg-white/10" />
+                <span className="block h-3 w-2/3 animate-pulse rounded bg-white/10" />
+              </div>
+            </div>
+          ) : desktopError ? (
+            <div className="w-full max-w-[560px] rounded-2xl border border-[#F59E0B]/60 bg-[#F59E0B]/12 p-8 text-left">
+              <p className="flex items-start gap-3 text-base font-semibold leading-[1.5] text-white">
+                <TriangleAlert className="mt-0.5 size-6 shrink-0 text-[#FBBF24]" strokeWidth={2} />
+                {desktopError}
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResult(null);
+                    setShake(null);
+                    setFatal(null);
+                    fileRef.current?.click();
+                  }}
+                  className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground"
+                >
+                  <ImageUp className="size-4" strokeWidth={1.75} />
+                  Загрузить другое фото
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResult(null);
+                    setShake(null);
+                    setFatal(null);
+                    setFrozen(null);
+                  }}
+                  className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full border border-white/30 px-6 text-sm font-semibold text-white"
+                >
+                  <RefreshCw className="size-4" strokeWidth={1.75} />
+                  Начать заново
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="w-full max-w-[560px] rounded-2xl border-2 border-dashed border-white/35 bg-white/5 px-8 py-14">
+              <Monitor className="mx-auto size-10 text-white/70" strokeWidth={1.5} />
+              <h2 className="mt-4 text-xl font-bold text-white">
+                Перетащите фото детали сюда или выберите файл на компьютере
+              </h2>
+              <p className="mx-auto mt-2 max-w-[46ch] text-sm leading-[1.6] text-white/70">
+                Подойдёт снимок с телефона: сожмём его прямо в браузере до 800×800 и отправим на
+                распознавание. JPG, PNG, WEBP, HEIC.
+              </p>
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="mt-6 inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.02]"
+              >
+                <ImageUp className="size-4" strokeWidth={1.75} />
+                Выбрать файл на компьютере
+              </button>
+              <button
+                type="button"
+                onClick={() => setWantCamera(true)}
+                className="mt-4 block w-full cursor-pointer text-xs text-white/55 underline underline-offset-4 hover:text-white"
+              >
+                У меня есть веб-камера — включить съёмку
+              </button>
+            </div>
+          )}
         </div>
       )}
+
 
       {cameraMode && camError && !showSheet && (
         <div className="flex h-full w-full flex-col items-center justify-center gap-5 px-6 text-center">
@@ -742,6 +826,76 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
                   </li>
                 ))}
               </ul>
+            </>
+          )}
+
+          {result.scenario === "clarify" && (
+            <>
+              <div className="rounded-md border border-[#F59E0B] bg-[oklch(0.97_0.06_90)] p-4">
+                <h3 className="flex items-start gap-2 text-base font-bold leading-[1.4] text-[oklch(0.35_0.08_70)]">
+                  <TriangleAlert className="mt-0.5 size-5 shrink-0" strokeWidth={2} />
+                  {result.question ??
+                    "Деталь распознана неточно. Уточните категорию — артикул подберём после вашего выбора:"}
+                </h3>
+                <p className="mt-2 text-xs text-[oklch(0.45_0.06_70)]">
+                  Уверенность модели {Math.round(result.verdict.confidence * 100)}% — этого мало,
+                  чтобы назвать артикул. Гадать не будем.
+                </p>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {result.groups.map((g) => (
+                  <button
+                    key={g.category}
+                    type="button"
+                    onClick={() => setClarified(g.category)}
+                    aria-pressed={clarified === g.category}
+                    className={`min-h-[44px] cursor-pointer rounded-full border px-4 text-sm font-semibold ${
+                      clarified === g.category
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border text-foreground hover:bg-surface"
+                    }`}
+                  >
+                    {g.category}
+                  </button>
+                ))}
+              </div>
+
+              {clarified && (
+                <ul className="mt-5 space-y-3">
+                  {(result.groups.find((g) => g.category === clarified)?.items ?? []).map((m) => (
+                    <li
+                      key={m.sku}
+                      className="flex items-center gap-4 rounded-md border border-border p-4"
+                    >
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-semibold text-foreground">
+                          {m.name}
+                        </span>
+                        <span className="block text-xs text-muted-foreground">
+                          {m.sku} · {m.dims} ·{" "}
+                          {m.stock > 0
+                            ? `${m.stock.toLocaleString("ru-RU")} шт на складе`
+                            : "под заказ"}
+                        </span>
+                        <span className="mt-1 block text-sm font-bold tabular-nums text-foreground">
+                          {formatPrice(m.price)}
+                        </span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          addLine(m.sku, 1);
+                          toast.success(`${m.sku} добавлен в корзину`);
+                        }}
+                        className="min-h-[44px] shrink-0 cursor-pointer rounded-sm bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
+                      >
+                        В корзину
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </>
           )}
 

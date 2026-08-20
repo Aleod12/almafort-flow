@@ -33,6 +33,13 @@ import {
 /** Единый валютный формат платформы: «150,00 ₽». */
 const money = (n: number) => formatPrice(n);
 
+/**
+ * Единая сетка таблицы корзины: шапка и строки обязаны использовать один и тот
+ * же трек-лист, иначе колонки «разъезжаются» на промежуточных ширинах.
+ */
+const CART_GRID =
+  "md:grid-cols-[minmax(0,1fr)_84px_96px_104px_44px] lg:grid-cols-[minmax(0,1fr)_100px_116px_128px_44px] xl:grid-cols-[minmax(0,1fr)_110px_120px_130px_44px]";
+
 const CARRIERS: Array<{ id: Carrier; label: string }> = [
   { id: "cdek", label: "СДЭК" },
   { id: "dl", label: "Деловые Линии" },
@@ -304,7 +311,7 @@ export function CartPanel() {
 
       {/* Корзина */}
       <section className="overflow-hidden rounded-lg border border-border bg-card">
-        <div className="sticky top-[72px] z-10 hidden grid-cols-[minmax(0,1fr)_110px_120px_120px_44px] items-center gap-3 border-b border-border bg-[#F8F9FA] px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:grid">
+        <div className={`sticky top-[72px] z-10 hidden items-center gap-3 border-b border-border bg-[#F8F9FA] px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:grid ${CART_GRID}`}>
           <span>Позиция</span>
           <span className="text-right">Кол-во</span>
           <span className="text-right">Цена</span>
@@ -324,7 +331,7 @@ export function CartPanel() {
           return (
             <SwipeToDelete key={l.sku} onDelete={() => removeLine(l.sku)}>
             <div
-              className="border-b border-border px-4 py-4 last:border-b-0 md:grid md:grid-cols-[minmax(0,1fr)_110px_120px_120px_44px] md:items-center md:gap-3 md:px-5 md:py-3"
+              className={`border-b border-border px-4 py-4 last:border-b-0 md:grid md:items-center md:gap-3 md:px-5 md:py-3 ${CART_GRID}`}
             >
 
               <div className="flex min-w-0 items-center gap-3">

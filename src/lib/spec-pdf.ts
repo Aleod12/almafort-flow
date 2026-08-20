@@ -117,7 +117,7 @@ async function generateSpecPdfImpl({
             ]
           : []),
         {
-          text: "Цены действительны 5 рабочих дней. НДС 20% включён.",
+          text: "Цены действительны 5 рабочих дней.",
           margin: [0, 16, 0, 0],
           fontSize: 8,
           color: "#595959",

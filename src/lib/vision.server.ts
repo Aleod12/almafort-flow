@@ -195,23 +195,35 @@ export function matchProducts(v: VisionVerdict, limit = 3): Product[] {
   const round = /кругл|round|circle/.test(v.shape);
   const rect = /прямоуг|rect/.test(v.shape);
 
-  return PRODUCTS.map((p) => {
-    let score = 0;
-    if (category && p.category === category) score += 10;
-    if (square && /квадратн/i.test(p.name)) score += 5;
-    if (round && /кругл|Ø/i.test(`${p.name} ${p.dims}`)) score += 5;
-    if (rect && /прямоугольн/i.test(p.name)) score += 5;
-    // Резьба на детали сужает выбор до резьбовых групп каталога.
-    if (v.has_threads && /Мебельный крепеж|сэндвич-панелей/.test(p.category)) score += 4;
-    if (!v.has_threads && /Заглушки/.test(p.category)) score -= 2;
-    if (p.stock.qty > 0) score += 1;
-    return { p, score };
-  })
+  return PRODUCTS.filter((p) => !shapeConflict(p, { square, round }))
+    .map((p) => {
+      let score = 0;
+      if (category && p.category === category) score += 10;
+      if (square && /квадратн/i.test(p.name)) score += 5;
+      if (round && /кругл|Ø/i.test(`${p.name} ${p.dims}`)) score += 5;
+      if (rect && /прямоугольн/i.test(p.name)) score += 5;
+      // Резьба на детали сужает выбор до резьбовых групп каталога.
+      if (v.has_threads && /Мебельный крепеж|сэндвич-панелей/.test(p.category)) score += 4;
+      if (!v.has_threads && /Заглушки/.test(p.category)) score -= 2;
+      if (p.stock.qty > 0) score += 1;
+      return { p, score };
+    })
 
     .filter((r) => r.score > 0)
     .sort((a, b) => b.score - a.score || b.p.stock.qty - a.p.stock.qty)
     .slice(0, limit)
     .map((r) => r.p);
+}
+
+/**
+ * Жёсткая отсечка заведомо невозможных форм: если на фото квадрат, круглые
+ * варианты в список не попадают вообще (и наоборот) — угадывать нельзя.
+ */
+function shapeConflict(p: Product, s: { square: boolean; round: boolean }): boolean {
+  const text = `${p.name} ${p.dims}`;
+  if (s.square && !s.round) return /кругл|Ø/i.test(text);
+  if (s.round && !s.square) return /квадратн/i.test(text);
+  return false;
 }
 
 /** Сценарий 3.1: весь размерный ряд распознанного класса — «Выберите размер». */
@@ -221,11 +233,32 @@ export function classVariants(v: VisionVerdict, limit = 24): Product[] {
   const square = /квадрат|square/.test(v.shape);
   const round = /кругл|round|circle/.test(v.shape);
   return PRODUCTS.filter((p) => p.category === category && !p.is_service)
-    .filter((p) => {
-      if (square) return /квадратн/i.test(p.name) || !/кругл/i.test(p.name);
-      if (round) return /кругл|Ø/i.test(`${p.name} ${p.dims}`) || !/квадратн/i.test(p.name);
-      return true;
-    })
+    .filter((p) => !shapeConflict(p, { square, round }))
     .sort((a, b) => b.stock.qty - a.stock.qty)
     .slice(0, limit);
 }
+
+/**
+ * Уверенность ниже порога: ИИ обязан не выдавать артикул, а спросить человека.
+ * Возвращает 2–3 категории-кандидата с товарами для ручного уточнения.
+ */
+export function candidateCategories(
+  v: VisionVerdict,
+  limit = 3,
+): Array<{ category: string; items: Product[] }> {
+  const ranked = matchProducts(v, 40);
+  const order: string[] = [];
+  for (const p of ranked) {
+    if (!p.is_service && !order.includes(p.category)) order.push(p.category);
+  }
+  const fallback = ["Заглушки внутренние", "Опоры и подпятники", "Мебельный крепеж"];
+  for (const c of fallback) if (order.length < 2 && !order.includes(c)) order.push(c);
+
+  return order.slice(0, limit).map((category) => ({
+    category,
+    items: PRODUCTS.filter((p) => p.category === category && !p.is_service)
+      .sort((a, b) => b.stock.qty - a.stock.qty)
+      .slice(0, 6),
+  }));
+}
+
