@@ -17,10 +17,13 @@ export function BulkRequestDialog({
   product,
   open,
   onClose,
+  presetComment,
 }: {
   product: Product;
   open: boolean;
   onClose: () => void;
+  /** Предзаполненный текст (например, ненайденные позиции из спецификации). */
+  presetComment?: string;
 }) {
   const minQty = Math.max(product.tier2Qty || 50000, 1000);
   const [qty, setQty] = useState(String(minQty));
