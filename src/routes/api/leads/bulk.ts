@@ -6,6 +6,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { rateLimit } from "@/lib/rate-limit.server";
 import { z } from "zod";
 import { pushQuizLead } from "@/lib/quiz-crm.server";
+import { PRODUCTS } from "@/data/catalog";
 
 const schema = z.object({
   sku: z.string().trim().min(1).max(60),
@@ -32,6 +33,14 @@ export const Route = createFileRoute("/api/leads/bulk")({
         }
         const d = parsed.data;
 
+        // Синхронизация с остатком: заявка уходит всегда, но менеджер видит,
+        // что объём превышает склад и требуется дозаказ на производстве.
+        const stock = PRODUCTS.find((p) => p.sku === d.sku)?.stock.qty ?? 0;
+        const exceedsStock = d.qty > stock;
+        const stockNote = exceedsStock
+          ? `Запрос превышает текущий складской остаток (${stock.toLocaleString("ru-RU")} шт) — требуется дозаказ на производстве`
+          : null;
+
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { error } = await supabaseAdmin.from("bulk_requests").insert({
           sku: d.sku,
@@ -42,7 +51,7 @@ export const Route = createFileRoute("/api/leads/bulk")({
           phone: d.phone,
           email: d.email || null,
           inn: d.inn || null,
-          comment: d.comment || null,
+          comment: [d.comment || null, stockNote].filter(Boolean).join(' | ') || null,
         });
         if (error) {
           console.error("[bulk-lead] не записана заявка:", error.message);
@@ -60,11 +69,13 @@ export const Route = createFileRoute("/api/leads/bulk")({
             "Базовая цена": `${d.base_price} ₽`,
             ...(d.inn ? { ИНН: d.inn } : {}),
             ...(d.comment ? { Комментарий: d.comment } : {}),
+            "Складской остаток": `${stock.toLocaleString("ru-RU")} шт`,
+            ...(stockNote ? { "⚠ Дозаказ": stockNote } : {}),
           },
           file_urls: [],
         }).catch((e) => console.warn("[bulk-lead] CRM недоступна:", String(e)));
 
-        return Response.json({ ok: true });
+        return Response.json({ ok: true, exceedsStock, stock });
       },
     },
   },
