@@ -4,7 +4,7 @@ import { Check, MapPin, Search, Truck, X, Zap } from "lucide-react";
 import cert3dAsset from "@/assets/certificates/cert-3d-print.jpg.asset.json";
 import certReverseAsset from "@/assets/certificates/cert-reverse-eng.jpg.asset.json";
 import krepssPreviewAsset from "@/assets/certificates/krepss-sertifikat.jpg.asset.json";
-import krepssPdfAsset from "@/assets/certificates/krepss-sertifikat.pdf.asset.json";
+
 import trademarkAsset from "@/assets/certificates/trademark-almafort.jpg.asset.json";
 
 /** src — превью (JPG). pdf — если задан, в лайтбоксе открывается встроенный просмотрщик. */
