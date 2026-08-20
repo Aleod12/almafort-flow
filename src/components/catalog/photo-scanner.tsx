@@ -42,6 +42,12 @@ type Verdict = {
 type Result =
   | { scenario: "exact"; verdict: Verdict; category: string; variants: Item[] }
   | { scenario: "ambiguous"; verdict: Verdict; question?: string; matches: Item[] }
+  | {
+      scenario: "clarify";
+      verdict: Verdict;
+      question?: string;
+      groups: Array<{ category: string; items: Item[] }>;
+    }
   | { scenario: "foreign"; verdict: Verdict }
   | { scenario: "lowlight"; verdict: Verdict }
   | { scenario: "invalid"; verdict: Verdict };
