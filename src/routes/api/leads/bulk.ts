@@ -3,6 +3,7 @@
  * Пишется в public.bulk_requests (service role) и дублируется в CRM.
  */
 import { createFileRoute } from "@tanstack/react-router";
+import { rateLimit } from "@/lib/rate-limit.server";
 import { z } from "zod";
 import { pushQuizLead } from "@/lib/quiz-crm.server";
 
@@ -22,6 +23,8 @@ export const Route = createFileRoute("/api/leads/bulk")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const limited = rateLimit(request, "bulk", { limit: 10, windowMs: 60_000, blockMs: 300_000 });
+        if (limited) return limited;
         const raw = await request.json().catch(() => null);
         const parsed = schema.safeParse(raw);
         if (!parsed.success) {

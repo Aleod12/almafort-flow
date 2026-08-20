@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { rateLimit } from "@/lib/rate-limit.server";
 import { z } from "zod";
 
 const schema = z.object({
@@ -16,6 +17,8 @@ export const Route = createFileRoute("/api/dadata/party")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const limited = rateLimit(request, "party", { limit: 30, windowMs: 60_000 });
+        if (limited) return limited;
         let inn: string;
         try {
           inn = schema.parse(await request.json()).inn;
