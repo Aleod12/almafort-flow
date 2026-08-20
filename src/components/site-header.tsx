@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Clock, MapPin, Phone, UserRound, Menu, ShoppingCart, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/store/cart-store";
+import { trackContact } from "@/lib/metrika";
 
 const NAV = [
   { label: "Каталог", href: "/catalog" },
