@@ -112,7 +112,7 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
 
   return (
     <div ref={wrapRef} className="relative z-30 mx-auto w-full lg:w-[60%]">
-      <div className="flex items-center gap-3 rounded-lg border border-[#D1D5DB] bg-card px-4 py-3">
+      <div className="flex items-center gap-3 rounded-lg border border-transparent bg-card px-4 py-3">
         <Search className="size-5 shrink-0 text-muted-foreground" strokeWidth={1.5} />
         <input
           ref={inputRef}
