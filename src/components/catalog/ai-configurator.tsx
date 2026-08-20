@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Sparkles, Calculator, FileText, ShieldCheck, Wrench, Download, Link2, TriangleAlert } from "lucide-react";
+import { Loader2, Sparkles, Calculator, FileText, ShieldCheck, Wrench, Download, Link2, TriangleAlert, X } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/store/cart-store";
 import { PRODUCTS, isOnRequest, tierOf } from "@/data/catalog";
@@ -82,11 +82,52 @@ export function AiConfigurator() {
   const addLine = useCart((s) => s.addLine);
   const [shared, setShared] = useState(false);
   const [fallback, setFallback] = useState<string | null>(null);
+  // Прошлый шаг диалога: «а если труба 60х60?» считается от него.
+  const [history, setHistory] = useState<{ query: string; items: Array<{ sku: string; quantity: number }> } | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const [stage, setStage] = useState(0);
+  const [typed, setTyped] = useState("");
 
   // Восстановление конфигурации по ссылке: инженер открывает узел ровно в том
   // составе, в котором его сохранил снабженец.
   const sharedTimer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(sharedTimer.current), []);
+
+  // Живой статус вместо «зависшего» лоадера: запрос к модели идёт до 15 секунд.
+  const STAGES = [
+    "Разбираем задачу и единицы измерения…",
+    "Анализируем нагрузки и основание…",
+    "Подбираем артикулы по каталогу…",
+    "Считаем оптовые пороги и смету…",
+  ];
+  useEffect(() => {
+    if (!busy) {
+      setStage(0);
+      return;
+    }
+    const id = window.setInterval(() => setStage((s) => Math.min(s + 1, STAGES.length - 1)), 2600);
+    return () => window.clearInterval(id);
+  }, [busy]);
+
+  // Побуквенный вывод обоснования — ответ «печатается», а не появляется рывком.
+  const logic = result?.solution.engineering_logic ?? "";
+  useEffect(() => {
+    if (!logic) {
+      setTyped("");
+      return;
+    }
+    setTyped("");
+    let i = 0;
+    const id = window.setInterval(() => {
+      i = Math.min(i + 4, logic.length);
+      setTyped(logic.slice(0, i));
+      if (i >= logic.length) window.clearInterval(id);
+    }, 16);
+    return () => window.clearInterval(id);
+  }, [logic]);
+
+  // Прерывание генерации при уходе со страницы — токены не жжём.
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   useEffect(() => {
     const raw = new URLSearchParams(window.location.search).get("cfg");
@@ -166,12 +207,15 @@ export function AiConfigurator() {
   const warnings = result?.solution.warnings ?? [];
   const clarification = result?.solution.clarification ?? [];
 
-  const solve = async (text: string) => {
-    if (text.trim().length < 10) {
+  const solve = async (text: string, followUp = false) => {
+    const min = followUp ? 3 : 10;
+    if (text.trim().length < min) {
       toast.error("Опишите задачу подробнее: объект, масса, основание.");
       return;
     }
     if (busy) return; // защита от многократного нажатия «Подобрать решение»
+    const controller = new AbortController();
+    abortRef.current = controller;
     setBusy(true);
     setResult(null);
     setFallback(null);
@@ -180,7 +224,11 @@ export function AiConfigurator() {
       const res = await fetch("/api/configurator/solve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: text.trim() }),
+        signal: controller.signal,
+        body: JSON.stringify({
+          query: text.trim(),
+          history: followUp ? history : null,
+        }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -194,14 +242,31 @@ export function AiConfigurator() {
         }
         throw new Error(json?.error ?? "Не удалось подобрать решение");
       }
-      setResult(json as ApiResult);
-    } catch {
+      const data = json as ApiResult;
+      setResult(data);
+      if (data.solution.recommended_items.length > 0) {
+        setHistory({
+          query: text.trim(),
+          items: data.solution.recommended_items.map((i) => ({ sku: i.sku, quantity: i.quantity })),
+        });
+      }
+    } catch (e) {
+      // Отмена пользователем — не ошибка сервиса.
+      if (e instanceof DOMException && e.name === "AbortError") return;
       setFallback(
         "Связь с ИИ-инженером прервалась. Оставьте заявку в свободной форме — живой специалист подберёт смету в течение 10 минут.",
       );
     } finally {
+      abortRef.current = null;
       setBusy(false);
     }
+  };
+
+  const stopGeneration = () => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setBusy(false);
+    toast.info("Генерация остановлена");
   };
 
   const shareUrl = () => {
@@ -304,14 +369,42 @@ export function AiConfigurator() {
         />
         <button
           type="button"
-          onClick={() => solve(query)}
+          onClick={() => solve(query, Boolean(history))}
           disabled={busy}
           className="flex h-fit min-h-[52px] w-full cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-7 py-4 lg:w-auto text-sm font-semibold text-primary-foreground shadow-[0_6px_18px_-6px_oklch(0.573_0.221_27.5/0.55)] transition-[background-color,transform,box-shadow] duration-200 hover:bg-[#B91C1C] hover:shadow-[0_10px_24px_-8px_oklch(0.573_0.221_27.5/0.7)] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {busy ? <Loader2 className="size-4 animate-spin" /> : <Calculator className="size-4" />}
-          {busy ? "Инженерный анализ…" : "Подобрать решение"}
+          {busy ? "Инженерный анализ…" : history ? "Пересчитать" : "Подобрать решение"}
         </button>
+        {busy && (
+          <button
+            type="button"
+            onClick={stopGeneration}
+            aria-label="Остановить генерацию"
+            className="flex h-fit min-h-[52px] w-full cursor-pointer items-center justify-center gap-2 rounded-sm border border-[#D1D5DB] bg-card px-5 text-sm font-semibold text-foreground lg:w-auto"
+          >
+            <X className="size-4" /> Остановить
+          </button>
+        )}
       </div>
+
+      {busy && (
+        <div className="mt-4 rounded-sm border border-[#D1D5DB] bg-card p-4" role="status" aria-live="polite">
+          <p className="text-sm font-semibold text-foreground">{STAGES[stage]}</p>
+          <div className="mt-3 space-y-2">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-3 animate-pulse rounded-sm bg-[#E5E7EB]" style={{ width: `${100 - i * 18}%` }} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {history && !busy && (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Диалог с контекстом: можно уточнить прошлую смету — например «а если труба квадратная
+          60х60?». Количество из предыдущего расчёта сохранится.
+        </p>
+      )}
 
       <ul className="mt-3 flex flex-wrap gap-2">
         {EXAMPLES.map((ex) => (
@@ -403,7 +496,7 @@ export function AiConfigurator() {
               <ShieldCheck className="size-4" strokeWidth={1.75} /> Инженерное обоснование
             </p>
             <p className="mt-3 whitespace-pre-line font-mono text-[13px] leading-[1.7] tabular-nums text-foreground">
-              {result.solution.engineering_logic}
+              {typed || result.solution.engineering_logic}
             </p>
             {result.solution.safety_margin_factor !== null && (
               <p className="mt-4 inline-flex items-center gap-2 rounded-sm bg-[#E8F5E9] px-3 py-1.5 text-xs font-bold tabular-nums text-[#1B5E20]">

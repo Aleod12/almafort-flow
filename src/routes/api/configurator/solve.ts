@@ -4,7 +4,18 @@ import { rateLimit } from "@/lib/rate-limit.server";
 
 // Ограничение длины — защита от «token exhaustion»: длинный мусор
 // не должен оплачиваться токенами LLM.
-const schema = z.object({ query: z.string().trim().min(10).max(1000) });
+const schema = z.object({
+  query: z.string().trim().min(3).max(1000),
+  // Контекст предыдущего шага диалога: артикулы и количества.
+  history: z
+    .object({
+      query: z.string().max(1000),
+      items: z
+        .array(z.object({ sku: z.string().max(32), quantity: z.number().int().min(1).max(10_000_000) }))
+        .max(20),
+    })
+    .nullish(),
+});
 
 export const Route = createFileRoute("/api/configurator/solve")({
   server: {
@@ -18,21 +29,21 @@ export const Route = createFileRoute("/api/configurator/solve")({
         });
         if (limited) return limited;
 
-        let query: string;
+        let input: z.infer<typeof schema>;
         try {
-          query = schema.parse(await request.json()).query;
+          input = schema.parse(await request.json());
         } catch {
           return Response.json(
             {
               error:
-                "Опишите задачу подробнее (10–1000 символов): объект, масса, основание.",
+                "Опишите задачу подробнее (до 1000 символов): объект, масса, основание.",
             },
             { status: 400 },
           );
         }
         try {
           const { solveConfiguration } = await import("@/lib/rag.server");
-          const result = await solveConfiguration(query);
+          const result = await solveConfiguration(input.query, input.history ?? null);
           return Response.json(result);
         } catch (e) {
           const message = e instanceof Error ? e.message : "Ошибка конфигуратора";
