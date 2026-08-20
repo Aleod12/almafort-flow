@@ -134,7 +134,7 @@ function Index() {
               <HeroUpload />
               <a
                 href="/catalog"
-                className="group mt-6 inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-primary hover:underline hover:decoration-primary hover:underline-offset-4"
+                className="group mt-4 inline-flex min-h-11 cursor-pointer items-center gap-2 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary hover:underline hover:decoration-primary hover:underline-offset-4"
               >
                 Или перейти в каталог серийной продукции
                 <ArrowRight

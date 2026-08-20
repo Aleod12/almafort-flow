@@ -1,3 +1,4 @@
+import { formatPhone } from "@/lib/phone";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { AlertTriangle, FileDown, Loader2, Search, Trash2 } from "lucide-react";
@@ -499,10 +500,13 @@ export function CartPanel() {
               </span>
             <input
               value={form.phone}
-              onChange={field("phone")}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, phone: formatPhone(e.target.value) }))
+              }
               type="tel"
               inputMode="tel"
               autoComplete="tel"
+              maxLength={18}
               placeholder="+7 (___) ___-__-__"
               className="h-12 rounded-sm border border-[#D1D5DB] px-3.5 py-2.5 text-[13px] leading-[1.3] outline-none transition-colors placeholder:text-[13px] focus:border-primary md:h-11"
             />

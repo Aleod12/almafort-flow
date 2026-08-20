@@ -36,6 +36,8 @@ function useRowState(p: Product, onAdd: Props["onAdd"]) {
       setQuote(true);
       return;
     }
+    // Защита от дребезга: серия быстрых тапов не создаёт дубликаты позиций
+    if (state !== "idle") return;
     if (qty <= 0) {
       toast.error("Укажите количество");
       return;
@@ -147,7 +149,7 @@ function MobileCard({
           <button
             type="button"
             onClick={() => onOpenProduct(p)}
-            className="tap-sm block w-full text-left text-[15px] font-semibold leading-tight text-foreground"
+            className="tap-sm block w-full break-words text-left text-[15px] font-semibold leading-tight text-foreground [overflow-wrap:anywhere]"
           >
             {p.name}
           </button>

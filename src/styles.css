@@ -383,10 +383,32 @@ button {
 
 /* На смартфоне hover-состояний нет: гасим их, оставляя active */
 @media (hover: none) {
+  /* Тач-экран: hover не должен «залипать» после тапа при скролле */
   a:hover,
-  button:hover {
+  button:hover,
+  [role="button"]:hover,
+  .group:hover {
     transform: none;
   }
+  a:hover,
+  button:hover {
+    box-shadow: none;
+  }
+}
+
+/* Двойной тап по интерактиву не зумит экран */
+a,
+button,
+[role="button"],
+label,
+summary {
+  touch-action: manipulation;
+}
+
+/* Скролл внутри списков не «протекает» на всю страницу */
+.scroll-isolate {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 

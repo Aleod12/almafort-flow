@@ -99,7 +99,7 @@ export function SiteFooter() {
 
           <a
             href={COMPANY.phoneHref}
-            className="mt-8 block text-[26px] font-extrabold tracking-tight text-white tabular-nums lg:text-[32px]"
+            className="mt-8 inline-flex min-h-11 items-center text-[26px] font-extrabold tracking-tight text-white tabular-nums lg:text-[32px]"
           >
             {COMPANY.phone}
           </a>
@@ -112,14 +112,14 @@ export function SiteFooter() {
 
           <a
             href={mail ? `mailto:${mail}` : undefined}
-            className="mt-6 inline-block text-base text-white hover:underline hover:underline-offset-4"
+            className="mt-4 inline-flex min-h-11 items-center text-base text-white hover:underline hover:underline-offset-4"
           >
             {mail || "отдел продаж — почта"}
           </a>
 
           <a
             href={COMPANY.siteUrl}
-            className="mt-2 block text-sm text-[#9CA3AF] hover:text-white"
+            className="mt-1 inline-flex min-h-11 items-center text-sm text-[#9CA3AF] hover:text-white"
           >
             {COMPANY.site}
           </a>
@@ -161,13 +161,13 @@ export function SiteFooter() {
         <div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-[max(5vw,20px)] py-5 text-[12px] leading-[1.6] text-[#9CA3AF] sm:flex-row sm:items-center sm:justify-between lg:px-10">
           <p>© 2006–2026 ALMAFORT · ИП Сазонов Е. О..  Официально зарегистрированный товарный знак (№ 1192250).</p>
           <div className="flex flex-wrap gap-6">
-            <a href="/auth" className="font-semibold text-white transition-colors hover:text-[#9CA3AF]">
+            <a href="/auth" className="inline-flex min-h-11 items-center font-semibold text-white transition-colors hover:text-[#9CA3AF]">
               Кабинет снабженца
             </a>
-            <a href="/privacy" className="underline underline-offset-2 transition-colors hover:text-white">
+            <a href="/privacy" className="inline-flex min-h-11 items-center underline underline-offset-2 transition-colors hover:text-white">
               Политика конфиденциальности
             </a>
-            <a href="/terms" className="underline underline-offset-2 transition-colors hover:text-white">
+            <a href="/terms" className="inline-flex min-h-11 items-center underline underline-offset-2 transition-colors hover:text-white">
               Пользовательское соглашение
             </a>
           </div>

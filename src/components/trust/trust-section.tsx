@@ -1,3 +1,4 @@
+import { SafeImage } from "@/components/safe-image";
 import { useCallback, useEffect, useState } from "react";
 import { Check, MapPin, Search, Truck, X, Zap } from "lucide-react";
 import cert3dAsset from "@/assets/certificates/cert-3d-print.jpg.asset.json";
@@ -69,7 +70,7 @@ function DocThumb({ doc, onOpen }: { doc: Doc; onOpen: (d: Doc) => void }) {
         onClick={() => onOpen(doc)}
         className="group relative block w-full cursor-zoom-in overflow-hidden rounded-lg bg-card shadow-[0_4px_12px_oklch(0_0_0/0.05)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_oklch(0_0_0/0.12)] [will-change:transform]"
       >
-        <img
+        <SafeImage
           src={doc.src}
           alt={doc.alt}
           loading="lazy"

@@ -1,3 +1,4 @@
+import { SafeImage } from "@/components/safe-image";
 /**
  * Превью товара 1:1. Пока в БД нет image_url — рендерим серый плейсхолдер,
  * чтобы строки таблицы не «прыгали» по высоте. Появится фото — заменится само.
@@ -16,7 +17,7 @@ export function ProductThumb({
       className={`grid aspect-square w-full place-items-center overflow-hidden rounded-[6px] bg-[#F3F4F6] ${className}`}
     >
       {src ? (
-        <img src={src} alt={alt} loading="lazy" className="h-full w-full object-cover" />
+        <SafeImage src={src} alt={alt} loading="lazy" className="h-full w-full object-cover" />
       ) : (
         <svg
           viewBox="0 0 48 48"
