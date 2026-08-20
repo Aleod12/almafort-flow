@@ -85,7 +85,7 @@ export const Route = createFileRoute("/api/checkout/submit")({
         }
 
         const { pushToCrm } = await import("@/lib/crm.server");
-        const crm = await pushToCrm({
+        const crmOrder = {
           customer: {
             name: parsed.customer.name,
             phone: parsed.customer.phone,
@@ -100,9 +100,20 @@ export const Route = createFileRoute("/api/checkout/submit")({
           total: parsed.total,
           invoiceUrl,
           items: parsed.items,
-        });
+        };
+        const crm = await pushToCrm(crmOrder).catch((e) => ({
+          crm: "none" as const,
+          ok: false,
+          detail: String(e),
+        }));
 
         const orderNumber = `AF-${stamp}`;
+        // CRM на профилактике — лид уходит в резервную очередь и переотправляется кроном.
+        if (!crm.ok) {
+          const { enqueueCrmLead } = await import("@/lib/crm-queue.server");
+          await enqueueCrmLead(orderNumber, crmOrder, crm.detail ?? "CRM недоступна");
+        }
+
         // Push в 1С: неудача не ломает чекаут — заказ уйдёт по Retry Pattern.
         const { enqueueOrder } = await import("@/lib/erp-1c.server");
         const erp = await enqueueOrder({

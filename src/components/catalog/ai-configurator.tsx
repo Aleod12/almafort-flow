@@ -277,7 +277,8 @@ export function AiConfigurator() {
       <div className="mt-6 flex flex-col gap-3 lg:flex-row">
         <textarea
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => setQuery(e.target.value.slice(0, 2000))}
+          maxLength={2000}
           rows={3}
           placeholder="Например: закрепить кондиционер 150 кг на сэндвич-панель"
           className="flex-1 resize-none rounded-sm border border-[#D1D5DB] bg-card p-4 text-sm leading-[1.5] text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"

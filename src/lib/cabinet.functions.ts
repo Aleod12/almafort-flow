@@ -154,6 +154,8 @@ export const saveOrderToCabinet = createServerFn({ method: "POST" })
         companyId: z.string().uuid().nullish(),
         deferred: z.boolean().default(false),
         invoiceUrl: z.string().url().max(1000).nullish(),
+        /** Ключ идемпотентности: 5 кликов «Оформить» дают ровно один заказ. */
+        idempotencyKey: z.string().trim().min(8).max(80).nullish(),
       })
       .parse(input),
   )
@@ -169,6 +171,55 @@ export const saveOrderToCabinet = createServerFn({ method: "POST" })
         "Почта не подтверждена. Откройте письмо ALMAFORT и перейдите по ссылке — после этого оформление заказов в кабинете разблокируется.",
       );
     }
+    // Идемпотентность: повторный клик с тем же ключом возвращает уже созданный заказ.
+    if (data.idempotencyKey) {
+      const { data: dup } = await supabase
+        .from("orders")
+        .select("id, number")
+        .eq("user_id", userId)
+        .eq("idempotency_key", data.idempotencyKey)
+        .maybeSingle();
+      if (dup) return dup;
+    }
+
+    // Защита от подмены payload в DevTools: цены и суммы пересчитываем на сервере.
+    const { PRODUCTS, tierOf, unitPrice } = await import("@/data/catalog");
+    const { data: loyaltyRaw } = await supabase.rpc("my_loyalty");
+    const grade = Number((loyaltyRaw as { tier?: number } | null)?.tier ?? 1);
+    const minColumn = Math.min(2, Math.max(0, grade - 1)) as 0 | 1 | 2;
+
+    let goodsServer = 0;
+    for (const item of data.items) {
+      const product = PRODUCTS.find((p) => p.sku === item.sku);
+      if (!product) throw new Error(`Позиция ${item.sku} больше не поставляется — обновите корзину`);
+      const column = Math.max(tierOf(item.quantity, product), minColumn) as 0 | 1 | 2;
+      const unit =
+        column === 2
+          ? product.price5000
+          : column === 1
+            ? product.price1000
+            : unitPrice(product, item.quantity);
+      goodsServer += unit * item.quantity;
+    }
+    goodsServer = Math.round(goodsServer);
+
+    if (Math.abs(goodsServer - Math.round(data.goodsPrice)) > 1) {
+      throw new Error("Сумма заказа не совпадает с актуальным прайсом. Обновите корзину.");
+    }
+    const totalServer = goodsServer + Math.round(data.deliveryPrice);
+    if (Math.abs(totalServer - Math.round(data.total)) > 1) {
+      throw new Error("Итог заказа пересчитан сервером. Обновите корзину и повторите оформление.");
+    }
+
+    // Версия оферты фиксируется на момент сделки и не меняется задним числом.
+    const { data: offerRow } = await supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "offer_version")
+      .maybeSingle();
+    const offerVersion =
+      (offerRow?.value as { version?: string } | null)?.version ?? "v1";
+
     const { data: order, error } = await supabase
       .from("orders")
       .insert({
@@ -177,16 +228,30 @@ export const saveOrderToCabinet = createServerFn({ method: "POST" })
         number: data.number,
         status: data.deferred ? "paid" : "awaiting_payment",
         items: data.items,
-        goods_price: data.goodsPrice,
         delivery_price: data.deliveryPrice,
-        total: data.total,
         carrier: data.carrier,
         city: data.city,
         deferred_payment: data.deferred,
+        offer_version: offerVersion,
+        idempotency_key: data.idempotencyKey ?? null,
+        goods_price: goodsServer,
+        total: totalServer,
       })
       .select("id, number")
       .single();
-    if (error) throw new Error(error.message);
+    if (error) {
+      // Гонка параллельных кликов: уникальный индекс отдаёт уже созданный заказ.
+      if (error.code === "23505" && data.idempotencyKey) {
+        const { data: dup } = await supabase
+          .from("orders")
+          .select("id, number")
+          .eq("user_id", userId)
+          .eq("idempotency_key", data.idempotencyKey)
+          .maybeSingle();
+        if (dup) return dup;
+      }
+      throw new Error(error.message);
+    }
 
     await supabase.from("order_events").insert({
       order_id: order.id,

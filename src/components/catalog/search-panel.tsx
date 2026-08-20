@@ -115,6 +115,7 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
         <Search className="size-5 shrink-0 text-muted-foreground" strokeWidth={1.5} />
         <input
           ref={inputRef}
+          maxLength={200}
           value={query}
           onChange={(e) => {
             onQuery(e.target.value);

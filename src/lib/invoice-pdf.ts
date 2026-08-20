@@ -8,6 +8,15 @@ const CARRIER_LABEL: Record<Carrier, string> = {
   pickup: "Самовывоз, г. Дивногорск, Нижний проезд 15/1",
 };
 
+/**
+ * Деградация PDF: сверхдлинные названия юрлиц и артикулы без пробелов
+ * не должны вылезать за поля A4 — режем длину и даём точки переноса.
+ */
+const safeText = (v: unknown, limit = 180) => {
+  const raw = String(v ?? "").replace(/\s+/g, " ").trim().slice(0, limit);
+  return raw.replace(/\S{22,}/g, (t) => t.replace(/(.{18})/g, "$1\u200b"));
+};
+
 const money = (n: number) =>
   n.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -100,8 +109,8 @@ export async function generateInvoicePdf({
     const { unit, sum } = linePrice(l.sku, l.quantity);
     body.push([
       { text: String(i + 1) },
-      { text: l.sku },
-      { text: productBySku(l.sku)?.name ?? l.name },
+      { text: safeText(l.sku, 40) },
+      { text: safeText(productBySku(l.sku)?.name ?? l.name, 160) },
       { text: l.quantity.toLocaleString("ru-RU"), alignment: "right" },
       { text: money(unit), alignment: "right" },
       { text: money(sum), alignment: "right" },
@@ -112,7 +121,7 @@ export async function generateInvoicePdf({
     body.push([
       { text: String(lines.length + 1) },
       { text: "DELIVERY" },
-      { text: `Доставка: ${CARRIER_LABEL[carrier]}${city ? `, ${city}` : ""}` },
+      { text: safeText(`Доставка: ${CARRIER_LABEL[carrier]}${city ? `, ${city}` : ""}`) },
       { text: "1", alignment: "right" },
       { text: money(delivery), alignment: "right" },
       { text: money(delivery), alignment: "right" },

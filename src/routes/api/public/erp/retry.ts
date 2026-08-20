@@ -15,8 +15,14 @@ export const Route = createFileRoute("/api/public/erp/retry")({
           return new Response("Unauthorized", { status: 401 });
         }
         const { retryPendingOrders } = await import("@/lib/erp-1c.server");
+        const { retryPendingCrmLeads } = await import("@/lib/crm-queue.server");
         const result = await retryPendingOrders();
-        return Response.json({ ok: true, ...result });
+        const crm = await retryPendingCrmLeads().catch((e) => ({
+          processed: 0,
+          sent: 0,
+          error: String(e),
+        }));
+        return Response.json({ ok: true, ...result, crm });
       },
     },
   },
