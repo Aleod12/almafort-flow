@@ -74,6 +74,10 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
   const swipe = useSwipeClose(() => setResult(null));
   const [dragOver, setDragOver] = useState(false);
   const [shake, setShake] = useState<string | null>(null);
+  /** Сетевая/серверная ошибка: без явного текста экран выглядит «зависшим». */
+  const [fatal, setFatal] = useState<string | null>(null);
+  /** Выбранная клиентом категория в сценарии ручного уточнения. */
+  const [clarified, setClarified] = useState<string | null>(null);
   const [size, setSize] = useState("");
   const [reverse, setReverse] = useState(false);
   /** Замороженный кадр: показываем поверх видео, пока думает нейросеть. */
