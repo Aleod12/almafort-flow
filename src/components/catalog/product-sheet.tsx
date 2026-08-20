@@ -127,7 +127,7 @@ export function ProductSheet({
 
   return (
     <Dialog open={!!product} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
+      <DialogContent className="max-h-[90dvh] max-w-5xl overflow-y-auto">
         {product && (
           <>
             <DialogHeader>

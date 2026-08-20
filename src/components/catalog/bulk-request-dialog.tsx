@@ -101,7 +101,7 @@ export function BulkRequestDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bottom-0 top-auto max-h-[88vh] w-full max-w-full translate-y-0 overflow-y-auto rounded-t-2xl px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:bottom-auto sm:top-1/2 sm:max-w-lg sm:-translate-y-1/2 sm:rounded-lg sm:pb-6">
+      <DialogContent className="bottom-0 top-auto max-h-[88dvh] w-full max-w-full translate-y-0 overflow-y-auto rounded-t-2xl px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:bottom-auto sm:top-1/2 sm:max-w-lg sm:-translate-y-1/2 sm:rounded-lg sm:pb-6">
         <DialogHeader>
           <DialogTitle className="text-lg font-extrabold">Спеццена на крупную партию</DialogTitle>
         </DialogHeader>

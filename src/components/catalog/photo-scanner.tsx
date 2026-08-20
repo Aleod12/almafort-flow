@@ -383,7 +383,7 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
       {/* Сценарии 3.1–3.3: шторка с результатом */}
       {result && result.scenario !== "invalid" && (
         <div
-          className="absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto rounded-t-2xl bg-card p-6 motion-safe:animate-[slide-in-bottom_0.28s_ease-out]"
+          className="absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-y-auto rounded-t-2xl bg-card p-6 motion-safe:animate-[slide-in-bottom_0.28s_ease-out]"
           style={{ paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
         >
           <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-[#D1D5DB]" />
