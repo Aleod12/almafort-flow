@@ -14,13 +14,25 @@ export const Route = createFileRoute("/api/vision/identify")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        let image: string;
+        let raw: string;
         try {
-          image = schema.parse(await request.json()).image;
+          raw = schema.parse(await request.json()).image;
         } catch {
           return Response.json({ error: "Некорректный кадр" }, { status: 400 });
         }
         try {
+          // Защита от спуфинга: расширению и MIME не верим — проверяем сигнатуру
+          // и пересобираем картинку без EXIF/XMP/ICC, только потом отдаём модели.
+          const { sanitizeImageDataUrl } = await import("@/lib/image-sanitize.server");
+          const clean = sanitizeImageDataUrl(raw);
+          if (!clean) {
+            return Response.json(
+              { error: "Файл не является корректным изображением JPG, PNG или WebP" },
+              { status: 400 },
+            );
+          }
+          const image = clean.dataUrl;
+
           const { identifyPart, matchProducts, classVariants, logVisionFail, verdictCategory } =
             await import("@/lib/vision.server");
           const verdict = await identifyPart(image);
