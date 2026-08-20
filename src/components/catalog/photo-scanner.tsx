@@ -349,6 +349,15 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
     !camError &&
     (!result || result.scenario === "invalid" || result.scenario === "lowlight");
   const showSheet = result && result.scenario !== "invalid" && result.scenario !== "lowlight";
+  /** Явный Error State для ПК: «тихий» сброс к дропзоне запрещён. */
+  const desktopError =
+    fatal ??
+    shake ??
+    (result?.scenario === "invalid"
+      ? "На фото не обнаружена фурнитура. Распознан посторонний объект. Пожалуйста, загрузите фото крепежа крупным планом."
+      : result?.scenario === "lowlight"
+        ? "Деталь сливается с фоном или снимок слишком тёмный. Положите деталь на светлый лист бумаги и загрузите фото ещё раз."
+        : null);
 
   return (
     <div
