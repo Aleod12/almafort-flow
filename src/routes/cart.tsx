@@ -51,7 +51,9 @@ function CartPage() {
           )}
         </header>
 
-        <div className="mb-10">{parsing ? <ParsingSkeleton /> : <SpecUpload />}</div>
+        <div className="mb-10">
+          {parsing ? <ParsingSkeleton /> : review ? <SpecReview /> : <SpecUpload />}
+        </div>
 
         <CartPanel />
       </main>
