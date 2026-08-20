@@ -88,6 +88,7 @@ export function SiteHeader() {
           </span>
           <a
             href="tel:+79029229734"
+            onClick={() => trackContact("phone_click")}
             className="flex shrink-0 items-center gap-2 whitespace-nowrap text-[14px] font-semibold leading-none text-foreground hover:text-primary"
             style={{ whiteSpace: "nowrap" }}
           >
@@ -183,6 +184,7 @@ export function SiteHeader() {
 
             <a
               href="tel:+79029229734"
+            onClick={() => trackContact("phone_click")}
               className="mt-3 flex h-14 items-center justify-center gap-2 rounded-md border border-border text-base font-semibold text-foreground"
             >
               <Phone className="size-5" strokeWidth={1.6} />

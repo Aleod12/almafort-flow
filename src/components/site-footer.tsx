@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { MapPin, Send, MessageCircle, X } from "lucide-react";
+import { trackContact } from "@/lib/metrika";
 import { COMPANY, companyEmail } from "@/lib/company";
 
 const LAT = COMPANY.lat;
@@ -112,6 +113,7 @@ export function SiteFooter() {
 
           <a
             href={mail ? `mailto:${mail}` : undefined}
+            onClick={() => trackContact("email_click")}
             className="mt-4 inline-flex min-h-11 items-center text-base text-white hover:underline hover:underline-offset-4"
           >
             {mail || "отдел продаж — почта"}
