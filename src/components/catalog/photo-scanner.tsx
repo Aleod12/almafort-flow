@@ -117,6 +117,9 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
     }
   }, []);
 
+  const shakeTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(shakeTimer.current), []);
+
   useEffect(() => {
     if (!open) {
       stop();
@@ -189,7 +192,8 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
 
     if (sharpness(canvas) < BLUR_THRESHOLD) {
       setShake(true);
-      setTimeout(() => setShake(false), 2000);
+      window.clearTimeout(shakeTimer.current);
+      shakeTimer.current = window.setTimeout(() => setShake(false), 2000);
       return;
     }
     await analyze(canvas.toDataURL("image/webp", 0.85));

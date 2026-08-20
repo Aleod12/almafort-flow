@@ -205,7 +205,8 @@ export function AiConfigurator() {
       window.prompt("Скопируйте ссылку на конфигурацию", link);
     }
     setShared(true);
-    window.setTimeout(() => setShared(false), 2500);
+    window.clearTimeout(sharedTimer.current);
+    sharedTimer.current = window.setTimeout(() => setShared(false), 2500);
     toast.success("Ссылка на конфигурацию скопирована");
   };
 
