@@ -9,32 +9,48 @@ const MAX_BYTES = 10 * 1024 * 1024;
 const ACCEPT = {
   "application/vnd.ms-excel": [".xls"],
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+  "application/vnd.ms-excel.sheet.macroEnabled.12": [".xlsm"],
   "text/csv": [".csv"],
 };
 
+const BAD_FORMAT = "Ошибка: Файл поврежден или имеет неверный формат. Загрузите корректный документ Excel";
+
 export function SpecUpload({ compact = false }: { compact?: boolean }) {
   const setParsing = useCart((s) => s.setParsing);
-  const applyParse = useCart((s) => s.applyParse);
+  const setReview = useCart((s) => s.setReview);
   const parsing = useCart((s) => s.parsing);
 
   const onDropAccepted = useCallback(
     async (files: File[]) => {
       const file = files[0];
       if (!file) return;
+      const ext = file.name.toLowerCase().split(".").pop() ?? "";
+      if (!["xls", "xlsx", "xlsm", "csv"].includes(ext)) {
+        toast.error(BAD_FORMAT);
+        return;
+      }
+      if (file.size > MAX_BYTES) {
+        toast.error(
+          "Файл слишком велик. Максимальный размер — 10 МБ (до 5000 позиций). Разделите смету на две части",
+        );
+        return;
+      }
       setParsing(true);
       try {
         const body = new FormData();
         body.append("file", file);
         const res = await fetch("/api/parser/upload", { method: "POST", body });
         const json = await res.json();
-        if (!res.ok) throw new Error(json?.error ?? "Ошибка разбора файла");
-        applyParse(json);
-        const { matched = 0, ambiguous = 0, notFound = 0, rowsScanned = 0 } = json;
+        if (!res.ok) throw new Error(json?.error ?? BAD_FORMAT);
+        setReview({
+          fileName: json.fileName ?? file.name,
+          truncated: Boolean(json.truncated),
+          columnMap: json.columnMap ?? null,
+          rows: json.rows ?? [],
+        });
+        const { matched = 0, rowsScanned = 0 } = json;
         toast.success(`Обработано ${rowsScanned} строк: ${matched} распознано`, {
-          description:
-            ambiguous || notFound
-              ? `${ambiguous} требуют уточнения, ${notFound} не найдено — разрешите их в корзине.`
-              : "Все позиции добавлены в корзину.",
+          description: "Проверьте позиции перед переносом в корзину.",
           action: {
             label: "Открыть корзину",
             onClick: () => {
@@ -42,24 +58,24 @@ export function SpecUpload({ compact = false }: { compact?: boolean }) {
             },
           },
         });
-
-
       } catch (e) {
         setParsing(false);
-        toast.error(e instanceof Error ? e.message : "Не удалось разобрать файл");
+        toast.error(e instanceof Error ? e.message : BAD_FORMAT);
       }
     },
-    [applyParse, setParsing],
+    [setReview, setParsing],
   );
 
   const onDropRejected = useCallback((rejections: FileRejection[]) => {
     const code = rejections[0]?.errors[0]?.code;
     if (code === "file-too-large")
-      toast.error("Файл больше 10 МБ. Разделите спецификацию на части.");
-    else toast.error("Формат не поддерживается. Загрузите таблицу Excel или CSV");
+      toast.error(
+        "Файл слишком велик. Максимальный размер — 10 МБ (до 5000 позиций). Разделите смету на две части",
+      );
+    else toast.error(BAD_FORMAT);
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, isDragReject, open } = useDropzone({
     accept: ACCEPT,
     maxSize: MAX_BYTES,
     multiple: false,
