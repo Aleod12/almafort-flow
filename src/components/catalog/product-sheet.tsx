@@ -53,6 +53,10 @@ export function ProductSheet({
     }
     // Старые цены исчезают сразу — клиент видит, что система считает.
     setQuotes([]);
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      setCalcState("error");
+      return;
+    }
     setCalcState("loading");
     const ctrl = new AbortController();
     // Отказоустойчивость: молчание ТК дольше 3 с — расчёт уточнит менеджер.
