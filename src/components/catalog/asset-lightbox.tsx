@@ -68,7 +68,7 @@ export function AssetLightbox({
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="top-auto bottom-0 left-0 h-[92vh] max-h-[92vh] w-full max-w-none translate-x-0 translate-y-0 overflow-y-auto rounded-t-2xl p-5 sm:top-[50%] sm:bottom-auto sm:left-[50%] sm:h-auto sm:max-h-[90vh] sm:max-w-4xl sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-lg sm:p-6">
+      <DialogContent className="top-auto bottom-0 left-0 h-[92dvh] max-h-[92dvh] w-full max-w-none translate-x-0 translate-y-0 overflow-y-auto rounded-t-2xl p-5 sm:top-[50%] sm:bottom-auto sm:left-[50%] sm:h-auto sm:max-h-[90dvh] sm:max-w-4xl sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-lg sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-lg font-extrabold text-foreground">
             {product.name}

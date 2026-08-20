@@ -58,7 +58,7 @@ export function AssetLinkModal({
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
-      <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-xl bg-background p-6 shadow-xl">
+      <div className="max-h-[90dvh] w-full max-w-xl overflow-y-auto rounded-xl bg-background p-6 shadow-xl">
         <div className="mb-4 flex items-start gap-4">
           <div className="flex-1">
             <h2 className="text-lg font-bold">Привязать контент</h2>

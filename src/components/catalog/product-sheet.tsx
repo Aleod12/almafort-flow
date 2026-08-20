@@ -53,6 +53,10 @@ export function ProductSheet({
     }
     // Старые цены исчезают сразу — клиент видит, что система считает.
     setQuotes([]);
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      setCalcState("failed");
+      return;
+    }
     setCalcState("loading");
     const ctrl = new AbortController();
     // Отказоустойчивость: молчание ТК дольше 3 с — расчёт уточнит менеджер.
@@ -127,7 +131,7 @@ export function ProductSheet({
 
   return (
     <Dialog open={!!product} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
+      <DialogContent className="max-h-[90dvh] max-w-5xl overflow-y-auto">
         {product && (
           <>
             <DialogHeader>

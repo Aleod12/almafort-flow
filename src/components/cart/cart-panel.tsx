@@ -1,4 +1,5 @@
 import { formatPhone } from "@/lib/phone";
+import { ensureOnline } from "@/lib/use-network";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { AlertTriangle, FileDown, Loader2, Search, Trash2 } from "lucide-react";
@@ -81,9 +82,16 @@ export function CartPanel() {
       setQuotes([]);
       return;
     }
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      setQuotes([]);
+      setQuoting(false);
+      return;
+    }
     const ctrl = new AbortController();
     let alive = true;
     setQuoting(true);
+    // Обрыв связи не должен оставлять бесконечный лоадер.
+    const offlineTimer = window.setTimeout(() => ctrl.abort(), 15000);
     (async () => {
       try {
         const res = await fetch("/api/shipping-calc", {
@@ -103,11 +111,13 @@ export function CartPanel() {
         if ((e as Error).name !== "AbortError" && alive)
           setQuoteError(e instanceof Error ? e.message : "Ошибка расчёта доставки");
       } finally {
+        window.clearTimeout(offlineTimer);
         if (alive) setQuoting(false);
       }
     })();
     return () => {
       alive = false;
+      window.clearTimeout(offlineTimer);
       ctrl.abort();
     };
   }, [debouncedKey, setQuotes, setQuoting, setQuoteError]);
@@ -144,6 +154,7 @@ export function CartPanel() {
     if (submitting) return;
     if (!idemKey.current) idemKey.current = `af-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     const idempotencyKey = idemKey.current;
+    if (!ensureOnline("Заказ не отправлен — проверьте сеть и повторите")) return;
     if (!lines.length) {
       toast.error("Корзина пуста — добавьте позиции или загрузите спецификацию");
       return;

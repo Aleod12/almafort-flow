@@ -476,3 +476,70 @@ summary {
     font-size: 16px;
   }
 }
+
+
+/* --- QA-ПРОТОКОЛ: ГЕОМЕТРИЯ, КЛАВИАТУРА, ЛИПКИЕ КОЛОНКИ ---------------- */
+
+/* 100vh-баг мобильных браузеров: панель Safari/Chrome прячется на скролле
+   и экран «прыгает». Динамическая единица держит высоту стабильной. */
+@supports (height: 100dvh) {
+  .min-h-screen {
+    min-height: 100dvh;
+  }
+}
+
+/* Клавиатура не должна закрывать активное поле и кнопку отправки */
+input:focus,
+textarea:focus,
+select:focus {
+  scroll-margin-top: 96px;
+  scroll-margin-bottom: 180px;
+}
+
+/* Липкая колонка названия в B2B-таблице: при горизонтальном скролле
+   клиент всегда видит, какую строку он смотрит. */
+@media (max-width: 1120px) {
+  .catalog-grid-header > *:nth-child(-n + 3),
+  .catalog-row > *:nth-child(-n + 3) {
+    position: sticky;
+    z-index: 6;
+    background-color: var(--card);
+  }
+  .catalog-grid-header > *:nth-child(1),
+  .catalog-row > *:nth-child(1) {
+    left: 0;
+  }
+  .catalog-grid-header > *:nth-child(2),
+  .catalog-row > *:nth-child(2) {
+    left: 40px;
+  }
+  .catalog-grid-header > *:nth-child(3),
+  .catalog-row > *:nth-child(3) {
+    left: 100px;
+    box-shadow: 8px 0 12px -10px oklch(0 0 0 / 0.35);
+  }
+}
+
+/* Ландшафт на телефоне: шторки не выше экрана и всегда прокручиваются */
+@media (max-height: 520px) {
+  [data-bottom-sheet] {
+    max-height: 100dvh;
+    overflow-y: auto;
+  }
+}
+
+/* Ручка шторки — явная цель для свайпа вниз */
+.sheet-grabber {
+  display: grid;
+  place-items: center;
+  padding: 10px 0 6px;
+  cursor: grab;
+  touch-action: none;
+}
+.sheet-grabber::before {
+  content: "";
+  width: 44px;
+  height: 4px;
+  border-radius: 9999px;
+  background-color: var(--placeholder);
+}

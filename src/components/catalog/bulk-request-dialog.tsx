@@ -1,6 +1,7 @@
 import { formatPhone } from "@/lib/phone";
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useSwipeClose } from "@/lib/use-swipe-close";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/data/catalog";
 import { formatPrice } from "@/lib/pricing";
@@ -99,9 +100,17 @@ export function BulkRequestDialog({
     }
   };
 
+  const swipe = useSwipeClose(onClose);
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bottom-0 top-auto max-h-[88vh] w-full max-w-full translate-y-0 overflow-y-auto rounded-t-2xl px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:bottom-auto sm:top-1/2 sm:max-w-lg sm:-translate-y-1/2 sm:rounded-lg sm:pb-6">
+      <DialogContent
+        data-bottom-sheet
+        style={swipe.sheetStyle}
+        className="bottom-0 top-auto max-h-[88dvh] w-full max-w-full translate-y-0 overflow-y-auto rounded-t-2xl px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:bottom-auto sm:top-1/2 sm:max-w-lg sm:-translate-y-1/2 sm:rounded-lg sm:pb-6"
+      >
+        {/* Свайп вниз — привычный способ закрыть шторку на смартфоне */}
+        <div className="sheet-grabber -mt-2 sm:hidden" aria-hidden {...swipe.handleProps} />
         <DialogHeader>
           <DialogTitle className="text-lg font-extrabold">Спеццена на крупную партию</DialogTitle>
         </DialogHeader>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CameraOff, ImageUp, Loader2, RefreshCw, TriangleAlert, X } from "lucide-react";
+import { CameraOff, ImageUp, Loader2, RefreshCw, SwitchCamera, TriangleAlert, X } from "lucide-react";
+import { useSwipeClose } from "@/lib/use-swipe-close";
 import { toast } from "sonner";
 import { useCart } from "@/store/cart-store";
 import { formatPrice } from "@/lib/pricing";
@@ -76,6 +77,8 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
   const [result, setResult] = useState<Result | null>(null);
   const [camError, setCamError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
+  const [facing, setFacing] = useState<"environment" | "user">("environment");
+  const swipe = useSwipeClose(() => setResult(null));
   const [shake, setShake] = useState(false);
   const [size, setSize] = useState("");
   const [reverse, setReverse] = useState(false);
@@ -87,6 +90,9 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
     streamRef.current = null;
   }, []);
 
+  const facingRef = useRef<"environment" | "user">("environment");
+  facingRef.current = facing;
+
   const start = useCallback(async () => {
     setCamError(null);
     try {
@@ -94,7 +100,7 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
         throw Object.assign(new Error("no api"), { name: "NotFoundError" });
       }
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 } },
+        video: { facingMode: { ideal: facingRef.current }, width: { ideal: 1920 } },
         audio: false,
       });
       streamRef.current = stream;
@@ -131,8 +137,42 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
       return;
     }
     void start();
-    return stop;
+
+    // Блокировка экрана обрывает трек: при возврате поднимаем поток заново,
+    // иначе вместо видео остаётся чёрный квадрат.
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      const live = streamRef.current?.getVideoTracks().some((t) => t.readyState === "live");
+      if (!live) {
+        stop();
+        void start();
+      } else {
+        void videoRef.current?.play().catch(() => undefined);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+
+    // Фон под полноэкранным сканером не прокручивается
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+      document.body.style.overflow = prevOverflow;
+      stop();
+    };
   }, [open, start, stop]);
+
+  /** Переключение основная ↔ фронтальная камера. */
+  const flipCamera = () => {
+    const next = facing === "environment" ? "user" : "environment";
+    setFacing(next);
+    facingRef.current = next;
+    stop();
+    void start();
+  };
 
   const analyze = async (image: string) => {
     setBusy(true);
@@ -219,6 +259,18 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
       >
         <X className="size-5" strokeWidth={2} />
       </button>
+
+      {showCamera && (
+        <button
+          type="button"
+          onClick={flipCamera}
+          aria-label="Переключить камеру"
+          className="absolute left-4 z-20 grid size-11 cursor-pointer place-items-center rounded-full bg-black/50 text-white"
+          style={{ top: "calc(1rem + env(safe-area-inset-top))" }}
+        >
+          <SwitchCamera className="size-5" strokeWidth={2} />
+        </button>
+      )}
 
       <input
         ref={fileRef}
@@ -383,10 +435,15 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
       {/* Сценарии 3.1–3.3: шторка с результатом */}
       {result && result.scenario !== "invalid" && (
         <div
-          className="absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto rounded-t-2xl bg-card p-6 motion-safe:animate-[slide-in-bottom_0.28s_ease-out]"
-          style={{ paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
+          data-bottom-sheet
+          className="absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-y-auto rounded-t-2xl bg-card p-6 motion-safe:animate-[slide-in-bottom_0.28s_ease-out]"
+          style={{
+            paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))",
+            ...(swipe.sheetStyle ?? {}),
+          }}
         >
-          <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-[#D1D5DB]" />
+          {/* Шторку можно смахнуть вниз, не целясь в крестик */}
+          <div className="sheet-grabber -mt-3 mb-1" aria-hidden {...swipe.handleProps} />
 
           {result.scenario === "exact" && (
             <>
