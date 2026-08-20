@@ -89,10 +89,17 @@ export const Route = createFileRoute("/api/checkout/submit")({
           parsed = schema.parse(await readJson(request));
         } catch (e) {
           if (e instanceof SlowRequestError) return timeoutResponse();
+          // Показываем клиенту конкретное поле, а не общую фразу.
+          const issues =
+            e instanceof z.ZodError
+              ? e.issues.map((i) => `${i.path.join(".") || "форма"}: ${i.message}`)
+              : [String(e)];
+          console.error("[checkout] validation failed", issues);
           return Response.json(
-            { error: "Проверьте контактные данные и состав заказа", detail: String(e) },
+            { error: `Проверьте данные заказа — ${issues.join("; ")}`, detail: issues },
             { status: 400 },
           );
+
         }
 
         try {
