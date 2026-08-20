@@ -70,7 +70,7 @@ function FacetNotFound() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
-      <main className="flex-1 mx-auto max-w-[900px] px-5 py-24 text-center">
+      <main className="w-full flex-1 mx-auto max-w-[900px] px-5 py-24 text-center">
         <h1 className="text-3xl font-extrabold text-foreground">Раздел каталога не найден</h1>
         <p className="mt-3 text-muted-foreground">
           Проверьте адрес или вернитесь в общий каталог.
@@ -159,7 +159,7 @@ function FacetPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
-      <main className="flex-1 mx-auto max-w-[1200px] px-5 pb-24 pt-10 lg:px-10">
+      <main className="w-full flex-1 mx-auto max-w-[1200px] px-5 pb-24 pt-10 lg:px-10">
         <nav aria-label="Хлебные крошки" className="mb-6 text-xs text-muted-foreground">
           {crumbs.map((c, i) => (
             <span key={c.path}>

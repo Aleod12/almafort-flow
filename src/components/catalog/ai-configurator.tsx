@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
-import { Loader2, Sparkles, Calculator, FileText, ShieldCheck, Wrench } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Loader2, Sparkles, Calculator, FileText, ShieldCheck, Wrench, Download, Link2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/store/cart-store";
 import { PRODUCTS, isOnRequest, tierOf } from "@/data/catalog";
 import { unitPriceOf, lineTotal, formatPrice } from "@/lib/pricing";
 import { ProductThumb } from "@/components/catalog/product-thumb";
+import { generateSpecPdf } from "@/lib/spec-pdf";
 
 type SolutionItem = {
   sku: string;
@@ -37,6 +38,38 @@ const EXAMPLES = [
   "Опереть трубопровод Ø108 мм на кровлю без пробивки гидроизоляции",
 ];
 
+/** Резьба из названия/размеров: «Болт М10х30» → "М10". */
+function threadOf(text: string): string | null {
+  const m = text.toLowerCase().match(/(?:^|[^a-zа-я0-9])[мm]\s?(\d{1,3})(?:[\s.,]|[хx*]|$)/i);
+  return m ? `М${m[1]}` : null;
+}
+
+/** Класс изделия — резьбовые пары проверяются на совпадение диаметра. */
+function kindOf(name: string): "bolt" | "nut" | "washer" | "other" {
+  const n = name.toLowerCase();
+  if (/гайк/.test(n)) return "nut";
+  if (/шайб/.test(n)) return "washer";
+  if (/болт|винт|шпильк|саморез|анкер/.test(n)) return "bolt";
+  return "other";
+}
+
+/** Компактная сериализация конфигурации для ссылки-шеринга. */
+function encodeConfig(data: unknown): string {
+  return btoa(unescape(encodeURIComponent(JSON.stringify(data))))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+function decodeConfig<T>(raw: string): T | null {
+  try {
+    const b64 = raw.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(decodeURIComponent(escape(atob(b64)))) as T;
+  } catch {
+    return null;
+  }
+}
+
 const TIER_LABEL: Record<1 | 2, string> = { 1: "Опт 1", 2: "Опт 2" };
 
 export function AiConfigurator() {
@@ -45,6 +78,49 @@ export function AiConfigurator() {
   const [result, setResult] = useState<ApiResult | null>(null);
   const [qty, setQty] = useState<Record<string, number>>({});
   const addLine = useCart((s) => s.addLine);
+  const [shared, setShared] = useState(false);
+
+  // Восстановление конфигурации по ссылке: инженер открывает узел ровно в том
+  // составе, в котором его сохранил снабженец.
+  useEffect(() => {
+    const raw = new URLSearchParams(window.location.search).get("cfg");
+    if (!raw) return;
+    type Saved = { q: string; l: string; s: number | null; i: Array<[string, number]> };
+    const saved = decodeConfig<Saved>(raw);
+    if (!saved?.i?.length) return;
+    const items: SolutionItem[] = saved.i
+      .map(([sku, quantity]): SolutionItem | null => {
+        const p = PRODUCTS.find((x) => x.sku === sku);
+        if (!p) return null;
+        return {
+          sku,
+          name: p.name,
+          quantity,
+          unit_price: 0,
+          total_price: 0,
+          tier: 0 as const,
+          base_price: p.price,
+          on_request: isOnRequest(p),
+          image_url: p.image_url,
+          dims: p.dims,
+        };
+      })
+      .filter((x): x is SolutionItem => Boolean(x));
+    if (!items.length) return;
+    setQuery(saved.q ?? "");
+    setQty(Object.fromEntries(saved.i));
+    setResult({
+      solution: {
+        recommended_items: items,
+        engineering_logic: saved.l ?? "Конфигурация восстановлена по ссылке.",
+        safety_margin_factor: saved.s ?? null,
+        is_service: false,
+        total: 0,
+      },
+      sources: [{ id: "shared", title: "сохранённая конфигурация" }],
+    });
+    document.getElementById("configurator")?.scrollIntoView({ behavior: "smooth" });
+  }, []);
 
   /** Пересчёт спецификации на лету: цена всегда берётся из каталога, не из ответа ИИ. */
   const rows = useMemo(() => {
@@ -66,6 +142,20 @@ export function AiConfigurator() {
   }, [result, qty]);
 
   const total = rows.reduce((s, r) => s + r.total_price, 0);
+
+  /** Логический контроль узла: резьба болта и гайки/шайбы обязана совпадать. */
+  const conflict = useMemo(() => {
+    const threads = new Map<string, string[]>();
+    for (const r of rows) {
+      const kind = kindOf(r.name);
+      if (kind === "other") continue;
+      const th = threadOf(`${r.name} ${r.dims}`);
+      if (!th) continue;
+      threads.set(th, [...(threads.get(th) ?? []), r.name]);
+    }
+    if (threads.size <= 1) return null;
+    return `Диаметр резьбы не совпадает: ${[...threads.keys()].join(" и ")}. Узел собран неверно — приведите позиции к одному диаметру.`;
+  }, [rows]);
   const isService = Boolean(result?.solution.is_service);
 
   const solve = async (text: string) => {
@@ -92,7 +182,61 @@ export function AiConfigurator() {
     }
   };
 
+  const shareUrl = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set(
+      "cfg",
+      encodeConfig({
+        q: query,
+        l: result?.solution.engineering_logic ?? "",
+        s: result?.solution.safety_margin_factor ?? null,
+        i: rows.map((r) => [r.sku, r.quantity]),
+      }),
+    );
+    url.hash = "configurator";
+    return url.toString();
+  };
+
+  const copyLink = async () => {
+    const link = shareUrl();
+    try {
+      await navigator.clipboard.writeText(link);
+    } catch {
+      window.prompt("Скопируйте ссылку на конфигурацию", link);
+    }
+    setShared(true);
+    window.setTimeout(() => setShared(false), 2500);
+    toast.success("Ссылка на конфигурацию скопирована");
+  };
+
+  const downloadPdf = async () => {
+    try {
+      await generateSpecPdf({
+        task: query || "Подбор узла",
+        logic: result?.solution.engineering_logic ?? "",
+        safety: result?.solution.safety_margin_factor ?? null,
+        rows: rows.map((r) => ({
+          sku: r.sku,
+          name: r.name,
+          dims: r.dims,
+          quantity: r.quantity,
+          unit_price: r.unit_price,
+          total_price: r.total_price,
+          on_request: r.on_request,
+        })),
+        total,
+        shareUrl: shareUrl(),
+      });
+    } catch {
+      toast.error("Не удалось сформировать PDF-смету");
+    }
+  };
+
   const transferToCart = () => {
+    if (conflict) {
+      toast.error(conflict);
+      return;
+    }
     const payable = rows.filter((r) => !r.on_request);
     if (payable.length === 0) return;
     for (const r of payable) addLine(r.sku, r.quantity);
@@ -254,6 +398,16 @@ export function AiConfigurator() {
               ))}
             </ul>
 
+            {conflict && (
+              <p
+                role="alert"
+                className="mt-4 flex items-start gap-2 rounded-sm border border-primary bg-[#FEF2F2] p-3 text-sm font-semibold leading-[1.5] text-primary"
+              >
+                <TriangleAlert className="mt-0.5 size-4 shrink-0" strokeWidth={2} />
+                {conflict}
+              </p>
+            )}
+
             {!isService && (
               <p className="mt-4 text-right text-sm font-bold tabular-nums text-foreground">
                 Итого: {formatPrice(total)}
@@ -262,6 +416,25 @@ export function AiConfigurator() {
           </div>
 
           <div className="flex flex-col gap-4 border-t border-border p-5 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => void downloadPdf()}
+                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-sm border border-[#D1D5DB] bg-card px-4 text-sm font-semibold text-foreground hover:border-primary hover:text-primary"
+              >
+                <Download className="size-4" strokeWidth={1.75} />
+                Скачать PDF-смету
+              </button>
+              <button
+                type="button"
+                onClick={() => void copyLink()}
+                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-sm border border-[#D1D5DB] bg-card px-4 text-sm font-semibold text-foreground hover:border-primary hover:text-primary"
+              >
+                <Link2 className="size-4" strokeWidth={1.75} />
+                {shared ? "Ссылка скопирована" : "Скопировать ссылку на конфигурацию"}
+              </button>
+            </div>
+
             <p className="flex items-center gap-2 text-xs text-muted-foreground">
               <FileText className="size-4 shrink-0" strokeWidth={1.75} />
               Источники: {result.sources.map((s) => s.title).join("; ") || "каталог ALMAFORT"}
@@ -279,7 +452,8 @@ export function AiConfigurator() {
               <button
                 type="button"
                 onClick={transferToCart}
-                className="min-h-[52px] w-full cursor-pointer rounded-sm bg-primary px-8 py-4 lg:w-auto text-sm font-bold text-primary-foreground shadow-[0_6px_18px_-6px_oklch(0.573_0.221_27.5/0.55)] transition-all duration-200 hover:scale-[1.02] hover:bg-[#B91C1C] hover:shadow-[0_10px_24px_-8px_oklch(0.573_0.221_27.5/0.7)] active:scale-[0.98]"
+                disabled={Boolean(conflict)}
+                className="disabled:cursor-not-allowed disabled:opacity-50 min-h-[52px] w-full cursor-pointer rounded-sm bg-primary px-8 py-4 lg:w-auto text-sm font-bold text-primary-foreground shadow-[0_6px_18px_-6px_oklch(0.573_0.221_27.5/0.55)] transition-all duration-200 hover:scale-[1.02] hover:bg-[#B91C1C] hover:shadow-[0_10px_24px_-8px_oklch(0.573_0.221_27.5/0.7)] active:scale-[0.98]"
               >
                 Добавить смету в корзину
               </button>

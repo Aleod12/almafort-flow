@@ -13,6 +13,9 @@ const email = companyEmail();
 function LazyMap() {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  // Ловушка скролла: пока карта не активирована тапом, она не принимает жесты —
+  // палец свайпает страницу, а не зумит улицу.
+  const [active, setActive] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
@@ -30,10 +33,30 @@ function LazyMap() {
     return () => io.disconnect();
   }, [visible]);
 
+  // Клик вне карты и уход карты из вида снова блокируют жесты.
+  useEffect(() => {
+    if (!active) return;
+    const onDoc = (e: PointerEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setActive(false);
+    };
+    document.addEventListener("pointerdown", onDoc);
+    const el = ref.current;
+    const io = el
+      ? new IntersectionObserver((es) => es.some((e) => !e.isIntersecting) && setActive(false), {
+          threshold: 0.25,
+        })
+      : null;
+    if (el && io) io.observe(el);
+    return () => {
+      document.removeEventListener("pointerdown", onDoc);
+      io?.disconnect();
+    };
+  }, [active]);
+
   return (
     <div
       ref={ref}
-      className="relative h-full min-h-[400px] w-full overflow-hidden bg-[#1B1B1F]"
+      className="relative h-full min-h-[280px] w-full max-w-full overflow-hidden bg-[#1B1B1F] sm:min-h-[400px]"
     >
       {visible ? (
         <iframe
@@ -43,11 +66,12 @@ function LazyMap() {
           src={`https://yandex.ru/map-widget/v1/?ll=${LON}%2C${LAT}&z=17&l=map&controls=zoomControl%2CfullscreenControl&text=${encodeURIComponent(
             "Дивногорск, Нижний проезд, 15/1",
           )}`}
-          className="block h-full min-h-[400px] w-full overflow-hidden border-0 opacity-90 [filter:invert(1)_hue-rotate(180deg)_saturate(0.6)_brightness(0.95)]"
+          className={`block h-full min-h-[280px] w-full max-w-full overflow-hidden border-0 opacity-90 sm:min-h-[400px] [filter:invert(1)_hue-rotate(180deg)_saturate(0.6)_brightness(0.95)] ${
+            active ? "" : "pointer-events-none"
+          }`}
         />
-
       ) : (
-        <div className="flex h-full min-h-[400px] w-full items-center justify-center bg-[#1B1B1F] text-sm text-[#4B5563]">
+        <div className="flex h-full min-h-[280px] w-full items-center justify-center bg-[#1B1B1F] text-sm text-[#4B5563] sm:min-h-[400px]">
           Карта загрузится при прокрутке
         </div>
       )}
@@ -65,6 +89,24 @@ function LazyMap() {
         </svg>
       </div>
 
+      {visible && !active && (
+        <button
+          type="button"
+          onClick={() => setActive(true)}
+          aria-label="Активировать карту для перемещения и масштабирования"
+          className="absolute inset-0 z-10 flex cursor-pointer items-end justify-center bg-transparent pb-5 text-xs font-semibold text-white"
+        >
+          <span className="rounded-full bg-black/70 px-4 py-2.5">
+            Нажмите, чтобы взаимодействовать с картой
+          </span>
+        </button>
+      )}
+
+      {active && (
+        <span className="pointer-events-none absolute right-3 top-3 z-10 rounded-full bg-black/70 px-3 py-1.5 text-[11px] text-white">
+          Прокрутка страницы — свайпом вне карты
+        </span>
+      )}
     </div>
   );
 }

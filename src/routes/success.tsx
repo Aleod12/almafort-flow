@@ -63,7 +63,7 @@ function SuccessPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
-      <main className="flex-1 mx-auto max-w-[720px] px-5 pb-24 pt-20 lg:px-10">
+      <main className="w-full flex-1 mx-auto max-w-[720px] px-5 pb-24 pt-20 lg:px-10">
         <CheckCircle2 className="size-14 text-primary" strokeWidth={1.5} />
         <h1 className="mt-6 text-3xl font-extrabold tracking-tight text-foreground lg:text-[40px]">
           Заказ успешно оформлен

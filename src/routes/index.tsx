@@ -107,7 +107,7 @@ function Index() {
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
 
-      <main className="flex-1 mx-auto max-w-[1440px] px-5 lg:px-10">
+      <main className="w-full flex-1 mx-auto max-w-[1440px] px-5 lg:px-10">
         <section className="grid grid-cols-1 items-center gap-12 py-12 lg:grid-cols-12 lg:gap-14 lg:py-20">
           <div className="lg:col-span-7">
             <div className="flex flex-wrap gap-2">
