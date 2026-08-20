@@ -36,6 +36,11 @@ export function BulkRequestDialog({
   const [error, setError] = useState("");
   const [exceeds, setExceeds] = useState(false);
 
+  useEffect(() => {
+    if (open && presetComment) setComment((c) => c || presetComment.slice(0, 1000));
+  }, [open, presetComment]);
+
+
   // Авторизованному снабженцу не нужно вводить контакты заново.
   useEffect(() => {
     if (!open) return;
