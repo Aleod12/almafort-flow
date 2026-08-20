@@ -91,14 +91,26 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "login") {
+        const gate = await checkLogin({ data: { email: email.trim() } }).catch(() => null);
+        if (gate && !gate.allowed) {
+          const min = Math.ceil(gate.retryAfter / 60);
+          toast.error(`Слишком много попыток входа. Повторите через ${min} мин.`);
+          return;
+        }
         const { error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password,
         });
         if (error) {
+          const res = await reportFailure({ data: { email: email.trim() } }).catch(() => null);
+          if (res?.blocked) {
+            toast.error("Вход заблокирован на 15 минут. Владелец аккаунта уведомлён.");
+            return;
+          }
           fail(error);
           return;
         }
+        void reportSuccess({ data: { email: email.trim() } }).catch(() => null);
       }
 
       if (mode === "register") {
