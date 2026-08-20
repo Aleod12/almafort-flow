@@ -110,18 +110,27 @@ export function SpecUpload({ compact = false }: { compact?: boolean }) {
           "flex cursor-pointer flex-col items-center justify-center gap-4 rounded-lg px-5 py-10 text-center sm:px-8 sm:py-14 transition-all duration-200",
       })}
       style={{
-        border: isDragActive ? "2px solid #E52421" : "2px dashed #D1D5DB",
-        backgroundColor: isDragActive ? "#F1F2F4" : "#F8F9FA",
+        border: isDragReject
+          ? "2px solid #DC2626"
+          : isDragActive
+            ? "2px solid #E52421"
+            : "2px dashed #D1D5DB",
+        backgroundColor: isDragReject ? "#FEF2F2" : isDragActive ? "#F1F2F4" : "#F8F9FA",
       }}
     >
       <input {...getInputProps()} />
       {isDragActive ? (
-        <UploadCloud className="size-12 text-primary" strokeWidth={1.5} />
+        <UploadCloud
+          className={isDragReject ? "size-12 text-[#DC2626]" : "size-12 text-primary"}
+          strokeWidth={1.5}
+        />
       ) : (
         <FileSpreadsheet className="size-12 text-muted-foreground" strokeWidth={1.5} />
       )}
-      <p className="text-base font-medium text-foreground">
-        Перетащите вашу спецификацию сюда (.xls, .xlsx, .csv)
+      <p className={`text-base font-medium ${isDragReject ? "text-[#B91C1C]" : "text-foreground"}`}>
+        {isDragReject
+          ? "Этот формат не принимается — только .xls, .xlsx, .xlsm, .csv"
+          : "Перетащите вашу спецификацию сюда (.xls, .xlsx, .csv)"}
       </p>
       <p className="text-sm text-muted-foreground">
         Алгоритм распознает артикулы, сформирует заказ и выдаст PDF-счёт. До 10 МБ.
