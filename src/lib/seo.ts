@@ -271,3 +271,13 @@ export function allFacetPaths(limit = 1000): string[] {
   }
   return Array.from(out).slice(0, limit);
 }
+
+/**
+ * Правило индексации фасетов: пересечения более двух параметров
+ * (форма + размер + цвет), пагинация и пустые выборки закрываем от индекса.
+ */
+export function facetRobots(f: FacetPath, itemsCount: number, page = 1): string | null {
+  const depth = [f.category, f.shape, f.size, f.color].filter(Boolean).length;
+  if (depth > 2 || page > 1 || itemsCount === 0) return "noindex, follow";
+  return null;
+}
