@@ -1,3 +1,4 @@
+import { trackAddToCart } from "@/lib/metrika";
 import { useState } from "react";
 import { Check, Loader2, MessageSquareQuote, Minus, Plus, ShoppingCart } from "lucide-react";
 import { PRODUCTS, isOnRequest, tierOf, type Product } from "@/data/catalog";
@@ -52,6 +53,7 @@ function useRowState(p: Product, onAdd: Props["onAdd"]) {
       if (!res.ok) throw new Error("cart");
       const data = (await res.json()) as { quantity: number };
       onAdd(p, data.quantity);
+      trackAddToCart({ sku: p.sku, name: p.name, price: p.price, quantity: data.quantity });
       setInCart((v) => v + data.quantity);
       setState("done");
       window.setTimeout(() => setState("idle"), 2000);
