@@ -9,6 +9,7 @@ import { ConsentCheckbox } from "@/components/consent-checkbox";
 import { authErrorField, authErrorMessage } from "@/lib/auth-errors";
 import { useServerFn } from "@tanstack/react-start";
 import {
+import { passwordIssue } from "@/lib/password";
   checkLoginAllowed,
   reportLoginFailure,
   reportLoginSuccess,
