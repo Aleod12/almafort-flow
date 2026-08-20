@@ -27,6 +27,8 @@ type ApiResult = {
     safety_margin_factor: number | null;
     is_service: boolean;
     total: number;
+    warnings?: string[];
+    clarification?: string[];
   };
   sources: Array<{ id: string; title: string }>;
 };
@@ -79,6 +81,7 @@ export function AiConfigurator() {
   const [qty, setQty] = useState<Record<string, number>>({});
   const addLine = useCart((s) => s.addLine);
   const [shared, setShared] = useState(false);
+  const [fallback, setFallback] = useState<string | null>(null);
 
   // Восстановление конфигурации по ссылке: инженер открывает узел ровно в том
   // составе, в котором его сохранил снабженец.
@@ -160,14 +163,18 @@ export function AiConfigurator() {
     return `Диаметр резьбы не совпадает: ${[...threads.keys()].join(" и ")}. Узел собран неверно — приведите позиции к одному диаметру.`;
   }, [rows]);
   const isService = Boolean(result?.solution.is_service);
+  const warnings = result?.solution.warnings ?? [];
+  const clarification = result?.solution.clarification ?? [];
 
   const solve = async (text: string) => {
     if (text.trim().length < 10) {
       toast.error("Опишите задачу подробнее: объект, масса, основание.");
       return;
     }
+    if (busy) return; // защита от многократного нажатия «Подобрать решение»
     setBusy(true);
     setResult(null);
+    setFallback(null);
     setQty({});
     try {
       const res = await fetch("/api/configurator/solve", {
@@ -176,10 +183,22 @@ export function AiConfigurator() {
         body: JSON.stringify({ query: text.trim() }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error ?? "Не удалось подобрать решение");
+      if (!res.ok) {
+        // Сервис ИИ недоступен — извиняемся и уводим к живому инженеру,
+        // а не показываем клиенту код ошибки.
+        if (res.status >= 500 || json?.fallback) {
+          setFallback(
+            "ИИ-инженер сейчас перегружен. Оставьте заявку в свободной форме — живой специалист подберёт смету в течение 10 минут.",
+          );
+          return;
+        }
+        throw new Error(json?.error ?? "Не удалось подобрать решение");
+      }
       setResult(json as ApiResult);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Ошибка конфигуратора");
+    } catch {
+      setFallback(
+        "Связь с ИИ-инженером прервалась. Оставьте заявку в свободной форме — живой специалист подберёт смету в течение 10 минут.",
+      );
     } finally {
       setBusy(false);
     }
@@ -277,8 +296,8 @@ export function AiConfigurator() {
       <div className="mt-6 flex flex-col gap-3 lg:flex-row">
         <textarea
           value={query}
-          onChange={(e) => setQuery(e.target.value.slice(0, 2000))}
-          maxLength={2000}
+          onChange={(e) => setQuery(e.target.value.slice(0, 1000))}
+          maxLength={1000}
           rows={3}
           placeholder="Например: закрепить кондиционер 150 кг на сэндвич-панель"
           className="flex-1 resize-none rounded-sm border border-[#D1D5DB] bg-card p-4 text-sm leading-[1.5] text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
@@ -328,6 +347,53 @@ export function AiConfigurator() {
         </div>
       )}
 
+
+      {fallback && (
+        <div
+          role="status"
+          className="mt-8 flex flex-col gap-3 rounded-lg border border-[#D1D5DB] bg-card p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+        >
+          <p className="text-sm leading-[1.6] text-foreground">{fallback}</p>
+          <button
+            type="button"
+            onClick={scrollToQuiz}
+            className="min-h-11 shrink-0 cursor-pointer rounded-sm bg-primary px-6 text-sm font-bold text-primary-foreground hover:bg-[#B91C1C]"
+          >
+            Оставить заявку инженеру
+          </button>
+        </div>
+      )}
+
+      {result && clarification.length > 0 && (
+        <div className="mt-8 rounded-lg border border-[#D1D5DB] bg-card p-5 sm:p-6">
+          <p className="text-sm font-bold text-foreground">
+            {result.solution.engineering_logic}
+          </p>
+          <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm leading-[1.6] text-foreground">
+            {clarification.map((q) => (
+              <li key={q}>{q}</li>
+            ))}
+          </ol>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Допишите эти данные в задачу и нажмите «Подобрать решение» — расчёт будет точным.
+          </p>
+        </div>
+      )}
+
+      {result && rows.length === 0 && clarification.length === 0 && (
+        <div className="mt-8 rounded-lg border border-[#D1D5DB] bg-card p-5 sm:p-6">
+          <p className="whitespace-pre-line text-sm leading-[1.7] text-foreground">
+            {result.solution.engineering_logic}
+          </p>
+          <button
+            type="button"
+            onClick={scrollToQuiz}
+            className="mt-4 min-h-11 cursor-pointer rounded-sm bg-primary px-6 text-sm font-bold text-primary-foreground hover:bg-[#B91C1C]"
+          >
+            Заявка на инженерный расчёт
+          </button>
+        </div>
+      )}
 
       {result && rows.length > 0 && (
         <article className="mt-8 overflow-hidden rounded-lg bg-card shadow-[0_16px_40px_oklch(0_0_0/0.08)]">
@@ -411,6 +477,20 @@ export function AiConfigurator() {
                 <TriangleAlert className="mt-0.5 size-4 shrink-0" strokeWidth={2} />
                 {conflict}
               </p>
+            )}
+
+            {warnings.length > 0 && (
+              <ul className="mt-4 space-y-2">
+                {warnings.map((w) => (
+                  <li
+                    key={w}
+                    className="flex items-start gap-2 rounded-sm bg-[#FFF7ED] p-3 text-xs leading-[1.5] text-[#9A3412]"
+                  >
+                    <TriangleAlert className="mt-0.5 size-4 shrink-0" strokeWidth={2} />
+                    {w}
+                  </li>
+                ))}
+              </ul>
             )}
 
             {!isService && (
