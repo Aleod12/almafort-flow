@@ -4,6 +4,7 @@ import { CATEGORIES, PRODUCTS, type Product } from "@/data/catalog";
 import { scoreMatch } from "@/lib/fuzzy-search";
 import type { SearchHit } from "@/lib/search-index";
 import { PhotoScanner } from "@/components/catalog/photo-scanner";
+import { ModuleErrorBoundary } from "@/components/error-boundary";
 import { QuoteRequestModal } from "@/components/catalog/quote-request-modal";
 import { parseQuery } from "@/lib/query-parse";
 
@@ -277,7 +278,9 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
         </div>
       )}
 
-      <PhotoScanner open={scan} onClose={stopScan} />
+      <ModuleErrorBoundary title="Модуль ИИ-камеры" hint="Воспользуйтесь обычным поиском по каталогу.">
+        <PhotoScanner open={scan} onClose={stopScan} />
+      </ModuleErrorBoundary>
       {customOpen && (
         <QuoteRequestModal
           sku="ПОД ЗАКАЗ"

@@ -10,6 +10,7 @@ import { CatalogMatrix } from "@/components/catalog/catalog-matrix";
 import { formatPrice } from "@/lib/pricing";
 import { ProductSheet } from "@/components/catalog/product-sheet";
 import { AiConfigurator } from "@/components/catalog/ai-configurator";
+import { ModuleErrorBoundary } from "@/components/error-boundary";
 import { type Product } from "@/data/catalog";
 import { CATEGORY_FACETS } from "@/lib/seo";
 import { BackLink } from "@/components/back-link";
@@ -115,7 +116,9 @@ function CatalogPage() {
           <CatalogMatrix query={query} onOpenProduct={setProduct} onAdd={add} />
         </section>
 
-        <AiConfigurator />
+        <ModuleErrorBoundary title="ИИ-конфигуратор узла" hint="Соберите спецификацию через каталог — остальные разделы работают.">
+          <AiConfigurator />
+        </ModuleErrorBoundary>
       </main>
 
       {cart.lines > 0 && (

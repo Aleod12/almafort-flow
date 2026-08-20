@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Sparkles, Calculator, FileText, ShieldCheck, Wrench, Download, Link2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/store/cart-store";
@@ -82,6 +82,9 @@ export function AiConfigurator() {
 
   // Восстановление конфигурации по ссылке: инженер открывает узел ровно в том
   // составе, в котором его сохранил снабженец.
+  const sharedTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(sharedTimer.current), []);
+
   useEffect(() => {
     const raw = new URLSearchParams(window.location.search).get("cfg");
     if (!raw) return;
@@ -205,7 +208,8 @@ export function AiConfigurator() {
       window.prompt("Скопируйте ссылку на конфигурацию", link);
     }
     setShared(true);
-    window.setTimeout(() => setShared(false), 2500);
+    window.clearTimeout(sharedTimer.current);
+    sharedTimer.current = window.setTimeout(() => setShared(false), 2500);
     toast.success("Ссылка на конфигурацию скопирована");
   };
 
