@@ -90,6 +90,16 @@ function AuthPage() {
       toast.error("Пароль — минимум 8 символов");
       return;
     }
+    if (mode === "register") {
+      // Регистрация B2B-кабинета: слабый пароль — прямой путь к credential stuffing.
+      const weak = passwordIssue(password, email);
+      if (weak) {
+        setFieldError({ field: "password", text: weak });
+        toast.error(weak);
+        return;
+      }
+    }
+
     const fail = (error: unknown) => {
       const text = authErrorMessage(error);
       const field = authErrorField(error);
