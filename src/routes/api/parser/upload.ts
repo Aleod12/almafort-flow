@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { clientIp, rateLimit } from "@/lib/rate-limit.server";
+import { readFormData, SlowRequestError, timeoutResponse } from "@/lib/request-guard.server";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const BAD_FORMAT = "Ошибка: Файл поврежден или имеет неверный формат. Загрузите корректный документ Excel";
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/api/parser/upload")({
         });
         if (limited) return limited;
         try {
-          const form = await request.formData();
+          const form = await readFormData(request);
           const file = form.get("file");
           if (!(file instanceof File)) {
             return Response.json({ error: "Файл не получен" }, { status: 400 });
@@ -83,7 +84,8 @@ export const Route = createFileRoute("/api/parser/upload")({
             );
           }
           return Response.json({ fileName: file.name, ...result });
-        } catch {
+        } catch (e) {
+          if (e instanceof SlowRequestError) return timeoutResponse();
           return Response.json({ error: BAD_FORMAT }, { status: 400 });
         }
       },

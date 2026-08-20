@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { rateLimit } from "@/lib/rate-limit.server";
+import { readJson, SlowRequestError, timeoutResponse } from "@/lib/request-guard.server";
 
 const schema = z.object({
   customer: z.object({
@@ -55,16 +57,26 @@ export const Route = createFileRoute("/api/checkout/submit")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        // Оформление — тяжёлая транзакция (S3 + CRM + 1С): не чаще 10 в минуту с IP.
+        const limited = rateLimit(request, "checkout", {
+          limit: 10,
+          windowMs: 60_000,
+          blockMs: 10 * 60_000,
+        });
+        if (limited) return limited;
+
         let parsed;
         try {
-          parsed = schema.parse(await request.json());
+          parsed = schema.parse(await readJson(request));
         } catch (e) {
+          if (e instanceof SlowRequestError) return timeoutResponse();
           return Response.json(
             { error: "Проверьте контактные данные и состав заказа", detail: String(e) },
             { status: 400 },
           );
         }
 
+        try {
         const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
         let invoiceUrl: string | null = null;
         let storageNote: string | undefined;
@@ -148,6 +160,19 @@ export const Route = createFileRoute("/api/checkout/submit")({
           crmDetail: crm.detail,
           erpOk: erp.ok,
         });
+        } catch (e) {
+          // Обрыв связи с БД/хранилищем не должен ронять воркер: корзина остаётся
+          // у клиента, ему предлагается повторить отправку через минуту.
+          console.error("[checkout] fatal", e);
+          return Response.json(
+            {
+              error:
+                "Проблемы с сохранением заказа. Мы уже восстанавливаем связь, повторите попытку через 1 минуту.",
+              retryable: true,
+            },
+            { status: 503, headers: { "Retry-After": "60" } },
+          );
+        }
       },
     },
   },
