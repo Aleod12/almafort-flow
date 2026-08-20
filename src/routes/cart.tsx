@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { CartPanel } from "@/components/cart/cart-panel";
 import { ParsingSkeleton, SpecUpload } from "@/components/cart/spec-upload";
+import { SpecReview } from "@/components/cart/spec-review";
 import { useCart } from "@/store/cart-store";
 import { BackLink } from "@/components/back-link";
 
@@ -31,6 +32,7 @@ export const Route = createFileRoute("/cart")({
 function CartPage() {
   const parsing = useCart((s) => s.parsing);
   const fileName = useCart((s) => s.fileName);
+  const review = useCart((s) => s.review);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
