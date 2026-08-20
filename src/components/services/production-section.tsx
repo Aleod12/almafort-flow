@@ -71,7 +71,7 @@ export function ProductionSection() {
               <p className="mt-3 text-sm leading-[1.6] text-muted-foreground">{c.text}</p>
               <a
                 href="#quiz"
-                className="mt-8 inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-foreground transition-colors group-hover:text-primary"
+                className="mt-6 inline-flex min-h-11 cursor-pointer items-center gap-2 py-2 text-sm font-medium text-foreground transition-colors group-hover:text-primary"
               >
                 Подробнее о технологии
                 <ArrowRight

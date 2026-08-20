@@ -149,7 +149,7 @@ function MobileCard({
           <button
             type="button"
             onClick={() => onOpenProduct(p)}
-            className="tap-sm block w-full text-left text-[15px] font-semibold leading-tight text-foreground"
+            className="tap-sm block w-full break-words text-left text-[15px] font-semibold leading-tight text-foreground [overflow-wrap:anywhere]"
           >
             {p.name}
           </button>
