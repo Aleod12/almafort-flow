@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { rateLimit } from "@/lib/rate-limit.server";
 import { sanitizeParcel } from "@/lib/logistics";
 
 const json = (data: unknown, status = 200) =>
@@ -8,6 +9,8 @@ export const Route = createFileRoute("/api/shipping-calc")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const limited = rateLimit(request, "ship", { limit: 60, windowMs: 60_000 });
+        if (limited) return limited;
         let body: {
           destination?: { city?: unknown; fias_id?: unknown };
           parcel?: { totalWeight?: unknown; totalVolume?: unknown };

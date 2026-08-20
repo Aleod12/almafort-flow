@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { rateLimit } from "@/lib/rate-limit.server";
 import { searchCatalog } from "@/lib/search-index";
 
 /**
@@ -10,6 +11,8 @@ export const Route = createFileRoute("/api/search")({
   server: {
     handlers: {
       GET: async ({ request }) => {
+        const limited = rateLimit(request, "search", { limit: 120, windowMs: 60_000 });
+        if (limited) return limited;
         const started = Date.now();
         const url = new URL(request.url);
         const q = (url.searchParams.get("q") ?? "").slice(0, 120);
