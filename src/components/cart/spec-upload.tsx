@@ -11,6 +11,10 @@ const ACCEPT = {
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
   "application/vnd.ms-excel.sheet.macroEnabled.12": [".xlsm"],
   "text/csv": [".csv"],
+  // Некоторые ОС отдают файл без MIME-типа — доверяем расширению, тип проверит сервер.
+  "text/plain": [".csv"],
+  "application/octet-stream": [".xls", ".xlsx", ".xlsm", ".csv"],
+  "application/zip": [".xlsx", ".xlsm"],
 };
 
 const BAD_FORMAT = "Ошибка: Файл поврежден или имеет неверный формат. Загрузите корректный документ Excel";
