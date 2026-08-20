@@ -17,10 +17,13 @@ export function BulkRequestDialog({
   product,
   open,
   onClose,
+  presetComment,
 }: {
   product: Product;
   open: boolean;
   onClose: () => void;
+  /** Предзаполненный текст (например, ненайденные позиции из спецификации). */
+  presetComment?: string;
 }) {
   const minQty = Math.max(product.tier2Qty || 50000, 1000);
   const [qty, setQty] = useState(String(minQty));
@@ -32,6 +35,11 @@ export function BulkRequestDialog({
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [error, setError] = useState("");
   const [exceeds, setExceeds] = useState(false);
+
+  useEffect(() => {
+    if (open && presetComment) setComment((c) => c || presetComment.slice(0, 1000));
+  }, [open, presetComment]);
+
 
   // Авторизованному снабженцу не нужно вводить контакты заново.
   useEffect(() => {

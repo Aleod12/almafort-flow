@@ -31,6 +31,7 @@ export function normalizeQuery(raw: string): string {
   return raw
     .toLowerCase()
     .replace(/ё/g, "е")
+    .replace(/(\d)\s*(?:на|×|х|x|\*)\s*(\d)/g, "$1x$2")
     .replace(/[×хx]\s*(?=\d)/g, "x")
     .replace(/[^a-zа-я0-9xхd.,\-\s]/gi, " ")
     .replace(/\s+/g, " ")
@@ -60,7 +61,12 @@ const num = (s: string | undefined) => (s ? Number.parseInt(s, 10) : null);
 
 export function extractParams(source: string): Params {
   const s = normalizeQuery(source);
-  const pairM = s.match(/(\d{1,4})\s*x\s*(\d{1,4})/);
+  let pairM = s.match(/(\d{1,4})\s*x\s*(\d{1,4})/);
+  // «чопик 1515», «профиль 2040» — слитная запись габарита
+  if (!pairM) {
+    const glued = s.match(/(?:^|\s)(\d{2})(\d{2})(?![\d])/);
+    if (glued) pairM = ["", glued[1]!, glued[2]!] as unknown as RegExpMatchArray;
+  }
   const diaM = s.match(/(?:d|ø|диам(?:етр)?)\s*\.?\s*(\d{1,4})/);
   const heightM = s.match(/(?:h|выс(?:ота)?)\s*[=\s]*\s*(\d{1,4})/);
   const threadM = s.match(/\b[мm]\s*(\d{1,2})\b/);

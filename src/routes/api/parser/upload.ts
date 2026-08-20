@@ -1,18 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { rateLimit } from "@/lib/rate-limit.server";
 
 const MAX_BYTES = 10 * 1024 * 1024;
-const ALLOWED = [
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "text/csv",
-  "application/csv",
-  "application/octet-stream", // некоторые браузеры не проставляют MIME
-];
+const BAD_FORMAT = "Ошибка: Файл поврежден или имеет неверный формат. Загрузите корректный документ Excel";
 
 export const Route = createFileRoute("/api/parser/upload")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const limited = rateLimit(request, "spec-upload", { limit: 20, windowMs: 60_000 });
+        if (limited) return limited;
         try {
           const form = await request.formData();
           const file = form.get("file");
@@ -20,24 +17,53 @@ export const Route = createFileRoute("/api/parser/upload")({
             return Response.json({ error: "Файл не получен" }, { status: 400 });
           }
           if (file.size > MAX_BYTES) {
-            return Response.json({ error: "Файл больше 10 МБ" }, { status: 413 });
-          }
-          const ext = file.name.toLowerCase().split(".").pop() ?? "";
-          if (!ALLOWED.includes(file.type) && !["xls", "xlsx", "csv"].includes(ext)) {
             return Response.json(
-              { error: "Формат не поддерживается. Загрузите таблицу Excel или CSV" },
-              { status: 415 },
+              {
+                error:
+                  "Файл слишком велик. Максимальный размер — 10 МБ (до 5000 позиций). Разделите смету на две части",
+              },
+              { status: 413 },
             );
           }
+          const ext = file.name.toLowerCase().split(".").pop() ?? "";
+          if (!["xls", "xlsx", "xlsm", "csv"].includes(ext)) {
+            return Response.json({ error: BAD_FORMAT }, { status: 415 });
+          }
 
-          const { parseSpecBuffer } = await import("@/lib/spec-parser.server");
-          const result = parseSpecBuffer(await file.arrayBuffer());
-          return Response.json({ fileName: file.name, ...result });
-        } catch (e) {
-          return Response.json(
-            { error: e instanceof Error ? e.message : "Не удалось разобрать файл" },
-            { status: 500 },
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          if (bytes.byteLength === 0) return Response.json({ error: BAD_FORMAT }, { status: 415 });
+
+          const { sniffSpec, decodeText, parseSpecBuffer, parseSpecText } = await import(
+            "@/lib/spec-parser.server"
           );
+          // Реальная сигнатура важнее расширения: renamed .exe/.php/.jpg отсекаются здесь.
+          const sniff = sniffSpec(bytes, file.name);
+          if (!sniff.ok) return Response.json({ error: BAD_FORMAT }, { status: 415 });
+          if (ext === "csv" && sniff.kind !== "text") {
+            return Response.json({ error: BAD_FORMAT }, { status: 415 });
+          }
+          if (ext !== "csv" && sniff.kind === "text") {
+            return Response.json({ error: BAD_FORMAT }, { status: 415 });
+          }
+
+          let result;
+          try {
+            result =
+              sniff.kind === "text"
+                ? parseSpecText(decodeText(bytes))
+                : parseSpecBuffer(bytes.buffer.slice(0) as ArrayBuffer);
+          } catch {
+            return Response.json({ error: BAD_FORMAT }, { status: 415 });
+          }
+          if (!result.rows.length) {
+            return Response.json(
+              { error: "В файле не найдено ни одной товарной строки. Проверьте таблицу" },
+              { status: 422 },
+            );
+          }
+          return Response.json({ fileName: file.name, ...result });
+        } catch {
+          return Response.json({ error: BAD_FORMAT }, { status: 400 });
         }
       },
     },
