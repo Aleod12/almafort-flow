@@ -23,6 +23,7 @@ import { InnField, type Party } from "@/components/inn-field";
 import { STAGES, TIER_META, stageIndex, tierProgress, type LoyaltyTier } from "@/lib/loyalty";
 import { addCompanyByInn, getCabinet, removeCompany, repeatOrder } from "@/lib/cabinet.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { COMPANY } from "@/lib/company";
 import { useCart } from "@/store/cart-store";
 
 export const Route = createFileRoute("/_authenticated/cabinet")({
