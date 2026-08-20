@@ -128,6 +128,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+import { CartSync } from "@/components/cart-sync";
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="ru">
@@ -136,6 +138,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <CartSync />
         <Scripts />
       </body>
     </html>
