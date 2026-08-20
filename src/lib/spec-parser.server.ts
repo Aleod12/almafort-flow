@@ -52,6 +52,19 @@ export const MAX_ROWS = 5000;
 
 export type Sniff = { kind: "zip" | "cfb" | "text"; ok: boolean };
 
+/** Первая запись ZIP должна быть частью книги OOXML, а не произвольным файлом. */
+function isOoxml(b: Uint8Array): boolean {
+  const nameLen = (b[27]! << 8) | b[26]!;
+  if (!nameLen || 30 + nameLen > b.length) return false;
+  const name = new TextDecoder("utf-8").decode(b.subarray(30, 30 + Math.min(nameLen, 64)));
+  return (
+    name.startsWith("[Content_Types].xml") ||
+    name.startsWith("xl/") ||
+    name.startsWith("_rels/") ||
+    name.startsWith("docProps/")
+  );
+}
+
 /** Проверка бинарного заголовка: PK.. (xlsx/xlsm), D0CF11E0 (xls), иначе текст/CSV. */
 export function sniffSpec(bytes: Uint8Array, fileName: string): Sniff {
   const ext = fileName.toLowerCase().split(".").pop() ?? "";
@@ -68,7 +81,13 @@ export function sniffSpec(bytes: Uint8Array, fileName: string): Sniff {
     (b[0] === 0xff && b[1] === 0xd8) || (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47);
   if (isExe || isElf || isPdf || isImage) return { kind: "text", ok: false };
 
-  if (isZip) return { kind: "zip", ok: ["xlsx", "xlsm", "xls", "zip", ""].includes(ext) || ext === "csv" };
+  if (isZip) {
+    const extOk = ["xlsx", "xlsm", "xls", "zip", "", "csv"].includes(ext);
+    // ZIP-сигнатуры мало: у переименованного архива с malware.exe внутри её тоже видно.
+    // Настоящая книга OOXML первым же локальным заголовком объявляет [Content_Types].xml
+    // или каталог xl/ — иначе это просто архив, и парсер к нему не прикоснётся.
+    return { kind: "zip", ok: extOk && isOoxml(b) };
+  }
   if (isCfb) return { kind: "cfb", ok: true };
 
   if (ext === "csv" || ext === "txt") {
@@ -190,13 +209,22 @@ const roundCapCandidates = (qty: number): Candidate[] =>
  * ------------------------------------------------------------------ */
 
 export function parseSpecText(text: string): ParseResult {
-  const wb = XLSX.read(text, { type: "string", raw: false });
+  // sheetRows режет разбор на лимите: 500 000 строк не должны доехать до памяти.
+  const wb = XLSX.read(text, { type: "string", raw: false, sheetRows: MAX_ROWS + 1 });
   return walk(wb);
 }
 
 export function parseSpecBuffer(buffer: ArrayBuffer): ParseResult {
   // bookVBA не запрашиваем: макросы не извлекаются и тем более не исполняются.
-  const wb = XLSX.read(buffer, { type: "array", bookVBA: false, cellHTML: false, cellFormula: false });
+  // sheetRows — жёсткий предохранитель от «DDoS через Excel»: книга с сотнями тысяч
+  // строк обрывается на чтении, а не после того, как съест оперативную память.
+  const wb = XLSX.read(buffer, {
+    type: "array",
+    bookVBA: false,
+    cellHTML: false,
+    cellFormula: false,
+    sheetRows: MAX_ROWS + 1,
+  });
   return walk(wb);
 }
 
