@@ -14,12 +14,6 @@ async function guard() {
   return await import("@/lib/rate-limit.server");
 }
 
-function keyOf(email: string) {
-  const { clientIp } = require("@/lib/rate-limit.server") as never;
-  void clientIp;
-  return email;
-}
-void keyOf;
 
 export const checkLoginAllowed = createServerFn({ method: "POST" })
   .inputValidator(emailInput)
