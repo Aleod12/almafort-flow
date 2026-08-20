@@ -54,7 +54,7 @@ export function ProductSheet({
     // Старые цены исчезают сразу — клиент видит, что система считает.
     setQuotes([]);
     if (typeof navigator !== "undefined" && navigator.onLine === false) {
-      setCalcState("error");
+      setCalcState("failed");
       return;
     }
     setCalcState("loading");
