@@ -84,11 +84,33 @@ export function deliveryCost(carrier: Carrier, weight: number) {
   return Math.round(base + weight * (carrier === "cdek" ? 32 : 18));
 }
 
+/** Строка экрана предпросмотра импорта (до попадания в корзину). */
+export type ReviewRow = {
+  id: string;
+  originalString: string;
+  quantity: number;
+  status: "MATCHED" | "AMBIGUOUS" | "NOT_FOUND" | "NEEDS_SIZE" | "ERROR";
+  score: number;
+  sku: string | null;
+  name: string | null;
+  notes: string[];
+  error: string | null;
+  candidates: Candidate[];
+};
+
+export type ReviewState = {
+  fileName: string;
+  truncated: boolean;
+  columnMap: { sheet: string; sku: string | null; name: string | null; qty: string | null } | null;
+  rows: ReviewRow[];
+};
+
 type State = {
   fileName: string | null;
   parsing: boolean;
   lines: CartLine[];
   pending: PendingRow[];
+  review: ReviewState | null;
   carrier: Carrier;
   city: string;
   fiasId: string | null;
@@ -100,6 +122,12 @@ type State = {
   setQuoteError: (e: string | null) => void;
   setParsing: (v: boolean) => void;
   applyParse: (payload: ParsePayload) => void;
+  setReview: (r: ReviewState | null) => void;
+  /** Переносит подтверждённые строки предпросмотра в корзину. */
+  commitReview: (
+    rows: Array<{ sku: string; quantity: number; originalName?: string }>,
+    mode: "merge" | "replace",
+  ) => void;
   addLine: (sku: string, quantity: number, originalName?: string) => void;
   /** Применяет корзину, слитую на сервере при входе в кабинет. */
   applyMergedLines: (rows: Array<{ sku: string; quantity: number }>) => void;
@@ -122,12 +150,30 @@ export const useCart = create<State>()(
   parsing: false,
   lines: [],
   pending: [],
+  review: null,
   carrier: "cdek",
   city: "",
   fiasId: null,
   quotes: [],
   quoting: false,
   quoteError: null,
+
+  setReview: (review) => set({ review, parsing: false, fileName: review?.fileName ?? null }),
+
+  commitReview: (rows, mode) =>
+    set((s) => {
+      const lines: CartLine[] = mode === "replace" ? [] : s.lines.map((l) => ({ ...l }));
+      for (const r of rows) {
+        const p = productBySku(r.sku);
+        if (!p) continue;
+        const qty = Math.max(1, Math.floor(r.quantity));
+        const found = lines.find((l) => l.sku === p.sku);
+        // Дубли артикулов из Excel складываются, а не плодят строки.
+        if (found) found.quantity += qty;
+        else lines.push({ sku: p.sku, name: p.name, quantity: qty, originalName: r.originalName });
+      }
+      return { lines, review: null, parsing: false };
+    }),
 
   setQuotes: (quotes) => set({ quotes, quoteError: null }),
   setQuoting: (quoting) => set({ quoting }),
@@ -225,7 +271,7 @@ export const useCart = create<State>()(
   setDestination: (city, fiasId) => set({ city, fiasId }),
 
   clear: () =>
-    set({ lines: [], pending: [], fileName: null, quotes: [], quoteError: null, fiasId: null }),
+    set({ lines: [], pending: [], review: null, fileName: null, quotes: [], quoteError: null, fiasId: null }),
     }),
     {
       // Корзина переживает переход между страницами и закрытие вкладки.
