@@ -182,7 +182,8 @@ export function BulkRequestDialog({
 
             <textarea
               value={comment}
-              onChange={(e) => setComment(e.target.value)}
+              onChange={(e) => setComment(e.target.value.slice(0, 2000))}
+              maxLength={2000}
               placeholder="Сроки, цвет, доставка — что важно учесть"
               rows={3}
               className="w-full rounded-sm border border-[#D1D5DB] p-3 text-base outline-none focus:border-foreground"
