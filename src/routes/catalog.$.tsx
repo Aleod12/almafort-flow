@@ -41,23 +41,35 @@ export const Route = createFileRoute("/catalog/$")({
       return { meta: [{ title: "Раздел не найден — ALMAFORT" }, { name: "robots", content: "noindex" }] };
     }
     const { facets, items } = loaderData;
-    const title = facetTitle(facets);
-    const description = facetDescription(facets, items);
-    // Канонический URL — всегда чистый путь без ?sort / ?utm_source / ?page
+    const page = Math.max(1, Number((match.search as Search).page ?? 1) || 1);
+    const base = facetTitle(facets);
+    // Уникализируем Title страниц пагинации.
+    const title = page > 1 ? `${base} — страница ${page}` : base;
+    const description =
+      page > 1
+        ? `${facetH1(facets)}: страница ${page} каталога ALMAFORT. Оптовые цены и остатки склада.`
+        : facetDescription(facets, items);
+    // Канонический URL — всегда чистый путь без ?sort / ?utm_source / ?gclid / ?page
     const canonical = `${SITE_URL}${facets.path}`;
-    const paginated = Number((match.search as Search).page ?? 1) > 1;
+    const robots = facetRobots(facets, items.length, page);
+    // Соцкарточка конкретной позиции, если раздел сузился до одного артикула.
+    const single = items.length === 1 ? items[0] : undefined;
+    const image =
+      single && !single.is_service
+        ? `${SITE_URL}/assets/images/${single.sku.toLowerCase()}.webp`
+        : `${SITE_URL}/og/catalog.jpg`;
     return {
       meta: [
         { title },
         { name: "description", content: description },
-        ...(paginated ? [{ name: "robots", content: "noindex, follow" }] : []),
+        ...(robots ? [{ name: "robots", content: robots }] : []),
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "product.group" },
         { property: "og:url", content: canonical },
-        { property: "og:image", content: `${SITE_URL}/og/catalog.jpg` },
+        { property: "og:image", content: image },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:image", content: `${SITE_URL}/og/catalog.jpg` },
+        { name: "twitter:image", content: image },
       ],
       links: [{ rel: "canonical", href: canonical }],
     };
