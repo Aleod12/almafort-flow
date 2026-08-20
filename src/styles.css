@@ -543,3 +543,35 @@ select:focus {
   border-radius: 9999px;
   background-color: var(--placeholder);
 }
+
+/* --- QA-ПРОТОКОЛ ДЕСКТОПА: КУРСОР И HOVER-ОТКЛИК -------------------- */
+
+/* Клиент должен видеть кликабельность до нажатия */
+@media (hover: hover) and (pointer: fine) {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  summary,
+  label:has(input[type="checkbox"]),
+  label:has(input[type="radio"]),
+  select {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  /* Подсветка строки каталога под курсором — видно, где находится глаз */
+  .catalog-row:hover > * {
+    background-color: color-mix(in oklab, var(--surface) 70%, transparent);
+  }
+}
+
+/* Видимый фокус для клавиатурной навигации по всему сайту */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 3px;
+}

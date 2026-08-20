@@ -20,6 +20,7 @@ import { ProductThumb } from "@/components/catalog/product-thumb";
 import { useLoyalty } from "@/hooks/use-loyalty";
 import { TIER_META } from "@/lib/loyalty";
 import { saveOrderToCabinet } from "@/lib/cabinet.functions";
+import { supabase } from "@/integrations/supabase/client";
 import {
   cartTotals,
   deliveryCost,
@@ -216,7 +217,10 @@ export function CartPanel() {
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error ?? "Не удалось оформить заказ");
 
-      if (authed) {
+      // Вход мог произойти в соседней вкладке: перечитываем сессию,
+      // чтобы заказ привязался к аккаунту, а не ушёл как гостевой.
+      const { data: fresh } = await supabase.auth.getSession();
+      if (authed || fresh.session) {
         try {
           await saveOrderToCabinet({
             data: {
@@ -300,7 +304,7 @@ export function CartPanel() {
 
       {/* Корзина */}
       <section className="overflow-hidden rounded-lg border border-border bg-card">
-        <div className="hidden grid-cols-[minmax(0,1fr)_110px_120px_120px_44px] items-center gap-3 border-b border-border bg-[#F8F9FA] px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:grid">
+        <div className="sticky top-[72px] z-10 hidden grid-cols-[minmax(0,1fr)_110px_120px_120px_44px] items-center gap-3 border-b border-border bg-[#F8F9FA] px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:grid">
           <span>Позиция</span>
           <span className="text-right">Кол-во</span>
           <span className="text-right">Цена</span>

@@ -133,7 +133,14 @@ export function BulkRequestDialog({
             </button>
           </div>
         ) : (
-          <div className="space-y-3">
+          // Enter в любом поле отправляет форму: снабженцу не нужно тянуться мышкой.
+          <form
+            className="space-y-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void submit();
+            }}
+          >
             <div className="rounded-sm bg-surface p-3 text-sm">
               <p className="font-semibold text-foreground">{product.name}</p>
               <p className="text-xs text-muted-foreground">
@@ -147,6 +154,7 @@ export function BulkRequestDialog({
               </span>
               <input
                 value={qty}
+                autoFocus
                 onChange={(e) => setQty(e.target.value.replace(/[^0-9]/g, "").slice(0, 9))}
                 onBlur={() => setQty(String(Math.max(minQty, Number(qty.replace(/\D/g, "")) || minQty)))}
                 inputMode="numeric"
@@ -201,14 +209,13 @@ export function BulkRequestDialog({
             {error && <p className="text-sm text-red-600">{error}</p>}
 
             <button
-              type="button"
-              onClick={submit}
+              type="submit"
               disabled={state === "sending"}
-              className="h-12 w-full rounded-sm bg-primary text-sm font-semibold text-primary-foreground disabled:opacity-60"
+              className="h-12 w-full cursor-pointer rounded-sm bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-[#B91C1C] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {state === "sending" ? "Отправляем…" : "Отправить запрос в отдел оптовых продаж"}
             </button>
-          </div>
+          </form>
         )}
       </DialogContent>
     </Dialog>
