@@ -34,11 +34,10 @@ import {
 const money = (n: number) => formatPrice(n);
 
 /**
- * Единая сетка таблицы корзины: шапка и строки обязаны использовать один и тот
- * же трек-лист, иначе колонки «разъезжаются» на промежуточных ширинах.
+ * Сетка таблицы корзины живёт в styles.css как `.cart-table-grid`
+ * и применяется и к шапке, и к строкам — колонки не могут разъехаться.
  */
-const CART_GRID =
-  "md:grid-cols-[minmax(0,1fr)_84px_96px_104px_44px] lg:grid-cols-[minmax(0,1fr)_100px_116px_128px_44px] xl:grid-cols-[minmax(0,1fr)_110px_120px_130px_44px]";
+
 
 const CARRIERS: Array<{ id: Carrier; label: string }> = [
   { id: "cdek", label: "СДЭК" },
