@@ -34,11 +34,10 @@ import {
 const money = (n: number) => formatPrice(n);
 
 /**
- * Единая сетка таблицы корзины: шапка и строки обязаны использовать один и тот
- * же трек-лист, иначе колонки «разъезжаются» на промежуточных ширинах.
+ * Сетка таблицы корзины живёт в styles.css как `.cart-table-grid`
+ * и применяется и к шапке, и к строкам — колонки не могут разъехаться.
  */
-const CART_GRID =
-  "md:grid-cols-[minmax(0,1fr)_84px_96px_104px_44px] lg:grid-cols-[minmax(0,1fr)_100px_116px_128px_44px] xl:grid-cols-[minmax(0,1fr)_110px_120px_130px_44px]";
+
 
 const CARRIERS: Array<{ id: Carrier; label: string }> = [
   { id: "cdek", label: "СДЭК" },
@@ -310,14 +309,15 @@ export function CartPanel() {
       )}
 
       {/* Корзина */}
-      <section className="overflow-hidden rounded-lg border border-border bg-card">
-        <div className={`sticky top-[72px] z-10 hidden items-center gap-3 border-b border-border bg-[#F8F9FA] px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:grid ${CART_GRID}`}>
+      <section className="cart-table-scroll rounded-lg border border-border bg-card">
+        <div className="cart-table-grid hidden border-b border-border bg-[#F8F9FA] px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:grid">
           <span>Позиция</span>
           <span className="text-right">Кол-во</span>
           <span className="text-right">Цена</span>
           <span className="text-right">Сумма</span>
           <span />
         </div>
+
 
         {lines.length === 0 && (
           <p className="px-5 py-10 text-center text-sm text-muted-foreground">
@@ -331,8 +331,9 @@ export function CartPanel() {
           return (
             <SwipeToDelete key={l.sku} onDelete={() => removeLine(l.sku)}>
             <div
-              className={`border-b border-border px-4 py-4 last:border-b-0 md:grid md:items-center md:gap-3 md:px-5 md:py-3 ${CART_GRID}`}
+              className="cart-table-grid border-b border-border px-4 py-4 last:border-b-0 md:px-5 md:py-3"
             >
+
 
               <div className="flex min-w-0 items-center gap-3">
                 <span className="block w-10 shrink-0">
