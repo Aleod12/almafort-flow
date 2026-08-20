@@ -466,12 +466,33 @@ export async function solveConfiguration(rawQuery: string): Promise<SolveResult>
   );
   const routedToService = proposed.length === 0;
 
-  const items = priceItems(
-    (routedToService ? [{ sku: "SRV-RE3D", quantity: 1 }, { sku: "SRV-INJ", quantity: 1 }] : proposed).map((i) => ({
-      sku: String(i.sku ?? ""),
-      quantity: Number(i.quantity ?? 1),
-    })),
-  );
+  const warnings: string[] = [...n.notes];
+  if (isPriceManipulation(rawQuery)) {
+    warnings.push(
+      "Цены в смете зафиксированы каталогом ALMAFORT: изменить их из запроса невозможно.",
+    );
+  }
+
+  // Складские остатки: больше, чем есть на складе, в смету не ставим —
+  // остаток честно помечаем как позицию под заказ.
+  const requested = (
+    routedToService
+      ? [{ sku: "SRV-RE3D", quantity: 1 }, { sku: "SRV-INJ", quantity: 1 }]
+      : proposed
+  ).map((i) => ({ sku: String(i.sku ?? ""), quantity: Number(i.quantity ?? 1) }));
+
+  const capped = requested.map((i) => {
+    const p = PRODUCTS.find((x) => x.sku === i.sku);
+    const stock = p?.stock.qty ?? 0;
+    if (!p || isOnRequest(p) || stock <= 0 || i.quantity <= stock) return i;
+    const backorder = i.quantity - stock;
+    warnings.push(
+      `${p.sku}: на складе доступно ${stock.toLocaleString("ru-RU")} шт — они в смете. Оставшиеся ${backorder.toLocaleString("ru-RU")} шт будут оформлены под заказ.`,
+    );
+    return { sku: i.sku, quantity: stock };
+  });
+
+  const items = priceItems(capped);
 
   if (items.length === 0) {
     throw new Error("Не удалось подобрать позиции из каталога под эту задачу.");
@@ -488,7 +509,10 @@ export async function solveConfiguration(rawQuery: string): Promise<SolveResult>
       safety_margin_factor: Number.isFinite(margin) && margin > 0 ? Math.round(margin * 100) / 100 : null,
       is_service: routedToService || Boolean(parsed.is_service) || items.every((i) => i.on_request),
       total: Math.round(items.reduce((s, i) => s + i.total_price, 0) * 100) / 100,
+      warnings,
+      clarification: [],
     },
     sources: chunks.map((c) => ({ id: c.id, title: c.title })),
   };
 }
+
