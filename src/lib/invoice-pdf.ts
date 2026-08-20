@@ -1,4 +1,6 @@
 // Клиентская генерация PDF-счёта через pdfmake (без Chromium/Puppeteer).
+import { toast } from "sonner";
+import { runPdfJob } from "@/lib/pdf-queue";
 import type { CartLine, Carrier } from "@/store/cart-store";
 import { linePrice, productBySku, deliveryCost, cartTotals } from "@/store/cart-store";
 
@@ -48,7 +50,7 @@ export type InvoiceInput = {
   output?: "download" | "base64";
 };
 
-export async function generateInvoicePdf({
+async function generateInvoicePdfImpl({
   lines,
   carrier,
   city,
@@ -239,4 +241,12 @@ export async function generateInvoicePdf({
 
 function decodeSvg(dataUrl: string) {
   return decodeURIComponent(escape(atob(dataUrl.split(",")[1] ?? "")));
+}
+
+/** Публичная точка входа: рендер идёт через очередь, параллельных задач нет. */
+export function generateInvoicePdf(input: InvoiceInput): Promise<string | void> {
+  return runPdfJob(
+    () => generateInvoicePdfImpl(input),
+    () => toast.info("Счёт формируется (в очереди)..."),
+  );
 }

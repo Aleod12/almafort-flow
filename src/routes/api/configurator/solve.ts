@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { rateLimit } from "@/lib/rate-limit.server";
+import { readJson, SlowRequestError, timeoutResponse } from "@/lib/request-guard.server";
 
 // Ограничение длины — защита от «token exhaustion»: длинный мусор
 // не должен оплачиваться токенами LLM.
@@ -23,16 +24,17 @@ export const Route = createFileRoute("/api/configurator/solve")({
       POST: async ({ request }) => {
         // Дорогой LLM-эндпоинт: не чаще 10 расчётов в минуту с одного IP.
         const limited = rateLimit(request, "configurator", {
-          limit: 10,
+          limit: 3,
           windowMs: 60_000,
-          blockMs: 120_000,
+          blockMs: 10 * 60_000,
         });
         if (limited) return limited;
 
         let input: z.infer<typeof schema>;
         try {
-          input = schema.parse(await request.json());
-        } catch {
+          input = schema.parse(await readJson(request));
+        } catch (e) {
+          if (e instanceof SlowRequestError) return timeoutResponse();
           return Response.json(
             {
               error:

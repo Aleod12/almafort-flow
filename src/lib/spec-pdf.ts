@@ -1,4 +1,6 @@
 // PDF-смета спецификации из ИИ-конфигуратора (клиентский pdfmake, без сервера).
+import { toast } from "sonner";
+import { runPdfJob } from "@/lib/pdf-queue";
 
 export type SpecRow = {
   sku: string;
@@ -23,7 +25,7 @@ export type SpecInput = {
 const money = (n: number) =>
   n.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export async function generateSpecPdf({
+async function generateSpecPdfImpl({
   task,
   logic,
   safety,
@@ -128,4 +130,12 @@ export async function generateSpecPdf({
       },
     })
     .download(`Specifikaciya_Almafort_${Date.now()}.pdf`);
+}
+
+/** Публичная точка входа: рендер идёт через очередь, параллельных задач нет. */
+export function generateSpecPdf(input: SpecInput): Promise<void> {
+  return runPdfJob(
+    () => generateSpecPdfImpl(input),
+    () => toast.info("Спецификация формируется (в очереди)..."),
+  );
 }
