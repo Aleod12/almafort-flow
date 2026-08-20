@@ -14,13 +14,25 @@ export const Route = createFileRoute("/api/vision/identify")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        let image: string;
+        let raw: string;
         try {
-          image = schema.parse(await request.json()).image;
+          raw = schema.parse(await request.json()).image;
         } catch {
           return Response.json({ error: "Некорректный кадр" }, { status: 400 });
         }
         try {
+          // Защита от спуфинга: расширению и MIME не верим — проверяем сигнатуру
+          // и пересобираем картинку без EXIF/XMP/ICC, только потом отдаём модели.
+          const { sanitizeImageDataUrl } = await import("@/lib/image-sanitize.server");
+          const clean = sanitizeImageDataUrl(raw);
+          if (!clean) {
+            return Response.json(
+              { error: "Файл не является корректным изображением JPG, PNG или WebP" },
+              { status: 400 },
+            );
+          }
+          const image = clean.dataUrl;
+
           const { identifyPart, matchProducts, classVariants, logVisionFail, verdictCategory } =
             await import("@/lib/vision.server");
           const verdict = await identifyPart(image);
@@ -44,9 +56,20 @@ export const Route = createFileRoute("/api/vision/identify")({
           const score = verdict.confidence;
           const category = verdictCategory(verdict);
 
+          // Плохие условия съёмки важнее вердикта: гадать по пикселям запрещено.
+          if (verdict.low_light && verdict.status !== "FOREIGN") {
+            void logVisionFail(image, verdict);
+            return Response.json({ scenario: "lowlight", verdict });
+          }
+
           if (verdict.status === "INVALID" || score < 0.1) {
             void logVisionFail(image, verdict);
             return Response.json({ scenario: "invalid", verdict });
+          }
+
+          if (verdict.status === "VALID" && score < 0.4) {
+            void logVisionFail(image, verdict);
+            return Response.json({ scenario: "lowlight", verdict });
           }
 
           if (verdict.status === "FOREIGN" || score < 0.5 || !category) {
@@ -55,6 +78,7 @@ export const Route = createFileRoute("/api/vision/identify")({
           }
 
           if (score >= 0.85) {
+            // Масштаб по фото не определяется: отдаём класс и весь размерный ряд.
             return Response.json({
               scenario: "exact",
               verdict,
@@ -63,10 +87,15 @@ export const Route = createFileRoute("/api/vision/identify")({
             });
           }
 
+          const matches = matchProducts(verdict, 3).map(brief);
+          const reinforced = matches.some((m) => /металл|усиленн/i.test(m.name));
           return Response.json({
             scenario: "ambiguous",
             verdict,
-            matches: matchProducts(verdict, 3).map(brief),
+            question: reinforced
+              ? "Вам требуется цельнопластиковый вариант или усиленный металлическим каркасом?"
+              : `Найдено ${matches.length} похожих варианта. Уточните, какой именно нужен:`,
+            matches,
           });
         } catch (e) {
           const message = e instanceof Error ? e.message : "Ошибка распознавания";
