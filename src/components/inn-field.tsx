@@ -103,7 +103,6 @@ export function InnField({
             inputMode="numeric"
             pattern="[0-9]*"
             autoComplete="off"
-            maxLength={12}
             placeholder="10 или 12 цифр"
             aria-invalid={showError}
             className={`h-12 w-full rounded-md border bg-background px-4 text-base tabular-nums text-foreground outline-none focus:border-primary ${

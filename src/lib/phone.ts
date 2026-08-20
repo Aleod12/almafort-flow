@@ -13,7 +13,7 @@ export function phoneDigits(raw: string): string {
 
 export function formatPhone(raw: string): string {
   const d = phoneDigits(raw);
-  if (d.length <= 1) return raw.trim() === "" ? "" : "+7 ";
+  if (d.length <= 1) return raw.replace(/\D/g, "") === "" ? "" : "+7 ";
   const p = d.slice(1);
   let out = "+7";
   if (p.length) out += ` (${p.slice(0, 3)}`;
