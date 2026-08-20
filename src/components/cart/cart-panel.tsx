@@ -310,14 +310,15 @@ export function CartPanel() {
       )}
 
       {/* Корзина */}
-      <section className="overflow-hidden rounded-lg border border-border bg-card">
-        <div className={`sticky top-[72px] z-10 hidden items-center gap-3 border-b border-border bg-[#F8F9FA] px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:grid ${CART_GRID}`}>
+      <section className="cart-table-scroll rounded-lg border border-border bg-card">
+        <div className="cart-table-grid hidden border-b border-border bg-[#F8F9FA] px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:grid">
           <span>Позиция</span>
           <span className="text-right">Кол-во</span>
           <span className="text-right">Цена</span>
           <span className="text-right">Сумма</span>
           <span />
         </div>
+
 
         {lines.length === 0 && (
           <p className="px-5 py-10 text-center text-sm text-muted-foreground">
