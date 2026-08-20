@@ -230,6 +230,9 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
 
   const analyze = async (image: string) => {
     setBusy(true);
+    setFatal(null);
+    setShake(null);
+    setClarified(null);
     try {
       const res = await fetch("/api/vision/identify", {
         method: "POST",
@@ -246,7 +249,9 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
       else setFrozen(null);
     } catch (e) {
       setFrozen(null);
-      toast.error(e instanceof Error ? e.message : "Ошибка распознавания");
+      const message = e instanceof Error ? e.message : "Ошибка распознавания";
+      setFatal(`${message}. Попробуйте загрузить другое фото или повторить попытку.`);
+      toast.error(message);
     } finally {
       setBusy(false);
     }
@@ -255,20 +260,26 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
   /** Загрузка картинки с диска/галереи — основной сценарий для ПК и для отказа в доступе. */
   const pickFile = async (file: File | undefined | null) => {
     if (!file) return;
+    setFatal(null);
+    setShake(null);
+    setResult(null);
     const heic = /hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
     if (!file.type.startsWith("image/") && !heic) {
-      toast.error("Нужен файл изображения: JPG, PNG, WEBP или HEIC");
+      const m = "Нужен файл изображения: JPG, PNG, WEBP или HEIC";
+      setFatal(m);
+      toast.error(m);
       return;
     }
     const decoded = await decodeImageFile(file);
     if (!decoded) {
-      toast.error(
-        heic
-          ? "Браузер не открывает HEIC. Сохраните фото в JPG (Настройки → Камера → «Наиболее совместимый») и повторите"
-          : "Не удалось прочитать изображение",
-      );
+      const m = heic
+        ? "Браузер не открывает HEIC. Сохраните фото в JPG (Настройки → Камера → «Наиболее совместимый») и повторите"
+        : "Не удалось прочитать изображение";
+      setFatal(m);
+      toast.error(m);
       return;
     }
+
     // Сжимаем на клиенте: 800×800 WebP вместо 4K/8 МБ — иначе на 3G ответа не дождаться.
     const prepared = compress(decoded.source, decoded.width, decoded.height);
     setFrozen(prepared.dataUrl);
