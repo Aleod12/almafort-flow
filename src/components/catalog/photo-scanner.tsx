@@ -154,16 +154,23 @@ export function PhotoScanner({ open, onClose }: { open: boolean; onClose: () => 
     window.addEventListener("focus", onVisible);
 
     // Фон под полноэкранным сканером не прокручивается
+    // Esc закрывает полноэкранный сканер — привычная клавиша на ПК.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     return () => {
+      window.removeEventListener("keydown", onKey);
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", onVisible);
       document.body.style.overflow = prevOverflow;
       stop();
     };
-  }, [open, start, stop]);
+  }, [open, start, stop, onClose]);
 
   /** Переключение основная ↔ фронтальная камера. */
   const flipCamera = () => {
