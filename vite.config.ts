@@ -7,7 +7,18 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { VitePWA } from "vite-plugin-pwa";
 
+// Внутри Lovable-сборки пресет пинится платформой (LOVABLE_NITRO_PRESET) — не трогаем.
+// На своём сервере (VPS Reg.ru) собираем под Node: DEPLOY_TARGET=vps npm run build
+// либо NITRO_PRESET=node-server npm run build.
+const isLovableBuild = Boolean(process.env["LOVABLE_NITRO_PRESET"]);
+const selfHostPreset =
+  process.env["NITRO_PRESET"] ||
+  (process.env["DEPLOY_TARGET"] === "vps" ? "node-server" : undefined);
+
 export default defineConfig({
+  ...(!isLovableBuild && selfHostPreset
+    ? { nitro: { preset: selfHostPreset } as const }
+    : {}),
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
