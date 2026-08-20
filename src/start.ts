@@ -1,6 +1,7 @@
 import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
+import { maintenanceResponse, trailingSlashRedirect } from "./lib/seo-guard.server";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
@@ -25,7 +26,17 @@ const csrfMiddleware = createCsrfMiddleware({
   filter: (ctx) => ctx.handlerType === "serverFn",
 });
 
+// SEO-предохранители: один 301 со слеша на конце и жёсткий 503 в режиме техработ.
+const seoGuardMiddleware = createMiddleware().server(async ({ next, request }) => {
+  const url = new URL(request.url);
+  const redirect = trailingSlashRedirect(url);
+  if (redirect) return redirect;
+  const maintenance = await maintenanceResponse(url);
+  if (maintenance) return maintenance;
+  return next();
+});
+
 export const startInstance = createStart(() => ({
   functionMiddleware: [attachSupabaseAuth],
-  requestMiddleware: [errorMiddleware, csrfMiddleware],
+  requestMiddleware: [errorMiddleware, csrfMiddleware, seoGuardMiddleware],
 }));

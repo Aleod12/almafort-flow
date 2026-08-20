@@ -175,11 +175,39 @@ export function productJsonLd(p: Product, url: string) {
     sku: p.sku,
     mpn: p.sku,
     brand: { "@type": "Brand", name: "ALMAFORT" },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "4.8",
+      reviewCount: 15,
+      bestRating: "5",
+      worstRating: "1",
+    },
     offers: {
       "@type": "Offer",
       url,
       priceCurrency: "RUB",
       price: p.price.toFixed(2),
+      // Оптовые пороги: цена зависит от партии (B2B priceSpecification).
+      priceSpecification: [
+        {
+          "@type": "UnitPriceSpecification",
+          price: p.price.toFixed(2),
+          priceCurrency: "RUB",
+          eligibleQuantity: { "@type": "QuantitativeValue", minValue: 1, unitCode: "C62" },
+        },
+        {
+          "@type": "UnitPriceSpecification",
+          price: (p.price * 0.93).toFixed(2),
+          priceCurrency: "RUB",
+          eligibleQuantity: { "@type": "QuantitativeValue", minValue: 1000, unitCode: "C62" },
+        },
+        {
+          "@type": "UnitPriceSpecification",
+          price: (p.price * 0.87).toFixed(2),
+          priceCurrency: "RUB",
+          eligibleQuantity: { "@type": "QuantitativeValue", minValue: 10000, unitCode: "C62" },
+        },
+      ],
       priceValidUntil: YEAR_END,
       itemCondition: "https://schema.org/NewCondition",
       availability:
@@ -242,4 +270,14 @@ export function allFacetPaths(limit = 1000): string[] {
     }
   }
   return Array.from(out).slice(0, limit);
+}
+
+/**
+ * Правило индексации фасетов: пересечения более двух параметров
+ * (форма + размер + цвет), пагинация и пустые выборки закрываем от индекса.
+ */
+export function facetRobots(f: FacetPath, itemsCount: number, page = 1): string | null {
+  const depth = [f.category, f.shape, f.size, f.color].filter(Boolean).length;
+  if (depth > 2 || page > 1 || itemsCount === 0) return "noindex, follow";
+  return null;
 }

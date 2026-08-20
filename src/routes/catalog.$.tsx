@@ -12,6 +12,7 @@ import {
   facetDescription,
   facetH1,
   facetProducts,
+  facetRobots,
   facetTitle,
   parseFacetPath,
   productJsonLd,
@@ -41,23 +42,35 @@ export const Route = createFileRoute("/catalog/$")({
       return { meta: [{ title: "Раздел не найден — ALMAFORT" }, { name: "robots", content: "noindex" }] };
     }
     const { facets, items } = loaderData;
-    const title = facetTitle(facets);
-    const description = facetDescription(facets, items);
-    // Канонический URL — всегда чистый путь без ?sort / ?utm_source / ?page
+    const page = Math.max(1, Number((match.search as Search).page ?? 1) || 1);
+    const base = facetTitle(facets);
+    // Уникализируем Title страниц пагинации.
+    const title = page > 1 ? `${base} — страница ${page}` : base;
+    const description =
+      page > 1
+        ? `${facetH1(facets)}: страница ${page} каталога ALMAFORT. Оптовые цены и остатки склада.`
+        : facetDescription(facets, items);
+    // Канонический URL — всегда чистый путь без ?sort / ?utm_source / ?gclid / ?page
     const canonical = `${SITE_URL}${facets.path}`;
-    const paginated = Number((match.search as Search).page ?? 1) > 1;
+    const robots = facetRobots(facets, items.length, page);
+    // Соцкарточка конкретной позиции, если раздел сузился до одного артикула.
+    const single = items.length === 1 ? items[0] : undefined;
+    const image =
+      single && !single.is_service
+        ? `${SITE_URL}/assets/images/${single.sku.toLowerCase()}.webp`
+        : `${SITE_URL}/og/catalog.jpg`;
     return {
       meta: [
         { title },
         { name: "description", content: description },
-        ...(paginated ? [{ name: "robots", content: "noindex, follow" }] : []),
+        ...(robots ? [{ name: "robots", content: robots }] : []),
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "product.group" },
         { property: "og:url", content: canonical },
-        { property: "og:image", content: `${SITE_URL}/og/catalog.jpg` },
+        { property: "og:image", content: image },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:image", content: `${SITE_URL}/og/catalog.jpg` },
+        { name: "twitter:image", content: image },
       ],
       links: [{ rel: "canonical", href: canonical }],
     };
@@ -154,6 +167,7 @@ function FacetPage() {
       ? sizeFacets(facets.category.slug, facets.shape.slug)
       : [];
   const childColors = facets.size && !facets.color ? COLORS : [];
+  const page = Math.max(1, Number(Route.useSearch().page ?? 1) || 1);
   const base = facets.path;
 
   return (
@@ -180,9 +194,11 @@ function FacetPage() {
         <h1 className="text-3xl font-extrabold leading-[1.1] tracking-tight text-foreground lg:text-[40px]">
           {facetH1(facets)}
         </h1>
-        <p className="mt-3 max-w-[70ch] text-sm leading-[1.6] text-muted-foreground">
-          {facetDescription(facets, items)}
-        </p>
+        {page === 1 && (
+          <p className="mt-3 max-w-[70ch] text-sm leading-[1.6] text-muted-foreground">
+            {facetDescription(facets, items)}
+          </p>
+        )}
 
         {(childShapes.length > 0 || childSizes.length > 0 || childColors.length > 0) && (
           <div className="mt-8 flex flex-wrap gap-2">
@@ -196,6 +212,21 @@ function FacetPage() {
               </a>
             ))}
           </div>
+        )}
+
+        {items.length === 0 && (
+          <section className="mt-10 rounded-sm border border-border bg-card p-6" style={{ minHeight: 200 }}>
+            <h2 className="text-lg font-bold text-foreground">Позиции временно отсутствуют</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Раздел пуст — посмотрите родительскую категорию или закажите изготовление партии.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3 text-sm font-semibold">
+              <a className="text-primary" href={facets.category ? `/catalog/${facets.category.slug}` : "/catalog"}>
+                ← В родительскую категорию
+              </a>
+              <a className="text-primary" href="/catalog">Весь каталог</a>
+            </div>
+          </section>
         )}
 
         <section className="mt-10" style={{ minHeight: 320 }} aria-label="Позиции раздела">
