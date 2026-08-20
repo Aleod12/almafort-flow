@@ -16,6 +16,17 @@ function LazyMap() {
   // Ловушка скролла: пока карта не активирована тапом, она не принимает жесты —
   // палец свайпает страницу, а не зумит улицу.
   const [active, setActive] = useState(false);
+  const [blocked, setBlocked] = useState(false);
+  const loaded = useRef(false);
+
+  // Если виджет не загрузился за 6 секунд — считаем, что его вырезал AdBlock.
+  useEffect(() => {
+    if (!visible) return;
+    const t = window.setTimeout(() => {
+      setBlocked((b) => b || !loaded.current);
+    }, 6000);
+    return () => window.clearTimeout(t);
+  }, [visible]);
 
   useEffect(() => {
     const el = ref.current;
@@ -78,7 +89,10 @@ function LazyMap() {
         </div>
       ) : visible ? (
         <iframe
-          onLoad={() => setBlocked(false)}
+          onLoad={() => {
+            loaded.current = true;
+            setBlocked(false);
+          }}
           onError={() => setBlocked(true)}
           title="ALMAFORT — производство и склад: Дивногорск, Нижний проезд, 15/1"
           loading="lazy"
