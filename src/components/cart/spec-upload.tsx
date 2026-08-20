@@ -65,6 +65,10 @@ export function SpecUpload({ compact = false }: { compact?: boolean }) {
         );
         return;
       }
+      if (!(await signatureOk(file, ext))) {
+        toast.error(BAD_FORMAT);
+        return;
+      }
       setParsing(true);
       try {
         const body = new FormData();
