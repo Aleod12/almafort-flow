@@ -684,7 +684,9 @@ export function CartPanel() {
             </button>
           )}
         </div>
+        </div>
       </section>
+
 
       {/* Липкая нижняя панель оформления: итог и CTA всегда под большим пальцем */}
       {lines.length > 0 && (
