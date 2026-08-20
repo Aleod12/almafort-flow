@@ -12,6 +12,7 @@ import { InnField, type Party } from "@/components/inn-field";
 
 import { formatPrice } from "@/lib/pricing";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
+import { trackBeginCheckout, trackPurchase } from "@/lib/metrika";
 import { saveLastOrder } from "@/lib/last-order";
 import { ConsentCheckbox } from "@/components/consent-checkbox";
 import { ProductThumb } from "@/components/catalog/product-thumb";
@@ -153,12 +154,23 @@ export function CartPanel() {
       return;
     }
     setSubmitting(true);
+    const ecomItems = lines.map((l) => ({
+      sku: l.sku,
+      name: l.name,
+      price: linePrice(l.sku, l.quantity, minColumn).unit,
+      quantity: l.quantity,
+    }));
+    trackBeginCheckout(ecomItems, total);
     try {
-      // PDF не должен блокировать заявку: если генерация подвисла — уходим без вложения.
+      // PDF не должен блокировать заявку: дольше 5 с — уходим без вложения,
+      // счёт формируется на сервере и уезжает клиенту на почту.
       const invoicePdfBase64 = await Promise.race([
         generateInvoicePdf({ lines, carrier, city, delivery, output: "base64" }).catch(() => null),
-        new Promise<null>((r) => window.setTimeout(() => r(null), 20000)),
+        new Promise<null>((r) => window.setTimeout(() => r(null), 5000)),
       ]);
+      if (!invoicePdfBase64) {
+        toast.info("Заявка принята, счёт формируется и придёт на почту в течение минуты");
+      }
 
       const res = await fetch("/api/checkout/submit", {
         method: "POST",
@@ -210,6 +222,8 @@ export function CartPanel() {
           console.error("[cabinet] order save failed", err);
         }
       }
+
+      trackPurchase(json.orderId ?? Date.now(), ecomItems, total);
 
       saveLastOrder({
         orderId: json.orderId,
