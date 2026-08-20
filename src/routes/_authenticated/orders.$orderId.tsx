@@ -52,10 +52,15 @@ function OrderPage() {
 
   const onRepeat = async () => {
     try {
-      const { items, unavailable } = await repeat({ data: { orderId } });
+      const { items, unavailable, repriced } = await repeat({ data: { orderId } });
       items.forEach((i) => addLine(i.sku, i.quantity));
       if (unavailable.length) {
-        toast.warning(`Снято с производства и не перенесено: ${unavailable.join(", ")}`);
+        toast.warning(
+          `Внимание: ${unavailable.length} поз. из прошлого заказа больше не поставляются (${unavailable.join(", ")}).`,
+        );
+      }
+      if (repriced.length) {
+        toast.info(`Цены обновлены по текущему прайсу: ${repriced.length} поз.`);
       }
       toast.success("Спецификация перенесена в корзину по актуальным ценам");
       void navigate({ to: "/cart" });

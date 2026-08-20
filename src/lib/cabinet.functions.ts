@@ -47,6 +47,8 @@ export const getOrderDetail = createServerFn({ method: "GET" })
       .from("orders")
       .select("*")
       .eq("id", data.orderId)
+      // Явная привязка к владельцу поверх RLS: подмена id в URL не отдаёт чужой заказ.
+      .eq("user_id", context.userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!order) throw new Error("Заказ не найден");
@@ -214,11 +216,16 @@ export const repeatOrder = createServerFn({ method: "POST" })
       .from("orders")
       .select("items")
       .eq("id", data.orderId)
+      .eq("user_id", context.userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!order) throw new Error("Заказ не найден");
     const items = z
-      .array(z.object({ sku: z.string(), quantity: z.number() }).passthrough())
+      .array(
+        z
+          .object({ sku: z.string(), quantity: z.number(), unit: z.number().optional() })
+          .passthrough(),
+      )
       .catch([])
       .parse(order.items);
 
@@ -228,12 +235,15 @@ export const repeatOrder = createServerFn({ method: "POST" })
     const lines = items.map((i) => {
       const qty = Math.max(1, Math.round(i.quantity));
       const product = PRODUCTS.find((p) => p.sku === i.sku);
+      const unit = product ? unitPriceOf(product, qty) : 0;
       return {
         sku: i.sku,
         quantity: qty,
+        oldUnit: typeof i.unit === "number" ? i.unit : null,
+        priceChanged: typeof i.unit === "number" && Math.round(i.unit) !== Math.round(unit),
         available: Boolean(product) && !product!.is_service,
         name: product?.name ?? String(i.sku),
-        unit: product ? unitPriceOf(product, qty) : 0,
+        unit,
         inStock: (product?.stock.qty ?? 0) >= qty,
         lead: product?.stock.lead ?? null,
       };
@@ -241,5 +251,6 @@ export const repeatOrder = createServerFn({ method: "POST" })
     return {
       items: lines.filter((l) => l.available),
       unavailable: lines.filter((l) => !l.available).map((l) => l.name),
+      repriced: lines.filter((l) => l.available && l.priceChanged).map((l) => l.name),
     };
   });
