@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Camera, FileText, FolderTree, Package, Search, X } from "lucide-react";
 import { CATEGORIES, PRODUCTS, type Product } from "@/data/catalog";
@@ -120,6 +121,22 @@ export function SearchPanel({ query, onQuery, onPick, onScanChange }: Props) {
           onChange={(e) => {
             onQuery(e.target.value);
             setOpen(e.target.value.trim().length >= 3);
+          }}
+          // Вставка столбца артикулов из Excel: берём первую позицию,
+          // остальные показываем подсказкой, чтобы клиент не потерял список.
+          onPaste={(e) => {
+            const text = e.clipboardData.getData("text");
+            const rows = text
+              .split(/[\r\n\t;]+/)
+              .map((r) => r.trim())
+              .filter(Boolean);
+            if (rows.length < 2) return;
+            e.preventDefault();
+            onQuery(rows[0]!.slice(0, 200));
+            setOpen(true);
+            toast.info(
+              `Вставлено ${rows.length} позиций. Ищем «${rows[0]}» — остальные удобнее загрузить файлом спецификации в корзине`,
+            );
           }}
           onFocus={() => setOpen(query.trim().length >= 3)}
           placeholder="Введите артикул, название или параметры (например: крепеж сэндвич-панели 120мм)"
