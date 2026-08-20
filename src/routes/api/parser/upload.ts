@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { rateLimit } from "@/lib/rate-limit.server";
+import { clientIp, rateLimit } from "@/lib/rate-limit.server";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const BAD_FORMAT = "Ошибка: Файл поврежден или имеет неверный формат. Загрузите корректный документ Excel";
@@ -8,7 +8,12 @@ export const Route = createFileRoute("/api/parser/upload")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const limited = rateLimit(request, "spec-upload", { limit: 20, windowMs: 60_000 });
+        // Тяжёлая операция: 3 загрузки в минуту с IP, далее бан на 10 минут.
+        const limited = rateLimit(request, "spec-upload", {
+          limit: 3,
+          windowMs: 60_000,
+          blockMs: 10 * 60_000,
+        });
         if (limited) return limited;
         try {
           const form = await request.formData();
@@ -44,6 +49,22 @@ export const Route = createFileRoute("/api/parser/upload")({
           }
           if (ext !== "csv" && sniff.kind === "text") {
             return Response.json({ error: BAD_FORMAT }, { status: 415 });
+          }
+
+          if (sniff.kind === "zip") {
+            // Zip bomb / XXE / VBA — проверяем контейнер до парсинга.
+            const { inspectOoxml } = await import("@/lib/zip-guard.server");
+            const verdict = await inspectOoxml(bytes);
+            if (!verdict.ok) {
+              console.warn(`[spec-upload] ${verdict.reason} from ${clientIp(request)}: ${verdict.detail}`);
+              if (verdict.reason === "bomb") {
+                return Response.json(
+                  { error: "Файл распаковывается в слишком большой объём данных. Разделите смету на части" },
+                  { status: 413 },
+                );
+              }
+              return Response.json({ error: BAD_FORMAT }, { status: 415 });
+            }
           }
 
           let result;

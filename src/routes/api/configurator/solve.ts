@@ -23,9 +23,9 @@ export const Route = createFileRoute("/api/configurator/solve")({
       POST: async ({ request }) => {
         // Дорогой LLM-эндпоинт: не чаще 10 расчётов в минуту с одного IP.
         const limited = rateLimit(request, "configurator", {
-          limit: 10,
+          limit: 3,
           windowMs: 60_000,
-          blockMs: 120_000,
+          blockMs: 10 * 60_000,
         });
         if (limited) return limited;
 
