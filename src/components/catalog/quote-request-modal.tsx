@@ -1,3 +1,4 @@
+import { formatPhone } from "@/lib/phone";
 import { useEffect, useState } from "react";
 import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -100,7 +101,10 @@ export function QuoteRequestModal({
           <input
             value={form.phone}
             inputMode="tel"
-            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+            onChange={(e) => setForm((f) => ({ ...f, phone: formatPhone(e.target.value) }))}
+            type="tel"
+            autoComplete="tel"
+            maxLength={18}
             placeholder="Телефон*"
             className="h-11 rounded-sm border border-[#D1D5DB] px-3 text-sm tabular-nums outline-none focus:border-primary"
           />

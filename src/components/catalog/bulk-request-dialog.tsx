@@ -1,3 +1,4 @@
+import { formatPhone } from "@/lib/phone";
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -145,7 +146,10 @@ export function BulkRequestDialog({
               />
               <input
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(formatPhone(e.target.value))}
+                type="tel"
+                autoComplete="tel"
+                maxLength={18}
                 placeholder="Телефон"
                 inputMode="tel"
                 className={field}
