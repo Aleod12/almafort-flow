@@ -58,8 +58,28 @@ function LazyMap() {
       ref={ref}
       className="relative h-full min-h-[280px] w-full max-w-full overflow-hidden bg-[#1B1B1F] sm:min-h-[400px]"
     >
-      {visible ? (
+      {visible && blocked ? (
+        // Корпоративные блокировщики часто режут виджет карт — адрес остаётся доступен.
+        <div className="flex h-full min-h-[280px] w-full flex-col items-center justify-center gap-2 px-6 text-center sm:min-h-[400px]">
+          <p className="text-sm font-semibold text-white">
+            Дивногорск, Нижний проезд, 15/1
+          </p>
+          <p className="text-xs text-[#9CA3AF]">
+            Интерактивная карта заблокирована расширением браузера
+          </p>
+          <a
+            href={`https://yandex.ru/maps/?pt=${LON},${LAT}&z=17&l=map`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 cursor-pointer rounded-sm border border-white/30 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-white/10"
+          >
+            Открыть карту в новой вкладке
+          </a>
+        </div>
+      ) : visible ? (
         <iframe
+          onLoad={() => setBlocked(false)}
+          onError={() => setBlocked(true)}
           title="ALMAFORT — производство и склад: Дивногорск, Нижний проезд, 15/1"
           loading="lazy"
           scrolling="no"
