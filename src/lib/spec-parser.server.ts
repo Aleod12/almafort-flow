@@ -238,6 +238,8 @@ function walk(wb: XLSX.WorkBook): ParseResult {
     if (!sheet) continue;
     const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, blankrows: false, defval: "" });
     if (!rows.length) continue;
+    // Лист упёрся в sheetRows — значит книга была длиннее лимита и её обрезали на чтении.
+    if (rows.length > MAX_ROWS) truncated = true;
 
     const headerIdx = findHeaderRow(rows);
     const cols = headerIdx >= 0 ? mapColumns(rows[headerIdx] ?? []) : guessColumns(rows);
