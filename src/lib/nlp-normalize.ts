@@ -239,7 +239,7 @@ export const INJ_MIN_QTY = 1000;
 
 function numbers(text: string): number[] {
   return [...text.matchAll(/(\d[\d\s]{0,9}\d|\d)/g)]
-    .map((m) => Number(m[1].replace(/\s/g, "")))
+    .map((m) => Number((m[1] ?? "").replace(/\s/g, "")))
     .filter((v) => Number.isFinite(v));
 }
 
@@ -339,5 +339,5 @@ export function preflight(text: string): Preflight {
 /** Названная клиентом цена (демпинг/торг) — только для предупреждения. */
 export function dictatedPrice(text: string): number | null {
   const m = text.match(/по\s*(?:цене\s*)?(\d{1,4}(?:[.,]\d{1,2})?)\s*(?:руб|₽|р\b)/i);
-  return m ? Number(m[1].replace(",", ".")) : null;
+  return m?.[1] ? Number(m[1].replace(",", ".")) : null;
 }
