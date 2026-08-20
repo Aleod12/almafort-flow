@@ -523,7 +523,10 @@ export function CartPanel() {
           </div>
         )}
 
+        {/* Правая колонка: контакты и итог идут одной стопкой, чтобы итог не уезжал под доставку */}
+        <div className="flex flex-col gap-6 lg:col-start-2 lg:row-start-1">
         <div className="rounded-md border border-border p-5">
+
           <p className="text-sm font-semibold text-foreground">Контакты для счёта</p>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
