@@ -21,6 +21,10 @@ export type VisionVerdict = {
   observed: string;
   /** Обнаружены ли пальцы/ладонь: влияет на изоляцию объекта. */
   hands_present: boolean;
+  /** Кадр тёмный / деталь сливается с фоном — гадать по пикселям запрещено. */
+  low_light: boolean;
+  /** Отличительные визуальные маркеры: металлический каркас, фактура, форма шляпки. */
+  markers: string[];
 };
 
 const MODEL = "google/gemini-3.6-flash";
@@ -35,11 +39,18 @@ const SYSTEM_PROMPT =
   "ALMAFORT (заглушки внутренние, заглушки декоративные, опоры и подпятники, мебельный крепёж, " +
   "комплектующие для ДПК, комплектующие для канистр, детали для сэндвич-панелей) — верни status FOREIGN.\n" +
   "Иначе верни status VALID и класс детали.\n" +
+  "Масштаб по фото не определяется: НИКОГДА не называй конкретный размер (15х15 или 100х100 " +
+  "выглядят на снимке одинаково) — определяй только класс и форму.\n" +
+  "Fine-grained: отмечай в markers отличительные признаки — «металлический каркас», " +
+  "«цельный пластик», «фактура металла», «широкая шляпка», «резьбовой шток».\n" +
+  "low_light=true, если кадр тёмный, засвечен бликом или деталь по цвету сливается с фоном — " +
+  "в этом случае не угадывай класс.\n" +
   "confidence — целое 0..100: насколько уверенно объект соответствует классу ALMAFORT.\n" +
   "Ответ СТРОГО JSON без markdown: " +
   '{"status":"VALID|FOREIGN|INVALID","type":"заглушка/опора/крепеж/колпачок/хомут","shape":' +
   '"квадрат/круг/прямоугольник","color":"черный/серый/белый","has_threads":true|false,' +
-  '"confidence":0-100,"observed":"что видно на фото","hands_present":true|false}';
+  '"confidence":0-100,"observed":"что видно на фото","hands_present":true|false,' +
+  '"low_light":true|false,"markers":["металлический каркас"]}';
 
 function dataUrlToBytes(dataUrl: string): { bytes: Uint8Array; mime: string } | null {
   const m = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
@@ -155,6 +166,10 @@ export async function identifyPart(imageDataUrl: string): Promise<VisionVerdict>
     confidence: status === "INVALID" ? Math.min(0.09, conf) : Math.min(1, Math.max(0, conf)),
     observed: String(parsed.observed ?? "").slice(0, 160),
     hands_present: Boolean(parsed.hands_present),
+    low_light: Boolean(parsed.low_light),
+    markers: Array.isArray(parsed.markers)
+      ? parsed.markers.slice(0, 5).map((m) => String(m).slice(0, 40))
+      : [],
   };
 }
 
