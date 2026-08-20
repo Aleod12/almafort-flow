@@ -258,30 +258,48 @@ function CabinetPage() {
             <p className="mt-1 text-base font-bold text-foreground">
               {profile?.manager_name ?? "Менеджер ALMAFORT"}
             </p>
-            <div className="mt-4 grid gap-2 text-sm">
-              <a
-                href={`tel:${(profile?.manager_phone ?? "").replace(/\D/g, "")}`}
-                className="inline-flex items-center gap-2 text-foreground transition-colors hover:text-primary"
-              >
-                <Phone className="size-4" strokeWidth={1.75} /> {profile?.manager_phone}
-              </a>
-              <a
-                href={profile?.manager_whatsapp ?? "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-foreground transition-colors hover:text-primary"
-              >
-                <MessageCircle className="size-4" strokeWidth={1.75} /> WhatsApp
-              </a>
-              <a
-                href={profile?.manager_telegram ?? "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-foreground transition-colors hover:text-primary"
-              >
-                <Send className="size-4" strokeWidth={1.75} /> Telegram
-              </a>
-            </div>
+            {(() => {
+              const phone = profile?.manager_phone?.trim() || COMPANY.phone;
+              const wa =
+                profile?.manager_whatsapp?.trim() ||
+                `https://wa.me/${COMPANY.phoneHref.replace(/\D/g, "")}`;
+              const tg = profile?.manager_telegram?.trim() || "https://t.me/almafort";
+              const telHref = `tel:+${phone.replace(/\D/g, "").replace(/^8/, "7")}`;
+              return (
+                <div className="mt-4 grid gap-2 text-sm">
+                  {phone && (
+                    <a
+                      href={telHref}
+                      className="inline-flex min-h-11 items-center gap-2 text-foreground transition-colors hover:text-primary"
+                    >
+                      <Phone className="size-4 shrink-0" strokeWidth={1.75} />
+                      <span className="tabular-nums">{phone}</span>
+                    </a>
+                  )}
+                  {wa && (
+                    <a
+                      href={wa}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex min-h-11 items-center gap-2 text-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
+                    >
+                      <MessageCircle className="size-4 shrink-0" strokeWidth={1.75} /> WhatsApp
+                    </a>
+                  )}
+                  {tg && (
+                    <a
+                      href={tg}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex min-h-11 items-center gap-2 text-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
+                    >
+                      <Send className="size-4 shrink-0" strokeWidth={1.75} /> Telegram
+                    </a>
+                  )}
+                </div>
+              );
+            })()}
+
           </div>
 
           {/* Юрлица */}
