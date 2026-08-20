@@ -90,7 +90,8 @@
   --destructive-foreground: oklch(1 0 0);
   --border: oklch(0.936 0.003 247.9);
   --input: oklch(0.936 0.003 247.9);
-  --ring: oklch(0.573 0.221 27.5);
+  /* Нейтральный фокус: красная обводка на вводе текста воспринимается как ошибка. */
+  --ring: oklch(0.62 0.02 255);
   --surface: oklch(0.984 0.002 247.9);
   --dashed: oklch(0.872 0.008 264);
   --placeholder: oklch(0.919 0.004 264);
