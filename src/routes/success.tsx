@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/site-header";
+import { generateInvoicePdfInBrowser } from "@/lib/pdf-browser";
 import { readLastOrder, type LastOrder } from "@/lib/last-order";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -48,8 +49,7 @@ function SuccessPage() {
   const downloadCopy = async () => {
     if (!order) return;
     try {
-      const { generateInvoicePdf } = await import("@/lib/invoice-pdf");
-      await generateInvoicePdf({
+      await generateInvoicePdfInBrowser({
         lines: order.lines,
         carrier: order.carrier,
         city: order.city,

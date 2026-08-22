@@ -12,6 +12,7 @@ import { SwipeToDelete } from "@/components/cart/swipe-to-delete";
 import { InnField, type Party } from "@/components/inn-field";
 
 import { formatPrice } from "@/lib/pricing";
+import { generateInvoicePdfInBrowser } from "@/lib/pdf-browser";
 import { trackBeginCheckout, trackPurchase } from "@/lib/metrika";
 import { saveLastOrder } from "@/lib/last-order";
 import { ConsentCheckbox } from "@/components/consent-checkbox";
@@ -187,11 +188,9 @@ export function CartPanel() {
       // PDF не должен блокировать заявку: дольше 5 с — уходим без вложения,
       // счёт формируется на сервере и уезжает клиенту на почту.
       const invoicePdfBase64 = await Promise.race([
-        import("@/lib/invoice-pdf")
-          .then(({ generateInvoicePdf }) =>
-            generateInvoicePdf({ lines, carrier, city, delivery, output: "base64" }),
-          )
-          .catch(() => null),
+        generateInvoicePdfInBrowser({ lines, carrier, city, delivery, output: "base64" }).catch(
+          () => null,
+        ),
         new Promise<null>((r) => window.setTimeout(() => r(null), 5000)),
       ]);
       if (!invoicePdfBase64) {
@@ -281,8 +280,7 @@ export function CartPanel() {
       return;
     }
     try {
-      const { generateInvoicePdf } = await import("@/lib/invoice-pdf");
-      await generateInvoicePdf({ lines, carrier, city, delivery });
+      await generateInvoicePdfInBrowser({ lines, carrier, city, delivery });
       toast.success("PDF-счёт сформирован");
     } catch {
       toast.error("Не удалось сформировать счёт");
