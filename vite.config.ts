@@ -6,6 +6,26 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { VitePWA } from "vite-plugin-pwa";
+import { readFileSync } from "node:fs";
+
+/**
+ * Ассеты `*.asset.json` ссылаются на CDN Lovable (`/__l5e/assets-v1/...`),
+ * который на собственном VPS отдаёт 404. Все файлы продублированы в
+ * `public/media/`, поэтому подменяем url на локальный ещё на этапе сборки.
+ */
+const localAssetsPlugin = {
+  name: "almafort:local-media-assets",
+  enforce: "pre" as const,
+  load(id: string) {
+    const file = id.split("?")[0] ?? "";
+    if (!file.endsWith(".asset.json")) return null;
+    const json = JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
+    const name = String(json["original_filename"] ?? "");
+    if (name) json["url"] = `/media/${name}`;
+    return `export default ${JSON.stringify(json)};`;
+  },
+};
+
 
 // Внутри Lovable-сборки пресет пинится платформой (LOVABLE_NITRO_PRESET) — не трогаем.
 // На своём сервере (VPS Reg.ru) собираем под Node: DEPLOY_TARGET=vps npm run build
