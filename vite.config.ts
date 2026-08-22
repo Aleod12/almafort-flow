@@ -15,17 +15,46 @@ const selfHostPreset =
   process.env["NITRO_PRESET"] ||
   (process.env["DEPLOY_TARGET"] === "vps" ? "node-server" : undefined);
 
+// Nitro/rolldown при ESM-бандлинге генерирует хелпер __exportAll для `export *`.
+// При минификации серверного бандла он может быть переименован/вырезан —
+// в рантайме это даёт "TypeError: __exportAll is not a function".
+// Отключаем минификацию серверного бандла и фиксируем ESM-вывод с явным interop.
+const ssrOutput = {
+  format: "es",
+  interop: "auto",
+  esModule: true,
+  generatedCode: { constBindings: true, symbols: false },
+  hoistTransitiveImports: false,
+} as const;
+
 export default defineConfig({
   ...(!isLovableBuild && selfHostPreset
-    ? { nitro: { preset: selfHostPreset } as const }
+    ? {
+        nitro: { preset: selfHostPreset } as const,
+      }
     : {}),
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+
   vite: {
+    ...(!isLovableBuild && selfHostPreset
+      ? {
+          environments: {
+            ssr: {
+              build: {
+                minify: false as const,
+                rollupOptions: { output: ssrOutput },
+              },
+            },
+          },
+        }
+      : {}),
     plugins: [
+
+
       VitePWA({
         strategies: "generateSW",
         registerType: "autoUpdate",
