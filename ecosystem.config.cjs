@@ -46,10 +46,14 @@ module.exports = {
       script: "./.output/server/index.mjs",
       cwd: __dirname,
       exec_mode: "cluster",
-      instances: process.env.WEB_CONCURRENCY || 2,
+      // Жёстко 2 инстанса под 2-ядерный VPS. Не зависим от WEB_CONCURRENCY,
+      // чтобы PM2 не создал лишних воркеров и не переполнил RAM.
+      instances: 2,
       autorestart: true,
       watch: false,
-      max_memory_restart: "700M",
+      // Если воркер превысит 1 ГБ (тяжёлый PDF-рендер или парсинг крупного XLSX),
+      // PM2 перезапустит его, защищая сервер от OOM-killer.
+      max_memory_restart: "1G",
       kill_timeout: 10000,
       listen_timeout: 15000,
       time: true,

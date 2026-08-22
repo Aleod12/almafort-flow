@@ -28,6 +28,31 @@ for v in "${REQUIRED_VARS[@]}"; do
   [ -n "${!v:-}" ] || fail "В .env не задана переменная $v"
 done
 
+# 2b. Swap-файл 2 ГБ (страховка от OOM-killer при пиках PDF/XLSX) -------------
+SWAP_SIZE_MB=2048
+if swapon --show | grep -q "/swapfile"; then
+  log "Swap уже включён — пропускаю"
+else
+  log "Создание swap-файла ${SWAP_SIZE_MB} МБ"
+  if [ ! -f /swapfile ]; then
+    fallocate -l ${SWAP_SIZE_MB}M /swapfile 2>/dev/null || \
+      dd if=/dev/zero of=/swapfile bs=1M count=${SWAP_SIZE_MB} status=progress
+    chmod 600 /swapfile
+    mkswap /swapfile
+  fi
+  swapon /swapfile
+  # Сохраняем в /etc/fstab, чтобы swap поднимался после перезагрузки
+  if ! grep -q "^/swapfile" /etc/fstab; then
+    echo "/swapfile none swap sw 0 0" >> /etc/fstab
+  fi
+  # Снижаем агрессивность swap (10 = предпочитать RAM), чтобы не тормозило
+  sysctl -w vm.swappiness=10
+  if ! grep -q "vm.swappiness" /etc/sysctl.conf; then
+    echo "vm.swappiness=10" >> /etc/sysctl.conf
+  fi
+  log "Swap активирован (${SWAP_SIZE_MB} МБ), vm.swappiness=10"
+fi
+
 # 3. Зависимости -------------------------------------------------------------
 log "Установка зависимостей (npm ci)"
 if [ -f package-lock.json ]; then
