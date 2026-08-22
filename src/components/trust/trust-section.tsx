@@ -1,6 +1,7 @@
 import { SafeImage } from "@/components/safe-image";
 import { useCallback, useEffect, useState } from "react";
 import { Check, MapPin, Search, Truck, X, Zap } from "lucide-react";
+import { mediaUrl } from "@/lib/media";
 import cert3dAsset from "@/assets/certificates/cert-3d-print.jpg.asset.json";
 import certReverseAsset from "@/assets/certificates/cert-reverse-eng.jpg.asset.json";
 import krepssPreviewAsset from "@/assets/certificates/krepss-sertifikat.jpg.asset.json";
@@ -145,23 +146,23 @@ export function TrustSection() {
 
   const trademarkDoc: Doc = {
     alt: "Свидетельство Роспатента на товарный знак ALMAFORT",
-    src: trademarkAsset.url,
+    src: mediaUrl(trademarkAsset.url),
   };
   const expertDocs: Doc[] = [
     {
       alt: "Сертификат соответствия КРЕПСС РОСС RU.33163.OC01.00631",
       caption: "Сертификат соответствия КРЕПСС (до 11.03.2029)",
-      src: krepssPreviewAsset.url,
+      src: mediaUrl(krepssPreviewAsset.url),
     },
     {
       alt: "Удостоверение АО «ЦАТ»: 3D-печать пластиком",
       caption: "Квалификация: 3D-печать (Центр аддитивных технологий)",
-      src: cert3dAsset.url,
+      src: mediaUrl(cert3dAsset.url),
     },
     {
       alt: "Удостоверение АО «ЦАТ»: реверсивный инжиниринг",
       caption: "Квалификация: Реверс-инжиниринг",
-      src: certReverseAsset.url,
+      src: mediaUrl(certReverseAsset.url),
     },
   ];
 

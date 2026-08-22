@@ -13,8 +13,9 @@ export function SafeImage({
   ...rest
 }: ImgHTMLAttributes<HTMLImageElement> & { wrapperClassName?: string }) {
   const [failed, setFailed] = useState(false);
+  const resolved = mediaUrl(typeof src === "string" ? src : undefined) ?? src;
 
-  if (!src || failed) {
+  if (!resolved || failed) {
     return (
       <span
         role="img"
@@ -29,6 +30,6 @@ export function SafeImage({
   }
 
   return (
-    <img src={src} alt={alt} onError={() => setFailed(true)} className={className} {...rest} />
+    <img src={resolved as string} alt={alt} onError={() => setFailed(true)} className={className} {...rest} />
   );
 }
