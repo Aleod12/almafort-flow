@@ -1,4 +1,6 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentType } from "react";
+import { ClientOnly } from "@tanstack/react-router";
+import { createClientOnlyFn } from "@tanstack/react-start";
 import { Download, FileText, Layers, Ruler, Truck } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { Product } from "@/data/catalog";
@@ -8,9 +10,12 @@ import { BulkRequestDialog } from "@/components/catalog/bulk-request-dialog";
 import { useAssetGroups } from "@/lib/asset-groups";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { ShippingQuote } from "@/lib/logistics";
-import { ClientOnly } from "@/components/client-only";
+type CadViewerProps = { glbUrl: string | null; category: string };
 
-const CadViewer = lazy(() => typeof window !== "undefined" ? import("@/components/catalog/cad-viewer") : Promise.resolve({ default: () => () => null }));
+const loadCadViewer = createClientOnlyFn(async () => {
+  const module = await import("@/components/catalog/cad-viewer");
+  return module.default as ComponentType<CadViewerProps>;
+});
 
 export function ProductSheet({
   product,
@@ -26,6 +31,17 @@ export function ProductSheet({
   const assets = useAssetGroups();
   const assetGroup = product ? assets.get(product.sku) : undefined;
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [CadViewer, setCadViewer] = useState<ComponentType<CadViewerProps> | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void loadCadViewer().then((Viewer) => {
+      if (active) setCadViewer(() => Viewer);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!product) return;
@@ -140,25 +156,15 @@ export function ProductSheet({
 
             <div className="grid gap-8 lg:grid-cols-2">
               <div>
-                <ClientOnly
-                  fallback={
-                    <div className="grid h-72 place-items-center rounded-lg bg-surface font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Инициализация WebGL...
-                    </div>
-                  }
-                >
-                  <Suspense
-                    fallback={
-                      <div className="grid h-72 place-items-center rounded-lg bg-surface font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                        Загрузка CAD-геометрии...
-                      </div>
-                    }
-                  >
+                <ClientOnly fallback={<CadViewerPlaceholder />}>
+                  {CadViewer ? (
                     <CadViewer
                       glbUrl={product.engineering_assets.model_glb_url}
                       category={product.category}
                     />
-                  </Suspense>
+                  ) : (
+                    <CadViewerPlaceholder />
+                  )}
                 </ClientOnly>
                 <p className="mt-3 text-xs text-muted-foreground">
                   Модель сжата Draco · вращение мышью, зум колесом. Геометрия совпадает с
@@ -310,5 +316,13 @@ export function ProductSheet({
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function CadViewerPlaceholder() {
+  return (
+    <div className="grid h-72 place-items-center rounded-lg bg-surface font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+      Инициализация WebGL...
+    </div>
   );
 }
