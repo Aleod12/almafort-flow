@@ -10,7 +10,7 @@ import { KNOWLEDGE_BASE, type KbChunk } from "@/data/knowledge-base";
 import { PRODUCTS, isOnRequest, tierOf } from "@/data/catalog";
 import { unitPriceOf, lineTotal } from "@/lib/pricing";
 import { aiComplete } from "@/lib/ai-provider.server";
-import { activePrompt, logLlmCall, type LlmUsage } from "@/lib/llm-log.server";
+import { activePrompt, logLlmCall } from "@/lib/llm-log.server";
 import {
   MASS_LIMIT_KG,
   clarificationQuestions,
@@ -24,7 +24,8 @@ import {
   preflight,
 } from "@/lib/nlp-normalize";
 
-const MODEL = "openai/gpt-5.6-sol";
+// Модель по умолчанию определяет адаптер (ai-provider.server.ts); здесь только журнал.
+const MODEL = "auto";
 
 export type SolutionItem = {
   sku: string;
@@ -387,7 +388,7 @@ export async function solveConfiguration(
       prompt: query,
       response: "",
       parseStatus: "api_error",
-      model: MODEL,
+      model: result.model,
       usage: result.usage,
     });
     throw new Error("ИИ не вернул решение. Уточните формулировку задачи.");
@@ -409,7 +410,7 @@ export async function solveConfiguration(
       prompt: query,
       response: raw,
       parseStatus: "json_error",
-      model: MODEL,
+      model: result.model,
       usage: result.usage,
     });
     throw new Error("ИИ вернул некорректный формат ответа. Повторите запрос.");
@@ -420,7 +421,7 @@ export async function solveConfiguration(
     prompt: query,
     response: raw,
     parseStatus: "ok",
-    model: MODEL,
+    model: result.model,
     usage: result.usage,
   });
 
