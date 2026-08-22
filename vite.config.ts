@@ -20,12 +20,12 @@ const selfHostPreset =
 // в рантайме это даёт "TypeError: __exportAll is not a function".
 // Отключаем минификацию серверного бандла и фиксируем ESM-вывод с явным interop.
 const ssrOutput = {
-  format: "es" as const,
-  interop: "auto" as const,
+  format: "es",
+  interop: "auto",
   esModule: true,
-  generatedCode: { constBindings: true, symbols: false } as const,
+  generatedCode: { constBindings: true, symbols: false },
   hoistTransitiveImports: false,
-};
+} as const;
 
 export default defineConfig({
   ...(!isLovableBuild && selfHostPreset
