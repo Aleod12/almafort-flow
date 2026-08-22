@@ -72,9 +72,11 @@ const DEFAULTS = {
     visionModel: "google/gemini-3.6-flash",
   },
   openai: {
+    // Рег.облако (Reg.ru Cloud AI) — OpenAI-совместимый шлюз.
+    // Точка входа задаётся OPENAI_BASE_URL, значение ниже — только запасное.
     baseUrl: "https://api.openai.com/v1",
-    model: "gpt-4o",
-    visionModel: "gpt-4o",
+    model: "deepseek-v4-flash",
+    visionModel: "gemini-3.5-flash",
   },
   gemini: {
     // OpenAI-совместимый эндпоинт Google: тело запроса не меняется.
@@ -89,11 +91,12 @@ const env = (name: string) => process.env[name]?.trim() || null;
 const trimSlash = (url: string) => url.replace(/\/+$/, "");
 
 function providerFor(task: AiTask): AiProviderId {
-  const raw = (
-    env(task === "vision" ? "AI_PROVIDER_VISION" : "AI_PROVIDER_CONFIGURATOR") ??
-    env("AI_PROVIDER") ??
-    "lovable"
-  ).toLowerCase();
+  const explicit =
+    env(task === "vision" ? "AI_PROVIDER_VISION" : "AI_PROVIDER_CONFIGURATOR") ?? env("AI_PROVIDER");
+  // По умолчанию — Рег.облако (OpenAI-совместимый режим), как только заданы
+  // OPENAI_BASE_URL/OPENAI_API_KEY. Шлюз Lovable остаётся запасным вариантом.
+  const fallback = env("OPENAI_BASE_URL") || env("OPENAI_API_KEY") ? "openai" : "lovable";
+  const raw = (explicit ?? fallback).toLowerCase();
   return raw === "openai" || raw === "gemini" ? raw : "lovable";
 }
 
