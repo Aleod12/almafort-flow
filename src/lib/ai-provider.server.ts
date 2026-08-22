@@ -91,11 +91,12 @@ const env = (name: string) => process.env[name]?.trim() || null;
 const trimSlash = (url: string) => url.replace(/\/+$/, "");
 
 function providerFor(task: AiTask): AiProviderId {
-  const raw = (
-    env(task === "vision" ? "AI_PROVIDER_VISION" : "AI_PROVIDER_CONFIGURATOR") ??
-    env("AI_PROVIDER") ??
-    "lovable"
-  ).toLowerCase();
+  const explicit =
+    env(task === "vision" ? "AI_PROVIDER_VISION" : "AI_PROVIDER_CONFIGURATOR") ?? env("AI_PROVIDER");
+  // По умолчанию — Рег.облако (OpenAI-совместимый режим), как только заданы
+  // OPENAI_BASE_URL/OPENAI_API_KEY. Шлюз Lovable остаётся запасным вариантом.
+  const fallback = env("OPENAI_BASE_URL") || env("OPENAI_API_KEY") ? "openai" : "lovable";
+  const raw = (explicit ?? fallback).toLowerCase();
   return raw === "openai" || raw === "gemini" ? raw : "lovable";
 }
 
