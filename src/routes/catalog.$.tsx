@@ -58,7 +58,7 @@ export const Route = createFileRoute("/catalog/$")({
     const image =
       single && !single.is_service
         ? `${SITE_URL}/icons/icon-512.png`
-        : `${SITE_URL}/og/catalog.jpg`;
+        : `${SITE_URL}/icons/icon-512.png`;
     return {
       meta: [
         { title },
