@@ -9,6 +9,7 @@
 import { KNOWLEDGE_BASE, type KbChunk } from "@/data/knowledge-base";
 import { PRODUCTS, isOnRequest, tierOf } from "@/data/catalog";
 import { unitPriceOf, lineTotal } from "@/lib/pricing";
+import { aiComplete } from "@/lib/ai-provider.server";
 import { activePrompt, logLlmCall, type LlmUsage } from "@/lib/llm-log.server";
 import {
   MASS_LIMIT_KG,
