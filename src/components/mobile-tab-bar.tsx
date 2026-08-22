@@ -1,5 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Home, LayoutGrid, ShoppingCart, Sparkles, UserRound } from "lucide-react";
+import { useEffect } from "react";
 import { useCart } from "@/store/cart-store";
 
 /**
@@ -8,6 +9,24 @@ import { useCart } from "@/store/cart-store";
  * На десктопе скрыта — там работает обычная шапка.
  */
 export function MobileTabBar() {
+  // Виртуальная клавиатура: помечаем body, чтобы липкие панели не «скакали».
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const sync = () => {
+      const hidden = window.innerHeight - vv.height - vv.offsetTop;
+      document.body.classList.toggle("kb-open", hidden > 140);
+    };
+    sync();
+    vv.addEventListener("resize", sync);
+    vv.addEventListener("scroll", sync);
+    return () => {
+      vv.removeEventListener("resize", sync);
+      vv.removeEventListener("scroll", sync);
+      document.body.classList.remove("kb-open");
+    };
+  }, []);
+
   const location = useLocation();
   const lines = useCart((s) => s.lines);
   const count = lines.length;
