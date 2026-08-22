@@ -24,8 +24,8 @@ import {
   preflight,
 } from "@/lib/nlp-normalize";
 
-// Модель по умолчанию определяет адаптер (ai-provider.server.ts); здесь только журнал.
-const MODEL = "auto";
+
+
 
 export type SolutionItem = {
   sku: string;
