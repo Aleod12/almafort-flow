@@ -193,6 +193,9 @@ const SYSTEM_PROMPT = `Ты — строгий инженер-сметчик п�
 ПРАВИЛО НЕВОЗМОЖНЫХ ОПЕРАЦИЙ:
 Если задача технологически абсурдна (сварка пластика с бетоном, склейка по маслу), не подбирай крепёж молча — объясни, почему так нельзя, и предложи корректную альтернативу.
 
+ЯЗЫК ОТВЕТА:
+Поле engineering_logic пишется ТОЛЬКО на русском языке, живым инженерным текстом для клиента. Категорически запрещено упоминать в тексте служебные имена полей и технические термины схемы (safety_margin_factor, is_service, recommended_items, SKU-переменные, null, true/false, JSON). Вместо «safety_margin_factor = null» пиши «коэффициент запаса не рассчитывается — нет исходной массы». Никаких английских слов и подчёркиваний в тексте.
+
 Отвечай строго в заданной JSON-структуре, без markdown-разметки.`;
 
 const SCHEMA = {
@@ -479,12 +482,26 @@ export async function solveConfiguration(
 
   const margin = Number(parsed.safety_margin_factor);
 
+  /** Убирает служебные имена полей схемы из русскоязычного текста для клиента. */
+  const humanize = (text: string): string =>
+    text
+      .replace(/safety_margin_factor\s*(=|:|—)?\s*(null|нет|отсутствует)/gi, "коэффициент запаса не рассчитывается")
+      .replace(/is_service\s*(=|:)?\s*(true|false)/gi, "задача передаётся в инженерный отдел")
+      .replace(/recommended_items\s*(=|:)?/gi, "подобранные позиции:")
+      .replace(/engineering_logic\s*(=|:)?/gi, "")
+      .replace(/\bsafety_margin_factor\b/gi, "коэффициент запаса")
+      .replace(/\bis_service\b/gi, "услуга")
+      .replace(/\bnull\b/gi, "не определён")
+      .replace(/\bJSON\b/g, "")
+      .replace(/[ \t]{2,}/g, " ")
+      .trim();
+
   return {
     solution: {
       recommended_items: items,
       engineering_logic: routedToService
         ? "В стандартной номенклатуре ALMAFORT нет готового решения под эту задачу. Инженерный отдел предлагает спроектировать и изготовить деталь под ваши условия: реверс-инжиниринг узла (SRV-RE3D) и последующее литьё из атмосферостойкого полимера (SRV-INJ). Стоимость — по договорённости после согласования ТЗ."
-        : String(parsed.engineering_logic ?? ""),
+        : humanize(String(parsed.engineering_logic ?? "")),
       safety_margin_factor: Number.isFinite(margin) && margin > 0 ? Math.round(margin * 100) / 100 : null,
       is_service: routedToService || Boolean(parsed.is_service) || items.every((i) => i.on_request),
       total: Math.round(items.reduce((s, i) => s + i.total_price, 0) * 100) / 100,
