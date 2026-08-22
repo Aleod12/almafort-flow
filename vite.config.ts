@@ -79,6 +79,7 @@ export default defineConfig({
         }
       : {}),
     plugins: [
+      localAssetsPlugin,
       VitePWA({
         strategies: "generateSW",
         registerType: "autoUpdate",
