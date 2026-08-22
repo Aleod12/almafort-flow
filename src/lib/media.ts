@@ -8,6 +8,8 @@
  * Все файлы продублированы в `public/media/<file>` и раздаются самим сервером,
  * так что достаточно переписать путь на локальный.
  */
+export function mediaUrl(src: string): string;
+export function mediaUrl(src?: string | null): string | undefined;
 export function mediaUrl(src?: string | null): string | undefined {
   if (!src) return undefined;
   if (src.startsWith("/__l5e/")) {
