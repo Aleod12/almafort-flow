@@ -34,10 +34,12 @@ export default defineConfig({
       }
     : {}),
   tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
-    server: { entry: "server" },
+    // SSR полностью отключён: приложение собирается как чистый SPA.
+    // Сервер остаётся только для server functions и /api-маршрутов,
+    // React-дерево страниц на сервере не рендерится (нет _ssr-рендера роутов).
+    spa: { enabled: true },
   },
+
 
   vite: {
     ...(!isLovableBuild && selfHostPreset
@@ -59,6 +61,25 @@ export default defineConfig({
         }
       : {}),
     plugins: [
+      // SPA-режим прогоняет shell через preview-server, который ждёт
+      // dist/server/server.js, тогда как Nitro пишет index.mjs.
+      // Кладём тонкий шим, чтобы шаг пререндера shell отработал.
+      {
+        name: "almafort:spa-preview-entry-shim",
+        enforce: "post" as const,
+        async closeBundle() {
+          const { existsSync, writeFileSync } = await import("node:fs");
+          const dir = "dist/server";
+          if (existsSync(`${dir}/index.mjs`) && !existsSync(`${dir}/server.js`)) {
+            writeFileSync(
+              `${dir}/server.js`,
+              "export { default } from './index.mjs';\nexport * from './index.mjs';\n",
+            );
+          }
+        },
+      },
+
+
 
 
       VitePWA({
@@ -74,6 +95,8 @@ export default defineConfig({
 
         workbox: {
           globPatterns: ["**/*.{js,css,woff2,png,svg,webp,ico}"],
+          // SPA-бандл содержит тяжёлые чанки (3D-вьюер, pdfmake) — поднимаем лимит.
+          maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
           navigateFallback: null,
           navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
           cleanupOutdatedCaches: true,
