@@ -15,14 +15,68 @@ const selfHostPreset =
   process.env["NITRO_PRESET"] ||
   (process.env["DEPLOY_TARGET"] === "vps" ? "node-server" : undefined);
 
+// Vite 8/Rolldown может удалить декларацию __exportAll при tree-shaking тяжёлых
+// графов реэкспортов (Three/pdfmake/xlsx), оставив обращения к ней в SSR-чанках.
+// Для VPS отключаем tree-shaking именно в production-сборке: noExternal здесь
+// не помогает, потому что Nitro уже бандлит эти пакеты в .output/server/_libs.
+const ssrOutput = {
+  format: "es",
+  interop: "auto",
+  esModule: true,
+  generatedCode: { constBindings: true, symbols: false },
+  hoistTransitiveImports: false,
+} as const;
+
 export default defineConfig({
   ...(!isLovableBuild && selfHostPreset
     ? {
         nitro: { preset: selfHostPreset } as const,
       }
     : {}),
+  tanstackStart: {
+    // SSR включён: общедоступные маршруты рендерятся на сервере.
+    // Тяжёлые браузерные пакеты (Three.js) изолированы через ClientOnly.
+    ssr: true,
+  },
+
   vite: {
+    ...(!isLovableBuild && selfHostPreset
+      ? {
+          build: {
+            rollupOptions: { treeshake: false as const },
+          },
+          environments: {
+            ssr: {
+              build: {
+                minify: false as const,
+                rollupOptions: {
+                  treeshake: false as const,
+                  output: ssrOutput,
+                },
+              },
+            },
+          },
+        }
+      : {}),
     plugins: [
+      // SPA-режим прогоняет shell через preview-server, который ждёт
+      // dist/server/server.js, тогда как Nitro пишет index.mjs.
+      // Кладём тонкий шим, чтобы шаг пререндера shell отработал.
+      {
+        name: "almafort:spa-preview-entry-shim",
+        enforce: "post" as const,
+        async closeBundle() {
+          const { existsSync, writeFileSync } = await import("node:fs");
+          const dir = "dist/server";
+          if (existsSync(`${dir}/index.mjs`) && !existsSync(`${dir}/server.js`)) {
+            writeFileSync(
+              `${dir}/server.js`,
+              "export { default } from './index.mjs';\nexport * from './index.mjs';\n",
+            );
+          }
+        },
+      },
+
       VitePWA({
         strategies: "generateSW",
         registerType: "autoUpdate",
@@ -36,7 +90,8 @@ export default defineConfig({
 
         workbox: {
           globPatterns: ["**/*.{js,css,woff2,png,svg,webp,ico}"],
-          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+          // SPA-бандл содержит тяжёлые чанки (3D-вьюер, pdfmake) — поднимаем лимит.
+          maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
           navigateFallback: null,
           navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
           cleanupOutdatedCaches: true,
