@@ -220,83 +220,11 @@ const SCHEMA = {
   required: ["recommended_items", "engineering_logic", "safety_margin_factor", "is_service"],
 } as const;
 
-/** Собирает ответ LLM из SSE-потока /v1/responses вместе с расходом токенов. */
-async function streamResponsesText(
-  body: unknown,
-  apiKey: string,
-): Promise<{ text: string; usage: LlmUsage }> {
-  // Жёсткий таймаут: нерешаемая задача не должна держать воркер бесконечно.
-  const AI_TIMEOUT_MS = 15_000;
-  let res: Response;
-  try {
-    res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Lovable-API-Key": apiKey,
-        "X-Lovable-AIG-SDK": "fetch",
-      },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(AI_TIMEOUT_MS),
-    });
-  } catch (e) {
-    const aborted = e instanceof DOMException && e.name === "TimeoutError";
-    if (aborted || (e as Error)?.name === "TimeoutError" || (e as Error)?.name === "AbortError") {
-      throw new Error(
-        "Анализ занимает слишком много времени. Упростите запрос или обратитесь к менеджеру.",
-      );
-    }
-    throw new Error("Сервис конфигуратора временно недоступен. Повторите через минуту.");
-  }
+/**
+ * Вызов LLM идёт через адаптер src/lib/ai-provider.server.ts: провайдер
+ * (Lovable / OpenAI / Gemini / кастомный шлюз) и Base URL задаются в .env.
+ */
 
-  if (!res.ok || !res.body) {
-    const detail = await res.text().catch(() => "");
-    console.error(`[configurator] gateway ${res.status}: ${detail}`);
-    if (res.status === 429) throw new Error("Слишком много запросов к ИИ. Повторите через минуту.");
-    if (res.status === 402) throw new Error("Исчерпан лимит ИИ-запросов. Пополните баланс.");
-    throw new Error(`Сервис конфигуратора недоступен [${res.status}]`);
-  }
-
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  let text = "";
-  const usage: LlmUsage = { prompt_tokens: 0, completion_tokens: 0 };
-
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
-    for (const line of lines) {
-      if (!line.startsWith("data:")) continue;
-      const payload = line.slice(5).trim();
-      if (!payload || payload === "[DONE]") continue;
-      try {
-        const event = JSON.parse(payload) as {
-          type?: string;
-          delta?: string;
-          response?: {
-            output_text?: string;
-            usage?: { input_tokens?: number; output_tokens?: number };
-          };
-        };
-        if (event.type === "response.output_text.delta" && typeof event.delta === "string") {
-          text += event.delta;
-        } else if (event.type === "response.completed") {
-          if (!text) text = event.response?.output_text ?? "";
-          usage.prompt_tokens = event.response?.usage?.input_tokens ?? usage.prompt_tokens;
-          usage.completion_tokens = event.response?.usage?.output_tokens ?? usage.completion_tokens;
-        }
-      } catch {
-        /* фрагмент SSE — пропускаем */
-      }
-    }
-  }
-
-  return { text: text.trim(), usage };
-}
 
 /** Каталог для системного контекста: артикул, габарит, все тиры цен и остаток. */
 function catalogContext() {
