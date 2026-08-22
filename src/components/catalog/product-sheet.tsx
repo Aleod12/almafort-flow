@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { ClientOnly } from "@tanstack/react-router";
 import { Download, FileText, Layers, Ruler, Truck } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { Product } from "@/data/catalog";
@@ -145,18 +146,14 @@ export function ProductSheet({
 
             <div className="grid gap-8 lg:grid-cols-2">
               <div>
-                <Suspense
-                  fallback={
-                    <div className="grid h-72 place-items-center rounded-lg bg-surface font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Инициализация WebGL...
-                    </div>
-                  }
-                >
-                  <CadViewer
-                    glbUrl={product.engineering_assets.model_glb_url}
-                    category={product.category}
-                  />
-                </Suspense>
+                <ClientOnly fallback={<CadViewerPlaceholder />}>
+                  <Suspense fallback={<CadViewerPlaceholder />}>
+                    <CadViewer
+                      glbUrl={product.engineering_assets.model_glb_url}
+                      category={product.category}
+                    />
+                  </Suspense>
+                </ClientOnly>
                 <p className="mt-3 text-xs text-muted-foreground">
                   Модель сжата Draco · вращение мышью, зум колесом. Геометрия совпадает с
                   отливкой артикула {product.sku}.
@@ -309,5 +306,13 @@ export function ProductSheet({
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function CadViewerPlaceholder() {
+  return (
+    <div className="grid h-72 place-items-center rounded-lg bg-surface font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+      Инициализация WebGL...
+    </div>
   );
 }
