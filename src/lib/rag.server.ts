@@ -331,8 +331,8 @@ export async function solveConfiguration(
     );
   }
 
-  const apiKey = process.env["LOVABLE_API_KEY"];
-  if (!apiKey) throw new Error("Конфигуратор не сконфигурирован");
+  // Ключи и точка входа резолвятся в адаптере: без них уйдём в ручной режим.
+
 
   const chunks = retrieve(query);
   const context = chunks.map((c) => `### ${c.title}\n${c.text}`).join("\n\n");
