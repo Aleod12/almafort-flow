@@ -82,50 +82,32 @@ export async function logVisionFail(imageDataUrl: string, verdict: VisionVerdict
 }
 
 export async function identifyPart(imageDataUrl: string): Promise<VisionVerdict> {
-  const apiKey = process.env["LOVABLE_API_KEY"];
-  if (!apiKey) throw new Error("LOVABLE_API_KEY не сконфигурирован");
-
   const system = (await activePrompt("vision")) ?? SYSTEM_PROMPT;
 
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [
-        { role: "system", content: system },
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Классифицируй объект на фото." },
-            { type: "image_url", image_url: { url: imageDataUrl } },
-          ],
-        },
+  let completion;
+  try {
+    completion = await aiComplete({
+      task: "vision",
+      system,
+      content: [
+        { type: "text", text: "Классифицируй объект на фото." },
+        { type: "image_url", image_url: { url: imageDataUrl } },
       ],
-    }),
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    console.error(`Vision gateway failed [${res.status}]: ${body}`);
+      timeoutMs: 25_000,
+    });
+  } catch (e) {
     void logLlmCall({
       kind: "vision",
       prompt: system,
-      response: body,
+      response: e instanceof Error ? e.message : "unknown",
       parseStatus: "api_error",
       model: MODEL,
       usage: { prompt_tokens: 0, completion_tokens: 0 },
     });
-    if (res.status === 429) throw new Error("Слишком много запросов — попробуйте через минуту");
-    if (res.status === 402) throw new Error("Лимит ИИ-распознавания исчерпан");
-    throw new Error(`Сервис распознавания недоступен [${res.status}]`);
+    throw e;
   }
 
-  const json = (await res.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-    usage?: { prompt_tokens?: number; completion_tokens?: number };
-  };
-  const raw = json.choices?.[0]?.message?.content ?? "";
+  const raw = completion.text;
   const cleaned = raw.replace(/```json|```/g, "").trim();
   const match = cleaned.match(/\{[\s\S]*\}/);
 
@@ -142,12 +124,10 @@ export async function identifyPart(imageDataUrl: string): Promise<VisionVerdict>
     prompt: system,
     response: raw,
     parseStatus,
-    model: MODEL,
-    usage: {
-      prompt_tokens: json.usage?.prompt_tokens ?? 0,
-      completion_tokens: json.usage?.completion_tokens ?? 0,
-    },
+    model: completion.model,
+    usage: completion.usage,
   });
+
 
   const rawStatus = String(parsed.status ?? "").toUpperCase();
   const status: VisionStatus =
