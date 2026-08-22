@@ -782,7 +782,10 @@ export const adminLinkAssetGroup = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireRole(context.supabase, context.userId, ["owner", "content"]);
-    const { data: gid, error } = await context.supabase.rpc("link_asset_group", {
+    // EXECUTE на link_asset_group отозван у роли authenticated: вызов идёт
+    // только с сервера после проверки роли выше.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: gid, error } = await supabaseAdmin.rpc("link_asset_group", {
       _slug: data.slug,
       _title: data.title,
       _description: data.description,
