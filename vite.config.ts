@@ -15,10 +15,10 @@ const selfHostPreset =
   process.env["NITRO_PRESET"] ||
   (process.env["DEPLOY_TARGET"] === "vps" ? "node-server" : undefined);
 
-// Nitro/rolldown при ESM-бандлинге генерирует хелпер __exportAll для `export *`.
-// При минификации серверного бандла он может быть переименован/вырезан —
-// в рантайме это даёт "TypeError: __exportAll is not a function".
-// Отключаем минификацию серверного бандла и фиксируем ESM-вывод с явным interop.
+// Vite 8/Rolldown может удалить декларацию __exportAll при tree-shaking тяжёлых
+// графов реэкспортов (Three/pdfmake/xlsx), оставив обращения к ней в SSR-чанках.
+// Для VPS отключаем tree-shaking именно в production-сборке: noExternal здесь
+// не помогает, потому что Nitro уже бандлит эти пакеты в .output/server/_libs.
 const ssrOutput = {
   format: "es",
   interop: "auto",
@@ -42,11 +42,17 @@ export default defineConfig({
   vite: {
     ...(!isLovableBuild && selfHostPreset
       ? {
+          build: {
+            rollupOptions: { treeshake: false as const },
+          },
           environments: {
             ssr: {
               build: {
                 minify: false as const,
-                rollupOptions: { output: ssrOutput },
+                rollupOptions: {
+                  treeshake: false as const,
+                  output: ssrOutput,
+                },
               },
             },
           },
