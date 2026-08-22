@@ -1,4 +1,5 @@
 import { useState, type ImgHTMLAttributes } from "react";
+import { mediaUrl } from "@/lib/media";
 
 /**
  * Картинка с аккуратной заглушкой ALMAFORT вместо «битой иконки» браузера:
