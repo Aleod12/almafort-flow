@@ -6,7 +6,7 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { VitePWA } from "vite-plugin-pwa";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 /**
  * Ассеты `*.asset.json` ссылаются на CDN Lovable (`/__l5e/assets-v1/...`),
@@ -18,11 +18,16 @@ const localAssetsPlugin = {
   enforce: "pre" as const,
   load(id: string) {
     const file = id.split("?")[0] ?? "";
-    if (!file.endsWith(".asset.json")) return null;
-    const json = JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
-    const name = String(json["original_filename"] ?? "");
-    if (name) json["url"] = `/media/${name}`;
-    return `export default ${JSON.stringify(json)};`;
+    if (!file.endsWith(".asset.json") || !existsSync(file)) return null;
+    try {
+      const json = JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
+      const name = String(json["original_filename"] ?? "");
+      if (name) json["url"] = `/media/${name}`;
+      // Отдаём JSON — дальше его штатно обрабатывает vite:json.
+      return JSON.stringify(json);
+    } catch {
+      return null;
+    }
   },
 };
 
