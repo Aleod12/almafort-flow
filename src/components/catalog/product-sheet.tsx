@@ -147,12 +147,12 @@ export function ProductSheet({
             <div className="grid gap-8 lg:grid-cols-2">
               <div>
                 <ClientOnly fallback={<CadViewerPlaceholder />}>
-                  <Suspense fallback={<CadViewerPlaceholder />}>
+                  <ClientOnly fallback={<div className="grid h-72 place-items-center rounded-lg bg-surface font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Инициализация WebGL...</div>}><Suspense fallback={<CadViewerPlaceholder />}>
                     <CadViewer
                       glbUrl={product.engineering_assets.model_glb_url}
                       category={product.category}
                     />
-                  </Suspense>
+                  </Suspense></ClientOnly>
                 </ClientOnly>
                 <p className="mt-3 text-xs text-muted-foreground">
                   Модель сжата Draco · вращение мышью, зум колесом. Геометрия совпадает с
