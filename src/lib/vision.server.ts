@@ -2,6 +2,7 @@
 // Стадии: 1) кроп по рамке и отсев рук/органики, 2) классификация мультимодальной LLM,
 // 3) маршрутизация по Confidence Score (см. src/routes/api/vision/identify.ts).
 import { PRODUCTS, type Product } from "@/data/catalog";
+import { aiComplete } from "@/lib/ai-provider.server";
 import { activePrompt, logLlmCall } from "@/lib/llm-log.server";
 import { uploadObject } from "@/lib/s3.server";
 
