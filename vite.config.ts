@@ -30,11 +30,7 @@ const ssrOutput = {
 export default defineConfig({
   ...(!isLovableBuild && selfHostPreset
     ? {
-        nitro: {
-          preset: selfHostPreset,
-          minify: false,
-          rollupConfig: { output: ssrOutput },
-        } as const,
+        nitro: { preset: selfHostPreset } as const,
       }
     : {}),
   tanstackStart: {
