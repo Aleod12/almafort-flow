@@ -79,6 +79,8 @@ export default defineConfig({
 
         workbox: {
           globPatterns: ["**/*.{js,css,woff2,png,svg,webp,ico}"],
+          // SPA-бандл содержит тяжёлые чанки (3D-вьюер, pdfmake) — поднимаем лимит.
+          maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
           navigateFallback: null,
           navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
           cleanupOutdatedCaches: true,
