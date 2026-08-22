@@ -683,3 +683,11 @@ button:disabled,
     min-width: 744px;
   }
 }
+
+/* Плавающая «пилюля» над таббаром — с воздухом */
+.above-tabbar-float {
+  bottom: calc(var(--tabbar-total) + 0.75rem);
+}
+body.kb-open .above-tabbar-float {
+  bottom: 0.75rem;
+}
