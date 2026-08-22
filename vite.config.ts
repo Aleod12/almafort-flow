@@ -34,12 +34,10 @@ export default defineConfig({
       }
     : {}),
   tanstackStart: {
-    // SSR полностью отключён: приложение собирается как чистый SPA.
-    // Сервер остаётся только для server functions и /api-маршрутов,
-    // React-дерево страниц на сервере не рендерится (нет _ssr-рендера роутов).
-    spa: { enabled: true },
+    // SSR включён: общедоступные маршруты рендерятся на сервере.
+    // Тяжёлые браузерные пакеты (Three.js) изолированы через ClientOnly.
+    ssr: true,
   },
-
 
   vite: {
     ...(!isLovableBuild && selfHostPreset
@@ -78,9 +76,6 @@ export default defineConfig({
           }
         },
       },
-
-
-
 
       VitePWA({
         strategies: "generateSW",

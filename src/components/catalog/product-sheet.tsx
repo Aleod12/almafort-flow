@@ -1,4 +1,6 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentType } from "react";
+import { ClientOnly } from "@tanstack/react-router";
+import { createClientOnlyFn } from "@tanstack/react-start";
 import { Download, FileText, Layers, Ruler, Truck } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { Product } from "@/data/catalog";
@@ -8,9 +10,12 @@ import { BulkRequestDialog } from "@/components/catalog/bulk-request-dialog";
 import { useAssetGroups } from "@/lib/asset-groups";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { ShippingQuote } from "@/lib/logistics";
+type CadViewerProps = { glbUrl: string | null; category: string };
 
-
-const CadViewer = lazy(() => import("@/components/catalog/cad-viewer"));
+const loadCadViewer = createClientOnlyFn(async () => {
+  const module = await import("@/components/catalog/cad-viewer");
+  return module.default as ComponentType<CadViewerProps>;
+});
 
 export function ProductSheet({
   product,
@@ -26,14 +31,23 @@ export function ProductSheet({
   const assets = useAssetGroups();
   const assetGroup = product ? assets.get(product.sku) : undefined;
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [CadViewer, setCadViewer] = useState<ComponentType<CadViewerProps> | null>(null);
 
-  // Просмотр карточки — событие view_item для e-commerce отчётов Метрики.
+  useEffect(() => {
+    let active = true;
+    void loadCadViewer().then((Viewer) => {
+      if (active) setCadViewer(() => Viewer);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   useEffect(() => {
     if (!product) return;
     trackViewItem({ sku: product.sku, name: product.name, price: product.price });
   }, [product]);
 
-  // Debounce: ручной ввод города не должен спамить API ТК.
   const debouncedCity = useDebounce(city.city, 600);
 
   const parcel = useMemo(
@@ -51,7 +65,6 @@ export function ProductSheet({
       setCalcState("idle");
       return;
     }
-    // Старые цены исчезают сразу — клиент видит, что система считает.
     setQuotes([]);
     if (typeof navigator !== "undefined" && navigator.onLine === false) {
       setCalcState("failed");
@@ -59,7 +72,6 @@ export function ProductSheet({
     }
     setCalcState("loading");
     const ctrl = new AbortController();
-    // Отказоустойчивость: молчание ТК дольше 3 с — расчёт уточнит менеджер.
     const timer = setTimeout(() => ctrl.abort(), 3000);
     (async () => {
       try {
@@ -89,7 +101,6 @@ export function ProductSheet({
   }, [debouncedCity, city.fiasId, parcel, product]);
 
   const logistics = quotes;
-
 
   const jsonLd = product
     ? {
@@ -145,18 +156,16 @@ export function ProductSheet({
 
             <div className="grid gap-8 lg:grid-cols-2">
               <div>
-                <Suspense
-                  fallback={
-                    <div className="grid h-72 place-items-center rounded-lg bg-surface font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Инициализация WebGL...
-                    </div>
-                  }
-                >
-                  <CadViewer
-                    glbUrl={product.engineering_assets.model_glb_url}
-                    category={product.category}
-                  />
-                </Suspense>
+                <ClientOnly fallback={<CadViewerPlaceholder />}>
+                  {CadViewer ? (
+                    <CadViewer
+                      glbUrl={product.engineering_assets.model_glb_url}
+                      category={product.category}
+                    />
+                  ) : (
+                    <CadViewerPlaceholder />
+                  )}
+                </ClientOnly>
                 <p className="mt-3 text-xs text-muted-foreground">
                   Модель сжата Draco · вращение мышью, зум колесом. Геометрия совпадает с
                   отливкой артикула {product.sku}.
@@ -190,7 +199,6 @@ export function ProductSheet({
                     {assetGroup.description}
                   </p>
                 )}
-
 
                 <div className="mt-6 space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -291,7 +299,6 @@ export function ProductSheet({
                   Запросить спец. условия на партию от{" "}
                   {(product.tier2Qty || 50000).toLocaleString("ru-RU")} шт →
                 </button>
-
               </div>
             </div>
 
@@ -309,5 +316,13 @@ export function ProductSheet({
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function CadViewerPlaceholder() {
+  return (
+    <div className="grid h-72 place-items-center rounded-lg bg-surface font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+      Инициализация WebGL...
+    </div>
   );
 }

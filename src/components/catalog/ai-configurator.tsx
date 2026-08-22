@@ -5,7 +5,7 @@ import { useCart } from "@/store/cart-store";
 import { PRODUCTS, isOnRequest, tierOf } from "@/data/catalog";
 import { unitPriceOf, lineTotal, formatPrice } from "@/lib/pricing";
 import { ProductThumb } from "@/components/catalog/product-thumb";
-import { generateSpecPdf } from "@/lib/spec-pdf";
+import { generateSpecPdfInBrowser } from "@/lib/pdf-browser";
 
 type SolutionItem = {
   sku: string;
@@ -302,7 +302,7 @@ export function AiConfigurator() {
 
   const downloadPdf = async () => {
     try {
-      await generateSpecPdf({
+      await generateSpecPdfInBrowser({
         task: query || "Подбор узла",
         logic: result?.solution.engineering_logic ?? "",
         safety: result?.solution.safety_margin_factor ?? null,
