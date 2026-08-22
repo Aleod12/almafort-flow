@@ -61,6 +61,25 @@ export default defineConfig({
         }
       : {}),
     plugins: [
+      // SPA-режим прогоняет shell через preview-server, который ждёт
+      // dist/server/server.js, тогда как Nitro пишет index.mjs.
+      // Кладём тонкий шим, чтобы шаг пререндера shell отработал.
+      {
+        name: "almafort:spa-preview-entry-shim",
+        enforce: "post" as const,
+        async closeBundle() {
+          const { existsSync, writeFileSync } = await import("node:fs");
+          const dir = "dist/server";
+          if (existsSync(`${dir}/index.mjs`) && !existsSync(`${dir}/server.js`)) {
+            writeFileSync(
+              `${dir}/server.js`,
+              "export { default } from './index.mjs';\nexport * from './index.mjs';\n",
+            );
+          }
+        },
+      },
+
+
 
 
       VitePWA({
