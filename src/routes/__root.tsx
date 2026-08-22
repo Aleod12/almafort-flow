@@ -122,6 +122,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
   }),
 
+  // Чистый SPA: ни один маршрут не рендерится и не грузится на сервере.
+  ssr: false,
+
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
