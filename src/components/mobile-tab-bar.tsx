@@ -1,5 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Home, LayoutGrid, ShoppingCart, Sparkles, UserRound } from "lucide-react";
+import { useEffect } from "react";
 import { useCart } from "@/store/cart-store";
 
 /**
@@ -8,6 +9,24 @@ import { useCart } from "@/store/cart-store";
  * На десктопе скрыта — там работает обычная шапка.
  */
 export function MobileTabBar() {
+  // Виртуальная клавиатура: помечаем body, чтобы липкие панели не «скакали».
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const sync = () => {
+      const hidden = window.innerHeight - vv.height - vv.offsetTop;
+      document.body.classList.toggle("kb-open", hidden > 140);
+    };
+    sync();
+    vv.addEventListener("resize", sync);
+    vv.addEventListener("scroll", sync);
+    return () => {
+      vv.removeEventListener("resize", sync);
+      vv.removeEventListener("scroll", sync);
+      document.body.classList.remove("kb-open");
+    };
+  }, []);
+
   const location = useLocation();
   const lines = useCart((s) => s.lines);
   const count = lines.length;
@@ -24,7 +43,7 @@ export function MobileTabBar() {
   return (
     <nav
       aria-label="Основная навигация"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/95 backdrop-blur md:hidden"
+      className="mobile-tabbar fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 backdrop-blur md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="mx-auto flex h-16 max-w-[560px] items-stretch justify-between px-1">

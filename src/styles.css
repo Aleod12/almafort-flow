@@ -417,17 +417,39 @@ summary {
 
 :root {
   --tabbar-h: 4rem;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  /* Полная высота нижней навигации вместе с safe-area — единый источник правды */
+  --tabbar-total: calc(var(--tabbar-h) + var(--safe-b));
+}
+
+/* На десктопе таббара нет — обнуляем отступы */
+@media (min-width: 768px) {
+  :root {
+    --tabbar-total: 0px;
+  }
 }
 
 /* Контент не должен прятаться под нижней панелью навигации */
 @media (max-width: 767px) {
   body {
-    padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--tabbar-total) + 4rem);
   }
-  /* Липкие блоки внутри страниц поднимаются над панелью */
+  /* Липкие блоки внутри страниц приклеены строго НАД панелью */
   .above-tabbar {
-    bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 0.5rem);
+    bottom: var(--tabbar-total);
   }
+}
+
+/* Виртуальная клавиатура: таббар прячется, липкий CTA садится на низ вьюпорта */
+body.kb-open .mobile-tabbar {
+  transform: translateY(110%);
+  pointer-events: none;
+}
+body.kb-open .above-tabbar {
+  bottom: 0;
+}
+.mobile-tabbar {
+  transition: transform 0.18s ease-out;
 }
 
 /* Учитываем «чёлку» / Dynamic Island у липкой шапки */
@@ -660,4 +682,12 @@ button:disabled,
   .cart-table-scroll > * {
     min-width: 744px;
   }
+}
+
+/* Плавающая «пилюля» над таббаром — с воздухом */
+.above-tabbar-float {
+  bottom: calc(var(--tabbar-total) + 0.75rem);
+}
+body.kb-open .above-tabbar-float {
+  bottom: 0.75rem;
 }
