@@ -11,7 +11,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import type { ShippingQuote } from "@/lib/logistics";
 
 
-const CadViewer = lazy(() => import("@/components/catalog/cad-viewer"));
+const CadViewer = lazy(() => typeof window !== "undefined" ? import("@/components/catalog/cad-viewer") : Promise.resolve({ default: () => null }));
 
 export function ProductSheet({
   product,
