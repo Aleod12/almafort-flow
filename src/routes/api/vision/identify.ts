@@ -122,8 +122,19 @@ export const Route = createFileRoute("/api/vision/identify")({
         } catch (e) {
           const message = e instanceof Error ? e.message : "Ошибка распознавания";
           console.error("[vision]", message);
-          return Response.json({ error: message }, { status: 502 });
+          // Ключи ИИ не заданы или шлюз недоступен — камера уходит в ручной режим.
+          const unavailable = (e as { fallback?: boolean })?.fallback === true;
+          return Response.json(
+            {
+              error: unavailable
+                ? "Сервис временно недоступен. Найдите деталь в каталоге вручную или отправьте фото менеджеру."
+                : message,
+              fallback: unavailable,
+            },
+            { status: unavailable ? 503 : 502 },
+          );
         }
+
       },
     },
   },
