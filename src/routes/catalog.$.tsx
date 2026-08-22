@@ -57,7 +57,7 @@ export const Route = createFileRoute("/catalog/$")({
     const single = items.length === 1 ? items[0] : undefined;
     const image =
       single && !single.is_service
-        ? `${SITE_URL}/assets/images/${single.sku.toLowerCase()}.webp`
+        ? `${SITE_URL}/icons/icon-512.png`
         : `${SITE_URL}/og/catalog.jpg`;
     return {
       meta: [
