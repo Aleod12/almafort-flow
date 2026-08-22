@@ -482,6 +482,20 @@ export async function solveConfiguration(
 
   const margin = Number(parsed.safety_margin_factor);
 
+  /** Убирает служебные имена полей схемы из русскоязычного текста для клиента. */
+  const humanize = (text: string): string =>
+    text
+      .replace(/safety_margin_factor\s*(=|:|—)?\s*(null|нет|отсутствует)/gi, "коэффициент запаса не рассчитывается")
+      .replace(/is_service\s*(=|:)?\s*(true|false)/gi, "задача передаётся в инженерный отдел")
+      .replace(/recommended_items\s*(=|:)?/gi, "подобранные позиции:")
+      .replace(/engineering_logic\s*(=|:)?/gi, "")
+      .replace(/\bsafety_margin_factor\b/gi, "коэффициент запаса")
+      .replace(/\bis_service\b/gi, "услуга")
+      .replace(/\bnull\b/gi, "не определён")
+      .replace(/\bJSON\b/g, "")
+      .replace(/[ \t]{2,}/g, " ")
+      .trim();
+
   return {
     solution: {
       recommended_items: items,
