@@ -44,7 +44,18 @@ export default defineConfig({
   },
 
   vite: {
+    ...(!isLovableBuild && selfHostPreset
+      ? {
+          builder: undefined,
+          ssr: { target: "node" as const },
+          build: {
+            minify: false as const,
+            rollupOptions: { output: ssrOutput },
+          },
+        }
+      : {}),
     plugins: [
+
       VitePWA({
         strategies: "generateSW",
         registerType: "autoUpdate",
