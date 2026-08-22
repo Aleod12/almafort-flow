@@ -171,7 +171,7 @@ export function productJsonLd(p: Product, url: string) {
     "@context": "https://schema.org/",
     "@type": "Product",
     name: p.name,
-    image: `${SITE_URL}/assets/images/${p.sku.toLowerCase()}.webp`,
+    image: `${SITE_URL}/icons/icon-512.png`,
     sku: p.sku,
     mpn: p.sku,
     brand: { "@type": "Brand", name: "ALMAFORT" },

@@ -6,6 +6,7 @@ import { Check, FileUp, Loader2, X } from "lucide-react";
 import { uploadToS3, validateFile } from "@/lib/direct-upload";
 import { getRecaptchaToken } from "@/lib/recaptcha";
 import { ConsentCheckbox } from "@/components/consent-checkbox";
+import { mediaUrl } from "@/lib/media";
 import engineeringAnalysisAsset from "@/assets/services/engineering-analysis.jpg.asset.json";
 
 type Upload = {
@@ -380,7 +381,7 @@ export function EngineeringQuiz() {
 
         <div className="relative min-h-[320px] overflow-hidden lg:col-span-5 lg:rounded-r-lg">
           <img
-            src={engineeringAnalysisAsset.url}
+            src={mediaUrl(engineeringAnalysisAsset.url)}
             alt="Инженерный анализ допусков, геометрии и смета на оснастку"
             loading="lazy"
             width={1200}
