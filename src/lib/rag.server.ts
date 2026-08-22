@@ -501,7 +501,7 @@ export async function solveConfiguration(
       recommended_items: items,
       engineering_logic: routedToService
         ? "В стандартной номенклатуре ALMAFORT нет готового решения под эту задачу. Инженерный отдел предлагает спроектировать и изготовить деталь под ваши условия: реверс-инжиниринг узла (SRV-RE3D) и последующее литьё из атмосферостойкого полимера (SRV-INJ). Стоимость — по договорённости после согласования ТЗ."
-        : String(parsed.engineering_logic ?? ""),
+        : humanize(String(parsed.engineering_logic ?? "")),
       safety_margin_factor: Number.isFinite(margin) && margin > 0 ? Math.round(margin * 100) / 100 : null,
       is_service: routedToService || Boolean(parsed.is_service) || items.every((i) => i.on_request),
       total: Math.round(items.reduce((s, i) => s + i.total_price, 0) * 100) / 100,
