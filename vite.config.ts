@@ -23,8 +23,7 @@ const localAssetsPlugin = {
       const json = JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
       const name = String(json["original_filename"] ?? "");
       if (name) json["url"] = `/media/${name}`;
-      // Отдаём JSON — дальше его штатно обрабатывает vite:json.
-      return JSON.stringify(json);
+      return { code: `export default ${JSON.stringify(json)};`, moduleType: "js" };
     } catch {
       return null;
     }
